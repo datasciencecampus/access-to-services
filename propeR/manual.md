@@ -155,7 +155,7 @@ Where `gtfs.dir` is the directory where the GTFS ZIP folder is located, and `gtf
 
 ### 1.3. Sample GTFS data
 
-The Data Science Campus as created some cleaned GTFS data for buses around [Cardiff, Wales](https://www.openstreetmap.org/#map=11/51.6700/-3.1600). This can be found on the propeR github page [here](https://github.com/datasciencecampus/propeR/tree/master/data/gtfs). This data was created using the steps above.
+The Data Science Campus as created some cleaned GTFS data for buses around [Cardiff, Wales](https://www.openstreetmap.org/#map=11/51.6700/-3.1600). This can be found on the propeR github page [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/gtfs). This data was created using the steps above.
 
 **Note**: _this GTFS may not contain the most recent timetables, it is only designed as a practice set of GTFS data for use with the propeR tool. Some (but not most) services have end dates of 2018-08-15, 2018-09-02, 2018-10-31. Therefore, anlysing journeys after these dates will not include these services. Most services have an end date capped at 2020-01-01._
 <br/>
@@ -172,7 +172,7 @@ The Data Science Campus as created some cleaned GTFS data for buses around [Card
 3) Download the latest single stand-alone runnable .jar file of OpenTripPlanner [here](https://repo1.maven.org/maven2/org/opentripplanner/otp/). Choose the `-shaded.jar` file. Place this in the `otp` folder.
 4) Create a `graphs` folder in the `otp` folder.
 5) Create a `default` folder in the `graphs` folder.
-6) Put the GTFS ZIP folder(s) in the `default` folder along with the latest OpenStreetMap .osm data for your area, found [here](https://download.geofabrik.de/europe/great-britain/wales.html). If you're using the sample GTFS data, an .osm file for Cardiff can be found [here](https://github.com/datasciencecampus/propeR/tree/master/data/osm).
+6) Put the GTFS ZIP folder(s) in the `default` folder along with the latest OpenStreetMap .osm data for your area, found [here](https://download.geofabrik.de/europe/great-britain/wales.html). If you're using the sample GTFS data, an .osm file for Cardiff can be found [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/osm).
 7) Build the graph by using the following command line/terminal command whilst in the `otp` folder: 
 ```
 java -Xmx4G -jar otp-1.3.0-shaded.jar --build graphs/default
