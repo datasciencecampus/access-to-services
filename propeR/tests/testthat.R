@@ -1,0 +1,6 @@
+library(testthat)
+library(httr)
+library(propeR)
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+options(testthat.use_colours=F)
+test_check("propeR")
