@@ -9,7 +9,7 @@ choropleth(output.dir, otpcon, originPoints, originPolygons, destinationPoints,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
   walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
   wheelchair = F, arriveBy = F, durationCutoff = 60, waitingCutoff = 10,
-  transferCutoff = 1, palColor = "YlGn", mapZoom = 12)
+  transferCutoff = 1, palColor = "Blues", mapZoom = 12)
 }
 \arguments{
 \item{otpcon}{OTP router URL}
@@ -48,7 +48,7 @@ choropleth(output.dir, otpcon, originPoints, originPolygons, destinationPoints,
 
 \item{transferCutoff}{defaults to 1}
 
-\item{palColor}{the color palette of the map, defaults to 'YlGn'}
+\item{palColor}{the color palette of the map, defaults to 'Blues'}
 
 \item{mapZoom}{defaults to 12}
 }

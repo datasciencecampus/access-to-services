@@ -10,7 +10,7 @@ isochroneMultiIntersectSensitivity(output.dir, otpcon, originPoints,
   walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
   wheelchair = F, arriveBy = F, isochroneCutOffs = 60,
   timeSensitivity = 30, timeSensitivityStep = 5, palColorMarker = "Greys",
-  palColorPolygon = "Purple", mapZoom = 12)
+  palColorPolygon = "#6BAED6", mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -47,7 +47,7 @@ isochroneMultiIntersectSensitivity(output.dir, otpcon, originPoints,
 
 \item{timeSensitivityStep}{in minutes, defaults to 5}
 
-\item{palColorPolygon}{the color palette of the poygon, defaults to 'Purple'}
+\item{palColorPolygon}{the color palette of the poygon, defaults to 'Blue'}
 
 \item{mapZoom}{defaults to 12}
 

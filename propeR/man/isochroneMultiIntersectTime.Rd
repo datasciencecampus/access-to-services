@@ -10,7 +10,7 @@ isochroneMultiIntersectTime(output.dir, otpcon, originPoints, destinationPoints,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
   walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
   wheelchair = F, arriveBy = F, isochroneCutOffs = 60,
-  palColorMarker = "Greys", palColorPolygon = "Purple", mapZoom = 12)
+  palColorMarker = "Greys", palColorPolygon = "#6BAED6", mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -47,7 +47,7 @@ isochroneMultiIntersectTime(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{isochroneCutOffs}{in minutes, defaults to 60}
 
-\item{palColorPolygon}{the color palette of the poygon, defaults to 'Purple'}
+\item{palColorPolygon}{the color palette of the poygon, defaults to 'Blue'}
 
 \item{mapZoom}{defaults to 12}
 

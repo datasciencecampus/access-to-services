@@ -8,7 +8,7 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
   startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
   maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
   bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = c(30, 60, 90), palColor = "Purples",
+  arriveBy = F, isochroneCutOffs = c(30, 60, 90), palColor = "Blues",
   mapZoom = 12)
 }
 \arguments{
@@ -42,7 +42,7 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{isochroneCutOffs}{a list of cutoffs in minutes, defaults to c(30, 60, 90)}
 
-\item{palColor}{the color palette of the map, defaults to 'Purples'}
+\item{palColor}{the color palette of the map, defaults to 'Blues'}
 
 \item{mapZoom}{defaults to 12}
 }

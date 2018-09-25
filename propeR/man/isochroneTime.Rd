@@ -11,7 +11,7 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
   walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
   wheelchair = F, arriveBy = F, isochroneCutOffs = c(30, 60, 90),
-  palColor = "Purples", mapZoom = 12)
+  palColor = "Blues", mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -50,7 +50,7 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{isochroneCutOffs}{a list of cutoffs in minutes, defaults to c(30, 60, 90)}
 
-\item{palColor}{the color palette of the map, defaults to 'Purples'}
+\item{palColor}{the color palette of the map, defaults to 'Blues'}
 
 \item{mapZoom}{defaults to 12}
 }
