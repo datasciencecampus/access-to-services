@@ -1,6 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
+.DS_Store
 access-to-services.Rproj
 
 # Session Data files
