@@ -6,28 +6,28 @@ The purpose of this project is to develop a tool that uses open-source transport
 
 ## Research Questions
 Examples of research questions that were discussed with the Welsh Government and can potential be answered using the tool are:
-#### Access to services:
 
-1. What is the average return trip travel time to the nearest service, per LSOA?
+
+**Access to services:** What is the average return trip travel time to the nearest service, per LSOA?
  * using public transport
  * using private transport
  * using any transport
 
-#### The Valleys Taskforce:
-2. What is the proportion of people that can access a working place, per working age group per LSOA?
+
+**The Valleys Taskforce:** What is the proportion of people that can access a working place, per working age group per LSOA?
   * within 45 minutes
   * within a cost of £X
   * within X minutes of travel by any mode
 
-#### Cadw website:
-3. What is the access to Cadw properties from tourist accommodations in specific travel times?
+
+**Cadw website:** What is the access to Cadw properties from tourist accommodations in specific travel times?
   * list of accommodations accessed by public transport
   * list of accommodations accessed by private transport
   * number of beds accessed by public transport
   * number of beds accessed by private transport
 
-#### South Wales Metro programme:
-4. What are the benefits after the completion of Phase 2 of SWM programme in terms of:
+
+**South Wales Metro programme:** What are the benefits after the completion of Phase 2 of SWM programme in terms of:
   * total kilometres travelled by passengers using public transport
   * changes in the journey times, service intervals and transfers
   * rail and bus passengers
