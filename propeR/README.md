@@ -39,7 +39,7 @@ Then
 
 ```
 build("propeR_dir")
-install("propeR_dir"")
+install("propeR_dir")
 ```
 
 ## Using
