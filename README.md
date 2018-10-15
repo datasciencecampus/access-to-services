@@ -45,7 +45,7 @@ The different nature of the data formats and the difficulty of combining them un
 Once all the data is converted, we can use [OpenTripPlanner](http://www.opentripplanner.org/), an open-source network builder, to built the multimodal transport network and run queries using the tool.
 
 ## The PropeR package
-For ease of use, the tool has been converted into an R package that can be found [here](https://github.com/datasciencecampus/access-to-services/tree/develop/propeR).
+For ease of use, the tool has been converted into an R package that can be found [here](https://github.com/datasciencecampus/access-to-services/tree/develop/propeR). Read the [manual.md](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manual.md) on how to find relevant bus and train travel data, convert it in GTFS format, initiate a OpenTropPlanner server and query it using the propeR package.
 
 ## Authors / Contributors
 
