@@ -102,6 +102,7 @@ pointToPointTime <- function(output.dir,
   for (i in 1:length(time_series)){ # Start loop to calculate journey details
     
     start.time <- Sys.time()
+    stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
     
     date_time_legend <- format(time_series[i], "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
     time <- format(time_series[i], "%I:%M %p")
@@ -207,7 +208,7 @@ pointToPointTime <- function(output.dir,
                      title = "Date and Time")
     }
     
-    mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/",gsub(":","",i,ignore.case = TRUE),".png")) # Saves map in temp folder
+    mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/",stamp,".png")) # Saves map in temp folder
     
     if (i == 1){
       point_to_point_output_table <- point_to_point$itineraries[1,]
