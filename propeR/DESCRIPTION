@@ -11,6 +11,8 @@ Authors@R: c(
   person("Michael", "Hodge", email = "michael.hodge@ons.gov.uk",
   role = c("aut", "cre")),
   person("Phil", "Stubbings", email = "philip.stubbings@ons.gov.uk",
+  role = c("ctb")),
+  person("Ioannis", "Tsalamanis", email = "ioannis.tsalamanis@ons.gov.uk",
   role = c("ctb")))
 URL: https://github.com/datasciencecampus/propeR
 BugReports: https://github.com/datasciencecampus/propeR/issues

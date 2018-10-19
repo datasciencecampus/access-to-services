@@ -65,8 +65,8 @@ isochroneTime <- function(output.dir,
   
   message("Now running the propeR isochroneTime tool.\n")  
   
-  pal_time_date=colorFactor(c("#FFFFFF"), domain=NULL) # Creating colour palette
-  palIsochrone=colorFactor(palColor, NULL, n=length(isochroneCutOffs)) # Creating colour palette
+  pal_time_date=leaflet::colorFactor(c("#FFFFFF"), domain=NULL) # Creating colour palette
+  palIsochrone=leaflet::colorFactor(palColor, NULL, n=length(isochroneCutOffs)) # Creating colour palette
   
   dir.create(paste0(output.dir,"/tmp_folder")) # Creates tmp_folder folder for pngs
   
@@ -99,6 +99,7 @@ isochroneTime <- function(output.dir,
   for (i in 1:length(time_series)){ # Start loop to calculate journey details
     
     start.time <- Sys.time()
+    stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
     
     date_time_legend <- format(time_series[i], "%B %d %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
     time <- format(time_series[i], "%I:%M %p")
@@ -134,7 +135,7 @@ isochroneTime <- function(output.dir,
     time_df <- data.frame(matrix(, ncol = length(isochroneCutOffs), nrow = nrow(destination_points_spdf))) # Create time dataframe
     
     for (n in 1:length(isochroneCutOffs)){
-      time_df_tmp <- over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
+      time_df_tmp <- sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
       time_df[,n] <- time_df_tmp[,2]
     }
     
@@ -208,7 +209,7 @@ isochroneTime <- function(output.dir,
                                                   library = "fa"))
     
     
-    mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/",gsub(":","",i,ignore.case = TRUE),".png")) # Saves map in temp folder
+    mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/",stamp,".png")) # Saves map in temp folder
     
     end.time <- Sys.time()
     time.taken[i] <- round(end.time - start.time, digits=2)

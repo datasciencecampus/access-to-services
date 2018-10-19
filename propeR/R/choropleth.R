@@ -21,6 +21,7 @@
 ##' @param waitingCutoff in minutes, defaults to 10
 ##' @param transferCutoff defaults to 1
 ##' @param palColor the color palette of the map, defaults to 'Blues'
+##' @param palColorCat the color palette of the catergorical map, defaults to c("#820e0e", "#407746")
 ##' @param mapZoom defaults to 12
 ##' @return Returns a number of maps (duration, wait time, transfers) to the output directory
 ##' @author Michael Hodge
@@ -57,14 +58,16 @@ choropleth <- function(output.dir,
                        transferCutoff=1,
                        # colours
                        palColor="Blues",
+                       palColorCat=c("#820e0e", "#407746"),
                        # leaflet map args
                        mapZoom=12) {
   
   message("Now running the propeR choropleth tool.\n")  
   
   # colours
-  pal_choropleth=colorFactor(palColor, domain=NULL, na.color = "#ffffff") # Creating colour palette
-  pal_choropleth_cat=colorFactor(c("#FF0000", "#228B22"), na.color = "#ffffff", domain=NULL) # Creating colour palette
+  pal_choropleth = leaflet::colorNumeric(palColor, domain=NULL, na.color = "#ffffff") # Creating colour palette
+  pal_choropleth_transfers = leaflet::colorFactor(palColor, domain=NULL, na.color = "#ffffff") # Creating colour palette
+  pal_choropleth_cat = leaflet::colorFactor(palColorCat, na.color = "#ffffff", domain=NULL) # Creating colour palette
   
   dir.create(paste0(output.dir,"/tmp_folder")) # Creates tmp_folder for pngs
   
@@ -153,8 +156,8 @@ choropleth <- function(output.dir,
     if (i < nrow(originPoints)){
       message(i," out of ",nrow(originPoints),
               " connections complete. Time taken ",
-              do.call(sum,time.taken)," seconds. Estimated time left is approx. ",
-              (do.call(mean,time.taken)*nrow(originPoints))-do.call(sum,time.taken),
+              round(do.call(sum,time.taken), digits = 2)," seconds. Estimated time left is approx. ",
+              round((do.call(mean,time.taken)*nrow(originPoints))-do.call(sum,time.taken), digits = 2),
               " seconds.")
     } else {
       message(i," out of ",nrow(originPoints),
@@ -205,6 +208,8 @@ choropleth <- function(output.dir,
   m <- addLegend(m, pal = pal_choropleth, # Adds legend
                  values = choropleth_map$duration,
                  opacity = 1.0,
+                 bins = 5,
+                 na.label = "NA",
                  title = "Duration (minutes)")
   m <- addAwesomeMarkers(m, data = to_destination, # Adds marker for destination
                          lat = ~lat,
@@ -258,6 +263,8 @@ choropleth <- function(output.dir,
   n <- addLegend(n, pal = pal_choropleth, # Adds legend
                  values = choropleth_map$waitingtime,
                  opacity = 1.0,
+                 bins = 5,
+                 na.label = "NA",
                  title = "Wait Time (minutes)")
   n <- addAwesomeMarkers(n, data = to_destination, # Adds marker for destination
                          lat = ~lat,
@@ -303,14 +310,15 @@ choropleth <- function(output.dir,
                lng=to_destination$lon, # Focuses on destination
                zoom=mapZoom)
   o <- addPolygons(o, data = choropleth_map, # Adds polygons for origins
-                   fillColor = ~pal_choropleth(choropleth_map$transfers),
+                   fillColor = ~pal_choropleth_transfers(choropleth_map$transfers),
                    fillOpacity = 1,
                    color = "#BDBDC3",
                    weight = 1,
                    popup = popup_transfers)
-  o <- addLegend(o, pal = pal_choropleth, # Adds legend
+  o <- addLegend(o, pal = pal_choropleth_transfers, # Adds legend
                  values = choropleth_map$transfers,
                  opacity = 1.0,
+                 na.label = "NA",
                  title = "Transfers")
   o <- addAwesomeMarkers(o, data = to_destination, # Adds marker for destination
                          lat = ~lat,
@@ -349,43 +357,43 @@ choropleth <- function(output.dir,
   
   
   # Plots leaflet map in Viewer and saves to disk, also saves table as csv ----------
-  
+
   message("Analysis complete, now saving outputs to ",output.dir,", please wait.\n")
-  
+
   stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
-  
+
   mapview::mapshot(m, file = paste0(output.dir, "/choropleth_duration-",stamp,".png"))
   htmlwidgets::saveWidget(m, file = paste0(output.dir, "/choropleth_duration-",stamp,".html")) # Saves as an interactive HTML webpage
   unlink(paste0(output.dir, "/choropleth_duration-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder that mapshot creates
   invisible(print(m)) # plots map to Viewer
-  
+
   mapview::mapshot(m_cat, file = paste0(output.dir, "/choropleth_duration_cat-",stamp,".png"))
   htmlwidgets::saveWidget(m_cat, file = paste0(output.dir, "/choropleth_duration_cat-",stamp,".html")) # Saves as an interactive HTML webpage
   unlink(paste0(output.dir, "/choropleth_duration_cat-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder that mapshot creates
   invisible(print(m_cat)) # plots map to Viewer
-  
+
   mapview::mapshot(n, file = paste0(output.dir, "/choropleth_waitingtime-",stamp,".png"))
   htmlwidgets::saveWidget(n, file = paste0(output.dir, "/choropleth_waitingtime-",stamp,".html")) # Saves as an interactive HTML webpage
   unlink(paste0(output.dir, "/choropleth_waitingtime-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder that mapshot creates
   invisible(print(n)) # plots map to Viewer
-  
+
   mapview::mapshot(n_cat, file = paste0(output.dir, "/choropleth_waitingtime_cat-",stamp,".png"))
   htmlwidgets::saveWidget(n_cat, file = paste0(output.dir, "/choropleth_waitingtime_cat-",stamp,".html")) # Saves as an interactive HTML webpage
   unlink(paste0(output.dir, "/choropleth_waitingtime_cat-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder that mapshot creates
   invisible(print(n_cat)) # plots map to Viewer
-  
+
   mapview::mapshot(o, file = paste0(output.dir, "/choropleth_transfers-",stamp,".png"))
   htmlwidgets::saveWidget(o, file = paste0(output.dir, "/choropleth_transfers-",stamp,".html")) # Saves as an interactive HTML webpage
   unlink(paste0(output.dir, "/choropleth_transfers-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder that mapshot creates
   invisible(print(o)) # plots map to Viewer
-  
+
   mapview::mapshot(o_cat, file = paste0(output.dir, "/choropleth_transfers_cat-",stamp,".png"))
   htmlwidgets::saveWidget(o_cat, file = paste0(output.dir, "/choropleth_transfers_cat-",stamp,".html")) # Saves as an interactive HTML webpage
   unlink(paste0(output.dir, "/choropleth_transfers_cat-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder that mapshot creates
   invisible(print(o_cat)) # plots map to Viewer
-  
+
   write.csv(choropleth_table, file = paste0(output.dir, "/choropleth-",stamp,".csv"),row.names=FALSE) # Saves trip details as a CSV
-  
+
   unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
   
 }

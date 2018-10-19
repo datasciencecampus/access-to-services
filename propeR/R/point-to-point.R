@@ -52,7 +52,7 @@ pointToPoint <- function(output.dir,
                          arriveBy=F,
                          preWaitTime=60,
                          # colours
-                         transportColours=list(TRANSIT="#000000", WALK="#A14296", BUS="#48C1B1", RAIL="#4D7BC5", CAR="#8D4084", BICYCLE="#4AA6C3"),
+                         transportColours=list(TRANSIT="#000000", WALK="#A14296", BUS="#48C1B1", RAIL="#4D7BC5", CAR="#E825D6", BICYCLE="#4AA6C3"),
                          # leaflet map args
                          mapZoom=12) {
   
@@ -87,7 +87,7 @@ pointToPoint <- function(output.dir,
   start_date <- as.Date(startDateAndTime) # Sets start date
   date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
   
-  point_to_point <- propeR::otpTripTime(
+  point_to_point <- otpTripTime(
     otpcon,
     detail = TRUE, # Gives full breakdown of journey if TRUE
     from = from_origin$lat_lon, # Takes the latitude and longitude from specified origin
@@ -205,17 +205,17 @@ pointToPoint <- function(output.dir,
   
   # Plots leaflet map in Viewer and saves to disk, also saves table as csv ----------
   
-  message("Analysis complete, now saving outputs to ",output.dir,", please wait.\n")  
-  
+  # message("Analysis complete, now saving outputs to ",output.dir,", please wait.\n")  
+  # 
   stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
   invisible(print(m)) # plots map to Viewer
-  mapview::mapshot(m, file = paste0(output.dir, "/p2p-",stamp,".png")) # Saves map to output directory
-  htmlwidgets::saveWidget(m, file = paste0(output.dir, "/p2p-",stamp,".html"), selfcontained = TRUE) # Saves as an interactive HTML webpage
-  unlink(paste0(output.dir,"/p2p-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder created by mapshot
-  
+  # mapview::mapshot(m, file = paste0(output.dir, "/p2p-",stamp,".png")) # Saves map to output directory
+  # htmlwidgets::saveWidget(m, file = paste0(output.dir, "/p2p-",stamp,".html"), selfcontained = TRUE) # Saves as an interactive HTML webpage
+  # unlink(paste0(output.dir,"/p2p-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder created by mapshot
+  # 
   write.csv(point_to_point$itineraries[1,], file = paste0(output.dir,"/p2p-",stamp,".csv"),row.names=FALSE) # Saves trip details as a CSV
   
-  unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  # unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
   
-  m
+  point_to_point$itineraries[1,]$duration
 }

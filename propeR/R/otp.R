@@ -292,7 +292,7 @@ otpTripTime <- function(otpcon,
           output_table$to_lat[i] <- df2$to$lat[i]
           output_table$to_lon[i] <- df2$to$lon[i]
           output_table$mode[i] <- df2$mode[i]
-          if (df2$mode[i] == 'CAR' || df2$mode[i] == 'WALK' || df2$mode[i] == 'BICYCLE'){
+          if (df2$mode[i] == 'CAR' || df2$mode[i] == 'WALK' || df2$mode[i] == 'BICYCLE' || df2$mode[i] == 'BICYCLE,WALK'){
             output_table$agencyName[i] <- df2$mode[i]
             output_table$routeShortName[i] <- df2$mode[i]
           } else {
@@ -316,7 +316,11 @@ otpTripTime <- function(otpcon,
               detailed_points[n,"route"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["route"]][[i]]
               detailed_points[n,"distance"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["distance"]][[i]]
               detailed_points[n,"duration"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["duration"]][[i]]
-              detailed_points[n,"agencyName"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
+              if (detailed_points[n,"mode"] == 'CAR' || detailed_points[n,"mode"] == 'WALK' || detailed_points[n,"mode"] == 'BICYCLE'){
+                detailed_points[n,"agencyName"] <- detailed_points[n,"mode"]
+              } else {
+                detailed_points[n,"agencyName"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
+              }
             }
             
           } else {
@@ -330,8 +334,12 @@ otpTripTime <- function(otpcon,
               detailed_points_tmp[n,"route"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["route"]][[i]]
               detailed_points_tmp[n,"distance"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["distance"]][[i]]
               detailed_points_tmp[n,"duration"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["duration"]][[i]]
-              detailed_points_tmp[n,"agencyName"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
-            }
+              if (detailed_points_tmp[n,"mode"] == 'CAR' || detailed_points_tmp[n,"mode"] == 'WALK' || detailed_points_tmp[n,"mode"] == 'BICYCLE'){
+                detailed_points_tmp[n,"agencyName"] <- detailed_points_tmp[n,"mode"]
+              } else {
+                detailed_points_tmp[n,"agencyName"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
+              }
+              }
             detailed_points <- rbind(detailed_points,detailed_points_tmp)
           }
         }
