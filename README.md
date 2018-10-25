@@ -52,6 +52,7 @@ For ease of use, the tool has been converted into an R package that can be found
 #### Data Science Campus - Office for National Statistics
 * [Michael Hodge](https://github.com/mshodge)
 * [Jasmine Latham](https://github.com/jlathamONS)
+* [Phillip Stubbings](https://github.com/phil8192)
 * [Ioannis Tsalamanis](https://github.com/IoannisTsalamanis)
 
 ## License
