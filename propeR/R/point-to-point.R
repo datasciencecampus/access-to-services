@@ -205,17 +205,17 @@ pointToPoint <- function(output.dir,
   
   # Plots leaflet map in Viewer and saves to disk, also saves table as csv ----------
   
-  # message("Analysis complete, now saving outputs to ",output.dir,", please wait.\n")  
-  # 
+  message("Analysis complete, now saving outputs to ",output.dir,", please wait.\n")
+
   stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
   invisible(print(m)) # plots map to Viewer
-  # mapview::mapshot(m, file = paste0(output.dir, "/p2p-",stamp,".png")) # Saves map to output directory
-  # htmlwidgets::saveWidget(m, file = paste0(output.dir, "/p2p-",stamp,".html"), selfcontained = TRUE) # Saves as an interactive HTML webpage
-  # unlink(paste0(output.dir,"/p2p-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder created by mapshot
-  # 
+  mapview::mapshot(m, file = paste0(output.dir, "/p2p-",stamp,".png")) # Saves map to output directory
+  htmlwidgets::saveWidget(m, file = paste0(output.dir, "/p2p-",stamp,".html"), selfcontained = TRUE) # Saves as an interactive HTML webpage
+  unlink(paste0(output.dir,"/p2p-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder created by mapshot
+
   write.csv(point_to_point$itineraries[1,], file = paste0(output.dir,"/p2p-",stamp,".csv"),row.names=FALSE) # Saves trip details as a CSV
   
-  # unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
   
   point_to_point$itineraries[1,]$duration
 }
