@@ -8,7 +8,8 @@
 ##' @examples postcode_lookup('NP10 8XG')
 ##' @export
 postcodeToDecimalDegrees <- function(postcode) {
-  r <- httr::GET(paste0("http://api.postcodes.io/postcodes/", postcode))
+  r <-
+    httr::GET(paste0("http://api.postcodes.io/postcodes/", postcode))
   httr::warn_for_status(r)
   httr::content(r)
 }

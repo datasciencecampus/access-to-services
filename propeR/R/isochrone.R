@@ -2,7 +2,7 @@
 ##'
 ##' Generates an isochrone map from a single origin and checks whether destinations
 ##' fall within isochrone, and if so, at what cutoff time amount.
-##' 
+##'
 ##' @param output.dir The directory for the output files
 ##' @param otpcon OTP router URL
 ##' @param originPoints The variable containing origin(s), see ?importLocationData
@@ -35,100 +35,125 @@
 isochrone <- function(output.dir,
                       otpcon,
                       originPoints,
-                      originPointsRow =1,
+                      originPointsRow = 1,
                       destinationPoints,
                       # otpIsochrone args
-                      startDateAndTime="2018-08-18 12:00:00",
-                      modes="WALK, TRANSIT",
-                      maxWalkDistance=1000,
-                      walkReluctance=2,
-                      walkSpeed=1.5,
-                      bikeSpeed=5,
-                      minTransferTime=1,
-                      maxTransfers=5,
-                      wheelchair=F,
-                      arriveBy=F,
+                      startDateAndTime = "2018-08-18 12:00:00",
+                      modes = "WALK, TRANSIT",
+                      maxWalkDistance = 1000,
+                      walkReluctance = 2,
+                      walkSpeed = 1.5,
+                      bikeSpeed = 5,
+                      minTransferTime = 1,
+                      maxTransfers = 5,
+                      wheelchair = F,
+                      arriveBy = F,
                       # function specific args.
-                      isochroneCutOffs=c(30,60,90),
+                      isochroneCutOffs = c(30, 60, 90),
                       # colours
-                      palColor="Blues",
+                      palColor = "Blues",
                       # leaflet map args
-                      mapZoom=12) {
+                      mapZoom = 12) {
+  message("Now running the propeR isochrone tool.\n")
   
-  message("Now running the propeR isochrone tool.\n")  
+  pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
   
-  pal_time_date=colorFactor(c("#FFFFFF"), domain=NULL) # Creating colour palette
-  
-  palIsochrone=colorFactor(palColor, NULL, n=length(isochroneCutOffs)) # Creating colour palette
+  palIsochrone = leaflet::colorFactor(palColor, NULL, n = length(isochroneCutOffs)) # Creating colour palette
   
   # Set Origin and Destination if multiple are in csv ----------
   
-  origin_points_row_num <- originPointsRow # Set origin using a row from the origin dataframe 
+  origin_points_row_num <-
+    originPointsRow # Set origin using a row from the origin dataframe
   
-  if (origin_points_row_num > nrow(originPoints)){
+  if (origin_points_row_num > nrow(originPoints)) {
     message('Row is not in origin file, process aborted.\n')
-    unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
     break
   }
   
-  from_origin <- originPoints[origin_points_row_num,] # Takes the specified row from the data
+  from_origin <-
+    originPoints[origin_points_row_num,] # Takes the specified row from the data
   
   # Tidying variables ----------
-  start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") # Sets start time
+  start_time <-
+    format(as.POSIXct(startDateAndTime), "%I:%M %p") # Sets start time
   start_date <- as.Date(startDateAndTime) # Sets start date
-  date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
+  date_time_legend <-
+    format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
   
   isochrone <- propeR::otpIsochrone(
     otpcon,
-    batch = TRUE, # If true, goal direction is turned off and a full path tree is built (specify only once)
-    from = from_origin$lat_lon, # Takes the latitude and longitude from specified origin
-    modes = modes, 
-    date = start_date, # Takes the date as specified above
-    time = start_time, # Takes the time as specified above
+    batch = TRUE,
+    # If true, goal direction is turned off and a full path tree is built (specify only once)
+    from = from_origin$lat_lon,
+    # Takes the latitude and longitude from specified origin
+    modes = modes,
+    date = start_date,
+    # Takes the date as specified above
+    time = start_time,
+    # Takes the time as specified above
     maxWalkDistance = maxWalkDistance,
     walkReluctance = walkReluctance,
-    walkSpeed = walkSpeed, 
-    bikeSpeed = bikeSpeed, 
-    minTransferTime = minTransferTime, 
-    maxTransfers = maxTransfers, 
-    wheelchair = wheelchair, 
+    walkSpeed = walkSpeed,
+    bikeSpeed = bikeSpeed,
+    minTransferTime = minTransferTime,
+    maxTransfers = maxTransfers,
+    wheelchair = wheelchair,
     arriveBy = arriveBy,
     cutoff = isochroneCutOffs
   )
   
-  isochrone_polygons <- rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE) # Converts the polygons to be handled in leaflet
+  isochrone_polygons <-
+    rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE) # Converts the polygons to be handled in leaflet
   
-  destination_points_spdf <- destinationPoints # Create a spatialdataframe
-  sp::coordinates(destination_points_spdf) <- ~ lon + lat # Take lat and lon for coordinates
-  sp::proj4string(destination_points_spdf) <- sp::proj4string(isochrone_polygons) # Take projection
-  isochrone_polygons_split <- sp::split(isochrone_polygons,isochrone_polygons@data$time) # Split into cutoff times
-  time_df <- data.frame(matrix(, ncol = length(isochroneCutOffs), nrow = nrow(destination_points_spdf))) # Create time dataframe
+  destination_points_spdf <-
+    destinationPoints # Create a spatialdataframe
+  sp::coordinates(destination_points_spdf) <-
+    ~ lon + lat # Take lat and lon for coordinates
+  sp::proj4string(destination_points_spdf) <-
+    sp::proj4string(isochrone_polygons) # Take projection
+  isochrone_polygons_split <-
+    sp::split(isochrone_polygons, isochrone_polygons@data$time) # Split into cutoff times
+  time_df <-
+    data.frame(matrix(
+      ,
+      ncol = length(isochroneCutOffs),
+      nrow = nrow(destination_points_spdf)
+    )) # Create time dataframe
   
-  for (i in 1:length(isochroneCutOffs)){
-    time_df_tmp <- sp::over(destination_points_spdf, isochrone_polygons_split[[i]]) # Finds the polygon the destination point falls within
-    time_df[,i] <- time_df_tmp[,2]
+  for (i in 1:length(isochroneCutOffs)) {
+    time_df_tmp <-
+      sp::over(destination_points_spdf, isochrone_polygons_split[[i]]) # Finds the polygon the destination point falls within
+    time_df[, i] <- time_df_tmp[, 2]
   }
   
-  for (i in 1:nrow(destination_points_spdf)){ # Finds the smallest duration from time_df dataframe
-    if (is.na(time_df[i,length(isochroneCutOffs)])){
-      time_df[i,length(isochroneCutOffs)+1] = NA
+  for (i in 1:nrow(destination_points_spdf)) {
+    # Finds the smallest duration from time_df dataframe
+    if (is.na(time_df[i, length(isochroneCutOffs)])) {
+      time_df[i, length(isochroneCutOffs) + 1] = NA
     } else {
-      time_df[i,length(isochroneCutOffs)+1] = min(time_df[i,1:length(isochroneCutOffs)],na.rm=TRUE)
+      time_df[i, length(isochroneCutOffs) + 1] = min(time_df[i, 1:length(isochroneCutOffs)], na.rm =
+                                                       TRUE)
     }
   }
   
   names(time_df)[ncol(time_df)] <- "travel_time"
-  destinationPoints$travel_time <- time_df$travel_time/60
+  destinationPoints$travel_time <- time_df$travel_time / 60
   
-  message("The number of destinations that are within the maximum travel time is ",
-          sum(!is.na(destinationPoints$travel_time)),
-          "/", 
-          nrow(destinationPoints),
-          ", or ",
-          (sum(!is.na(destinationPoints$travel_time))/nrow(destinationPoints))*100,
-          "%\n")
+  message(
+    "The number of destinations that are within the maximum travel time is ",
+    sum(!is.na(destinationPoints$travel_time)),
+    "/",
+    nrow(destinationPoints),
+    ", or ",
+    (sum(
+      !is.na(destinationPoints$travel_time)
+    ) / nrow(destinationPoints)) * 100,
+    "%\n"
+  )
   
-  destination_points_non_na <- subset(destinationPoints,!(is.na(destinationPoints["travel_time"])))
+  destination_points_non_na <-
+    subset(destinationPoints,!(is.na(destinationPoints["travel_time"])))
   
   # Creating a leaflet map from results
   
@@ -136,71 +161,102 @@ isochrone <- function(output.dir,
   m <- leaflet()
   m <- addScaleBar(m)
   m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
-  m <- setView(m, lat=from_origin$lat,
-               lng=from_origin$lon,
-               zoom=mapZoom)
-  m <- addPolygons(m, data = isochrone_polygons,
-                   stroke = TRUE,
-                   color = palIsochrone(rev(isochroneCutOffs)),
-                   opacity = 1,
-                   weight = 5,
-                   dashArray = 2,
-                   smoothFactor = 0.3,
-                   fillOpacity = 0.6,
-                   fillColor = palIsochrone(rev(isochroneCutOffs)))
-  m <- addCircleMarkers(m, data = destinationPoints,
-                        lat = ~lat,
-                        lng = ~lon,
-                        popup = ~name,
-                        fillColor = "black",
-                        stroke = TRUE,
-                        color = "black",
-                        opacity = 1,
-                        weight = 2,
-                        fillOpacity = 1,
-                        radius = 10)
-  m <- addCircleMarkers(m, data = destination_points_non_na,
-                        lat = ~lat,
-                        lng = ~lon,
-                        popup = ~name,
-                        fillColor = "white",
-                        stroke = TRUE,
-                        color = "black",
-                        opacity = 1,
-                        weight = 2,
-                        fillOpacity = 1,
-                        radius = 10)
-  m <- addLegend(m, pal = palIsochrone,
-                 values = isochroneCutOffs,
-                 opacity = 0.5,
-                 title = "Duration (minutes)")
-  m <- addLegend(m, pal = pal_time_date,
-                 opacity = 0.0,
-                 values = date_time_legend,
-                 position = "bottomleft",
-                 title = "Date and Time")
-  m <- addAwesomeMarkers(m, data = from_origin, # Adds the origin as a marker
-                         lat = ~lat,
-                         lng = ~lon,
-                         popup = ~name,
-                         icon = makeAwesomeIcon(icon= "hourglass-start",
-                                                markerColor = "red",
-                                                iconColor = "white",
-                                                library = "fa"))
+  m <- setView(m,
+               lat = from_origin$lat,
+               lng = from_origin$lon,
+               zoom = mapZoom)
+  m <- addPolygons(
+    m,
+    data = isochrone_polygons,
+    stroke = TRUE,
+    color = palIsochrone(rev(isochroneCutOffs)),
+    opacity = 1,
+    weight = 5,
+    dashArray = 2,
+    smoothFactor = 0.3,
+    fillOpacity = 0.6,
+    fillColor = palIsochrone(rev(isochroneCutOffs))
+  )
+  m <- addCircleMarkers(
+    m,
+    data = destinationPoints,
+    lat = ~ lat,
+    lng = ~ lon,
+    popup = ~ name,
+    fillColor = "black",
+    stroke = TRUE,
+    color = "black",
+    opacity = 1,
+    weight = 2,
+    fillOpacity = 1,
+    radius = 10
+  )
+  m <- addCircleMarkers(
+    m,
+    data = destination_points_non_na,
+    lat = ~ lat,
+    lng = ~ lon,
+    popup = ~ name,
+    fillColor = "white",
+    stroke = TRUE,
+    color = "black",
+    opacity = 1,
+    weight = 2,
+    fillOpacity = 1,
+    radius = 10
+  )
+  m <- addLegend(
+    m,
+    pal = palIsochrone,
+    values = isochroneCutOffs,
+    opacity = 0.5,
+    title = "Duration (minutes)"
+  )
+  m <- addLegend(
+    m,
+    pal = pal_time_date,
+    opacity = 0.0,
+    values = date_time_legend,
+    position = "bottomleft",
+    title = "Date and Time"
+  )
+  m <-
+    addAwesomeMarkers(
+      m,
+      data = from_origin,
+      # Adds the origin as a marker
+      lat = ~ lat,
+      lng = ~ lon,
+      popup = ~ name,
+      icon = makeAwesomeIcon(
+        icon = "hourglass-start",
+        markerColor = "red",
+        iconColor = "white",
+        library = "fa"
+      )
+    )
   
   
   # Plots leaflet map in Viewer and saves to disk, also saves table as csv ----------
   
-  message("Analysis complete, now saving outputs to ",output.dir,", please wait.\n")  
+  message("Analysis complete, now saving outputs to ",
+          output.dir,
+          ", please wait.\n")
   
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
+  stamp <-
+    format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
   
   invisible(print(m)) # plots map to Viewer
-  mapview::mapshot(m, file = paste0(output.dir, "/isochrone-",stamp,".png")) # Saves map to output directory
-  htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-",stamp,".html")) # Saves as an interactive HTML webpage
-  unlink(paste0(output.dir,"/isochrone-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder created by mapshot
+  mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) # Saves map to output directory
+  htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) # Saves as an interactive HTML webpage
+  unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
+         recursive = TRUE) # Deletes temporary folder created by mapshot
   
-  write.csv(destinationPoints, file = paste0(output.dir,"/isochrone-",stamp,".csv"),row.names=FALSE) # Saves trip details as a CSV
+  write.csv(
+    destinationPoints,
+    file = paste0(output.dir, "/isochrone-", stamp, ".csv"),
+    row.names = FALSE
+  ) # Saves trip details as a CSV
   
-  unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
 }
