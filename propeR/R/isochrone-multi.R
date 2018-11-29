@@ -333,6 +333,18 @@ isochroneMulti <- function(output.dir,
   ) # Saves trip details as a CSV
   
   unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+
+  rgdal::writeOGR(
+    isochrone_polygons,
+    dsn = paste0(
+      output.dir,
+      "/isochrone_multi",
+      stamp,
+      ".geoJSON"
+    ),
+    layer = "isochrone_polygons",
+    driver = "GeoJSON"
+  )
   
   isochrone_polygons
 }

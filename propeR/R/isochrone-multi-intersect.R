@@ -81,7 +81,7 @@ isochroneMultiIntersect <- function(output.dir,
   
   for (i in 1:nrow(originPoints)) {
     #Changes transport modes to OTP transport modes
-    from_origin <- originPoints[i,]
+    from_origin <- originPoints[i, ]
     if (from_origin$mode == "Public Transport") {
       mode <- "TRANSIT,WALK"
     } else if (from_origin$mode == "Driving") {
@@ -323,6 +323,7 @@ isochroneMultiIntersect <- function(output.dir,
   
   s_poly_intersect <-
     as(s_poly_intersect, "SpatialPolygonsDataFrame")
+  
   rgdal::writeOGR(
     s_poly_intersect,
     dsn = paste0(
@@ -334,4 +335,5 @@ isochroneMultiIntersect <- function(output.dir,
     layer = "s_poly_intersect",
     driver = "GeoJSON"
   )
+  
 }
