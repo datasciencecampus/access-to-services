@@ -9,6 +9,13 @@
 ##' @export
 postcodeToDecimalDegrees <- function(postcode) {
   r <-
+    httr::GET(paste0("http://api.getthedata.com/postcode/", postcode))
+  httr::warn_for_status(r)
+  httr::content(r)
+}
+
+postcodeToDecimalDegrees_backup <- function(postcode) {
+  r <-
     httr::GET(paste0("http://api.postcodes.io/postcodes/", postcode))
   httr::warn_for_status(r)
   httr::content(r)
