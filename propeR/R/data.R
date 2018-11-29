@@ -38,7 +38,7 @@ importLocationData <- function(src) {
       for (i in 1:nrow(data_points)) {
         pc_content <-
           propeR::postcodeToDecimalDegrees(data_points$postcode[i])
-        if (pc_content$status == '404') {
+        if (pc_content$status == 'no_match') {
           propeR::postcodeToDecimalDegrees_backup(data_points$postcode[i])
           if (pc_content$status == '404') {
             warning(
