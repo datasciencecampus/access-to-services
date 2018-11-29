@@ -58,8 +58,8 @@ importLocationData <- function(src) {
           }
         } else {
           # todo: not sure this will work...
-          data_points$lat[i] <- pc_content$data$latitude
-          data_points$lon[i] <- pc_content$data$longitude
+          data_points$lat[i] <- as.double(pc_content$data$latitude)
+          data_points$lon[i] <- as.double(pc_content$data$longitude)
         }
       }
     } else {
