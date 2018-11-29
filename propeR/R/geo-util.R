@@ -9,9 +9,7 @@
 ##' @export
 postcodeToDecimalDegrees <- function(postcode) {
   r <-
-    httr::GET(paste0("http://api.getthedata.com/postcode/", postcode))
-  httr::warn_for_status(r)
-  httr::content(r)
+    jsonlite::fromJSON(paste0("http://api.getthedata.com/postcode/", postcode))
 }
 
 ##' A backup simple postcode to latitude and longitude converter.
