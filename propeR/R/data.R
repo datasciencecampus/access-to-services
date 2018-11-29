@@ -44,7 +44,7 @@ importLocationData <- function(src) {
             warning(
               "Warning: Postcode ",
               data_points$postcode[i],
-              "for location",
+              " for location ",
               data_points$name[i],
               " cannot be convert to a latitude and longitude.
               This location shall be removed from the list.\n"

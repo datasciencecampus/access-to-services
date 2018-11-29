@@ -5,9 +5,9 @@
 \title{Return isochrone from OTP}
 \usage{
 otpIsochrone(otpcon, from, modes, cutoff = c(30, 60, 90), batch = TRUE,
-  date, time, maxWalkDistance = 800, walkReluctance = 2, walkSpeed = 1.4,
-  bikeSpeed = 4.3, minTransferTime = 1, maxTransfers = 10,
-  wheelchair = FALSE, arriveBy = FALSE)
+  date, time, maxWalkDistance = 800, walkReluctance = 2,
+  walkSpeed = 1.4, bikeSpeed = 4.3, minTransferTime = 1,
+  maxTransfers = 10, wheelchair = FALSE, arriveBy = FALSE)
 }
 \arguments{
 \item{otpcon}{OTP router URL}

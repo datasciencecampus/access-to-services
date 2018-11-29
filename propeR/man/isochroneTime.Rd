@@ -8,10 +8,11 @@ time and date.}
 isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   destinationPoints, startDateAndTime = "2018-08-18 12:00:00",
   endDateAndTime = "2018-08-18 15:00:00", timeIncrease = 60,
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
-  walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, isochroneCutOffs = c(30, 60, 90),
-  palColor = "Blues", mapZoom = 12)
+  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
+  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
+  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, isochroneCutOffs = c(30, 60, 90), palColor = "Blues",
+  mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -59,7 +60,7 @@ Saves an animated map as a gif and journey details as CSV to output directory
 }
 \description{
 Generates an isochrone map from a single origin between a start and end
-time and date, and checks whether destinations fall within isochrone, 
+time and date, and checks whether destinations fall within isochrone,
 and if so, at what cutoff time amount.
 }
 \examples{

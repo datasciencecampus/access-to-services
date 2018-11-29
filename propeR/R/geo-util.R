@@ -5,7 +5,7 @@
 ##' @param postcode UK postcode
 ##' @return The latitude and longitude in decimal degrees.
 ##' @author Michael Hodge
-##' @examples postcode_lookup('NP10 8XG')
+##' @examples postcodeToDecimalDegrees('NP10 8XG')
 ##' @export
 postcodeToDecimalDegrees <- function(postcode) {
   r <-
@@ -14,6 +14,15 @@ postcodeToDecimalDegrees <- function(postcode) {
   httr::content(r)
 }
 
+##' A backup simple postcode to latitude and longitude converter.
+##'
+##' Generates a latitude and longitude (in decimal degrees) based on the postcode.
+##'
+##' @param postcode UK postcode
+##' @return The latitude and longitude in decimal degrees.
+##' @author Michael Hodge
+##' @examples postcodeToDecimalDegrees_backup('NP10 8XG')
+##' @export
 postcodeToDecimalDegrees_backup <- function(postcode) {
   r <-
     httr::GET(paste0("http://api.postcodes.io/postcodes/", postcode))
