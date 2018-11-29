@@ -5,7 +5,7 @@
 ##' Get OTP connection URL
 ##'
 ##' Connects to the OpenTripPlanner (OTP) server URL
-##' 
+##'
 ##' @param hostname defaults to 'localhost'
 ##' @param router defaults to 'default'
 ##' @param port defaults to 8080
@@ -20,9 +20,20 @@
 ##'     ssl = "false"
 ##'   )
 ##' @export
-otpConnect <- function(hostname = 'localhost', router = 'default', port = '8080', ssl = FALSE)  { 
-  return (paste0(ifelse(ssl, "https://", "http://"), hostname, ":", port, "/otp/routers/", router)) 
-}
+otpConnect <-
+  function(hostname = 'localhost',
+           router = 'default',
+           port = '8080',
+           ssl = FALSE)  {
+    return (paste0(
+      ifelse(ssl, "https://", "http://"),
+      hostname,
+      ":",
+      port,
+      "/otp/routers/",
+      router
+    ))
+  }
 
 ##' Returns trip distance from OTP
 ##'
@@ -52,10 +63,9 @@ otpTripDistance <- function(otpcon,
   routerUrl <- paste0(otpcon, '/plan')
   
   # set parameters for query
-  params <- list(
-    fromPlace = from,
-    toPlace = to,
-    mode = modes)
+  params <- list(fromPlace = from,
+                 toPlace = to,
+                 mode = modes)
   
   # Use GET from the httr package to make API call and place in req - returns json by default
   req <- httr::GET(routerUrl, query = params)
@@ -75,7 +85,8 @@ otpTripDistance <- function(otpcon,
       response <-
         list(
           "errorId" = error.id,
-          "distance" = asjson$plan$itineraries$legs[[1]]$distance)
+          "distance" = asjson$plan$itineraries$legs[[1]]$distance
+        )
       return (response)
       # for walk or cycle
     } else {
@@ -93,8 +104,8 @@ otpTripDistance <- function(otpcon,
   }
 }
 
-# Function to make an OTP API lookup and return trip time in simple or detailed form. 
-# The parameters from, to, modes, date and time must be specified in the function call other 
+# Function to make an OTP API lookup and return trip time in simple or detailed form.
+# The parameters from, to, modes, date and time must be specified in the function call other
 # parameters have defaults set and are optional in the call.
 
 ##' Returns trip time from OTP
@@ -102,7 +113,7 @@ otpTripDistance <- function(otpcon,
 ##' Returns trip time in simple or detailed form. The parameters from, to, modes,
 ##' date and time must be specified in the function call, other parameters have
 ##' defaults set and are optional in the call.
-##' 
+##'
 ##' @param otpcon OTP router URL
 ##' @param from 'lat, lon' decimal degrees
 ##' @param to 'lat, lon' decimal degrees
@@ -142,7 +153,8 @@ otpTripTime <- function(otpcon,
                         time,
                         maxWalkDistance = 800,
                         walkReluctance = 2,
-                        arriveBy = 'false', # todo: this should be a boolean
+                        arriveBy = 'false',
+                        # todo: this should be a boolean
                         transferPenalty = 0,
                         minTransferTime = 1,
                         walkSpeed = 1.4,
@@ -165,11 +177,12 @@ otpTripTime <- function(otpcon,
     walkReluctance = walkReluctance,
     arriveBy = arriveBy,
     transferPenalty = transferPenalty,
-    minTransferTime = (minTransferTime*60),
+    minTransferTime = (minTransferTime * 60),
     walkSpeed = walkSpeed,
     bikeSpeed = bikeSpeed,
     maxTransfers = maxTransfers,
-    wheelchair = wheelchair)
+    wheelchair = wheelchair
+  )
   
   # Use GET from the httr package to make API call and place in req - returns json by default. Not using numItineraries due to odd OTP behaviour - if request only 1 itinerary don't necessarily get the top/best itinerary, sometimes a suboptimal itinerary is returned. OTP will return default number of itineraries depending on mode. This function returns the first of those itineraries.
   req <- httr::GET(routerUrl, query = params)
@@ -185,19 +198,26 @@ otpTripTime <- function(otpcon,
     # set error.id to OK
     error.id <- "OK"
     # get first itinerary
-    df <- asjson$plan$itineraries[1,]
+    df <- asjson$plan$itineraries[1, ]
     
     #Check if start of journey is within reasonable wait time
-    required_start_time <- as.POSIXct(paste0(date," ",format(strptime(time, "%I:%M %p"), format="%H:%M:%S")), format = "%Y-%m-%d %H:%M:%S") 
+    required_start_time <-
+      as.POSIXct(paste0(date, " ", format(strptime(time, "%I:%M %p"), format =
+                                            "%H:%M:%S")), format = "%Y-%m-%d %H:%M:%S")
     journey_start_time <- df$startTime
-    journey_start_time <- as.POSIXct(journey_start_time / 1000, origin = "1970-01-01")
-    if (as.numeric(difftime(journey_start_time,required_start_time, units="mins")) < as.integer(preWaitTime)){
-      
+    journey_start_time <-
+      as.POSIXct(journey_start_time / 1000, origin = "1970-01-01")
+    if (as.numeric(difftime(journey_start_time, required_start_time, units =
+                            "mins")) < as.integer(preWaitTime)) {
       # check if need to return detailed response
       if (detail == TRUE) {
         # need to convert times from epoch format
-        df$start <- strftime(as.POSIXct(df$startTime / 1000, origin = "1970-01-01"), format="%H:%M:%S")
-        df$end <- strftime(as.POSIXct(df$endTime / 1000, origin = "1970-01-01"), format="%H:%M:%S")
+        df$start <-
+          strftime(as.POSIXct(df$startTime / 1000, origin = "1970-01-01"),
+                   format = "%H:%M:%S")
+        df$end <-
+          strftime(as.POSIXct(df$endTime / 1000, origin = "1970-01-01"),
+                   format = "%H:%M:%S")
         
         ret.df <-
           subset(
@@ -209,7 +229,9 @@ otpTripTime <- function(otpcon,
               'walkTime',
               'transitTime',
               'waitingTime',
-              'transfers'))
+              'transfers'
+            )
+          )
         
         # convert seconds into minutes where applicable
         ret.df[, 3:6] <- round(ret.df[, 3:6] / 60, digits = 2)
@@ -222,20 +244,22 @@ otpTripTime <- function(otpcon,
         }
         
         # If legs are null then use the input data to build the dataframe
-        if (is.null(df$legs)){
+        if (is.null(df$legs)) {
           df2 <- data.frame(matrix(ncol = 12, nrow = 1))
-          df2_col_names <- c("startTime",
-                             "endTime",
-                             "distance",
-                             "name",
-                             "from_lat",
-                             "from_lon",
-                             "to_lat",
-                             "to_lon",
-                             "mode",
-                             "agencyName",
-                             "routeShortName",
-                             "duration")
+          df2_col_names <- c(
+            "startTime",
+            "endTime",
+            "distance",
+            "name",
+            "from_lat",
+            "from_lon",
+            "to_lat",
+            "to_lon",
+            "mode",
+            "agencyName",
+            "routeShortName",
+            "duration"
+          )
           
           colnames(df2) <- df2_col_names
           
@@ -250,39 +274,50 @@ otpTripTime <- function(otpcon,
           df2$agencyName <- mode
           df2$routeShortName <- mode
           df2$duration <- df$duration
-          df2$distance <- round(distm(c(as.numeric(df2$from_lon), 
-                                        as.numeric(df2$from_lat)), 
-                                      c(as.numeric(df2$to_lon), 
-                                        as.numeric(df2$to_lat)), 
-                                      fun = distHaversine)/1000, digits = 2)
+          df2$distance <- round(distm(
+            c(
+              as.numeric(df2$from_lon),
+              as.numeric(df2$from_lat)
+            ),
+            c(as.numeric(df2$to_lon),
+              as.numeric(df2$to_lat)),
+            fun = distHaversine
+          ) / 1000, digits = 2)
         } else {
           df2 <- df$legs[[1]]
           
-          df2$startTime <- strftime(as.POSIXct(df2$startTime / 1000, origin = "1970-01-01"), format="%H:%M:%S")
-          df2$endTime <- strftime(as.POSIXct(df2$endTime / 1000, origin = "1970-01-01"), format="%H:%M:%S")   
-          df2$distance <- round(df2$distance, digits=2)
-          df2$duration <- round(df2$duration/60, digits = 2)
+          df2$startTime <-
+            strftime(as.POSIXct(df2$startTime / 1000, origin = "1970-01-01"),
+                     format = "%H:%M:%S")
+          df2$endTime <-
+            strftime(as.POSIXct(df2$endTime / 1000, origin = "1970-01-01"),
+                     format = "%H:%M:%S")
+          df2$distance <- round(df2$distance, digits = 2)
+          df2$duration <- round(df2$duration / 60, digits = 2)
         }
         
         #Constructs dataframe of lats and longs from origin to destination
         output_table_nrow <- nrow(df2)
-        output_table_col_names <- c("startTime",
-                                    "endTime",
-                                    "distance",
-                                    "name",
-                                    "from_lat",
-                                    "from_lon",
-                                    "to_lat",
-                                    "to_lon",
-                                    "mode",
-                                    "agencyName",
-                                    "routeShortName",
-                                    "duration")
+        output_table_col_names <- c(
+          "startTime",
+          "endTime",
+          "distance",
+          "name",
+          "from_lat",
+          "from_lon",
+          "to_lat",
+          "to_lon",
+          "mode",
+          "agencyName",
+          "routeShortName",
+          "duration"
+        )
         
-        output_table <- data.frame(matrix(ncol = 12, nrow = output_table_nrow))
+        output_table <-
+          data.frame(matrix(ncol = 12, nrow = output_table_nrow))
         colnames(output_table) <- output_table_col_names
         
-        for (i in 1:output_table_nrow){
+        for (i in 1:output_table_nrow) {
           output_table$startTime[i] <- df2$startTime[i]
           output_table$endTime[i] <- df2$endTime[i]
           output_table$distance[i] <- df2$distance[i]
@@ -292,7 +327,9 @@ otpTripTime <- function(otpcon,
           output_table$to_lat[i] <- df2$to$lat[i]
           output_table$to_lon[i] <- df2$to$lon[i]
           output_table$mode[i] <- df2$mode[i]
-          if (df2$mode[i] == 'CAR' || df2$mode[i] == 'WALK' || df2$mode[i] == 'BICYCLE' || df2$mode[i] == 'BICYCLE,WALK'){
+          if (df2$mode[i] == 'CAR' ||
+              df2$mode[i] == 'WALK' ||
+              df2$mode[i] == 'BICYCLE' || df2$mode[i] == 'BICYCLE,WALK') {
             output_table$agencyName[i] <- df2$mode[i]
             output_table$routeShortName[i] <- df2$mode[i]
           } else {
@@ -302,84 +339,127 @@ otpTripTime <- function(otpcon,
           output_table$duration[i] <- df2$duration[i]
         }
         
-        output_table$name <- sub('[.]', '_', make.names(output_table$name, unique=TRUE)) # Makes sure there are no duplicates in names
+        output_table$name <-
+          sub('[.]',
+              '_',
+              make.names(output_table$name, unique = TRUE)) # Makes sure there are no duplicates in names
         
         for (i in 1:length(asjson[["plan"]][["itineraries"]][["legs"]][[1]][["legGeometry"]][["points"]])) {
           if (i == 1) {
-            detailed_points <- gepaf::decodePolyline(asjson[["plan"]][["itineraries"]][["legs"]][[1]][["legGeometry"]][["points"]][[i]])
-            for (n in 1:nrow(detailed_points)){
+            detailed_points <-
+              gepaf::decodePolyline(asjson[["plan"]][["itineraries"]][["legs"]][[1]][["legGeometry"]][["points"]][[i]])
+            for (n in 1:nrow(detailed_points)) {
               if (n < nrow(detailed_points)) {
-                detailed_points[n,"to_lat"] <- detailed_points[n+1,"lat"]
-                detailed_points[n,"to_lon"] <- detailed_points[n+1,"lon"]
+                detailed_points[n, "to_lat"] <- detailed_points[n + 1, "lat"]
+                detailed_points[n, "to_lon"] <-
+                  detailed_points[n + 1, "lon"]
               }
-              detailed_points[n,"mode"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["mode"]][[i]]
-              detailed_points[n,"route"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["route"]][[i]]
-              detailed_points[n,"distance"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["distance"]][[i]]
-              detailed_points[n,"duration"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["duration"]][[i]]
-              if (detailed_points[n,"mode"] == 'CAR' || detailed_points[n,"mode"] == 'WALK' || detailed_points[n,"mode"] == 'BICYCLE'){
-                detailed_points[n,"agencyName"] <- detailed_points[n,"mode"]
+              detailed_points[n, "mode"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["mode"]][[i]]
+              detailed_points[n, "route"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["route"]][[i]]
+              detailed_points[n, "distance"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["distance"]][[i]]
+              detailed_points[n, "duration"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["duration"]][[i]]
+              if (detailed_points[n, "mode"] == 'CAR' ||
+                  detailed_points[n, "mode"] == 'WALK' ||
+                  detailed_points[n, "mode"] == 'BICYCLE') {
+                detailed_points[n, "agencyName"] <- detailed_points[n, "mode"]
               } else {
-                detailed_points[n,"agencyName"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
+                detailed_points[n, "agencyName"] <-
+                  asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
               }
             }
             
           } else {
-            detailed_points_tmp <- gepaf::decodePolyline(asjson[["plan"]][["itineraries"]][["legs"]][[1]][["legGeometry"]][["points"]][[i]])
-            for (n in 1:nrow(detailed_points_tmp)){
+            detailed_points_tmp <-
+              gepaf::decodePolyline(asjson[["plan"]][["itineraries"]][["legs"]][[1]][["legGeometry"]][["points"]][[i]])
+            for (n in 1:nrow(detailed_points_tmp)) {
               if (n < nrow(detailed_points_tmp)) {
-                detailed_points_tmp[n,"to_lat"] <- detailed_points_tmp[n+1,"lat"]
-                detailed_points_tmp[n,"to_lon"] <- detailed_points_tmp[n+1,"lon"]
+                detailed_points_tmp[n, "to_lat"] <- detailed_points_tmp[n + 1, "lat"]
+                detailed_points_tmp[n, "to_lon"] <-
+                  detailed_points_tmp[n + 1, "lon"]
               }
-              detailed_points_tmp[n,"mode"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["mode"]][[i]]
-              detailed_points_tmp[n,"route"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["route"]][[i]]
-              detailed_points_tmp[n,"distance"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["distance"]][[i]]
-              detailed_points_tmp[n,"duration"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["duration"]][[i]]
-              if (detailed_points_tmp[n,"mode"] == 'CAR' || detailed_points_tmp[n,"mode"] == 'WALK' || detailed_points_tmp[n,"mode"] == 'BICYCLE'){
-                detailed_points_tmp[n,"agencyName"] <- detailed_points_tmp[n,"mode"]
+              detailed_points_tmp[n, "mode"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["mode"]][[i]]
+              detailed_points_tmp[n, "route"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["route"]][[i]]
+              detailed_points_tmp[n, "distance"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["distance"]][[i]]
+              detailed_points_tmp[n, "duration"] <-
+                asjson[["plan"]][["itineraries"]][["legs"]][[1]][["duration"]][[i]]
+              if (detailed_points_tmp[n, "mode"] == 'CAR' ||
+                  detailed_points_tmp[n, "mode"] == 'WALK' ||
+                  detailed_points_tmp[n, "mode"] == 'BICYCLE') {
+                detailed_points_tmp[n, "agencyName"] <-
+                  detailed_points_tmp[n, "mode"]
               } else {
-                detailed_points_tmp[n,"agencyName"] <- asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
+                detailed_points_tmp[n, "agencyName"] <-
+                  asjson[["plan"]][["itineraries"]][["legs"]][[1]][["agencyName"]][[i]]
               }
-              }
-            detailed_points <- rbind(detailed_points,detailed_points_tmp)
+            }
+            detailed_points <-
+              rbind(detailed_points, detailed_points_tmp)
           }
         }
         
         detailed_points <- as.data.frame(detailed_points)
-        detailed_points <- detailed_points[!is.na(detailed_points$to_lat),]
-        detailed_points["name"] <- paste0("point",seq(1,nrow(detailed_points)))
+        detailed_points <-
+          detailed_points[!is.na(detailed_points$to_lat), ]
+        detailed_points["name"] <-
+          paste0("point", seq(1, nrow(detailed_points)))
         row.names(detailed_points) <- detailed_points$name
-        colnames(detailed_points) <-c("from_lat","from_lon","to_lat","to_lon","mode","route","distance","duration","agencyName","name")
+        colnames(detailed_points) <-
+          c(
+            "from_lat",
+            "from_lon",
+            "to_lat",
+            "to_lon",
+            "mode",
+            "route",
+            "distance",
+            "duration",
+            "agencyName",
+            "name"
+          )
         
         #Constructs a SpatialLinesDataFrame to be handled by the addPolylines function (without it colors don't work properly)
         poly_lines <-
-          apply(detailed_points,1,function(x){
-            points <- data.frame(lng=as.numeric(c(x["from_lon"],
-                                                  x["to_lon"])),
-                                 lat=as.numeric(c(x["from_lat"],
-                                                  x["to_lat"])),
-                                 stringsAsFactors = F)
-            sp::coordinates(points) <- c("lng","lat")
-            sp::Lines(sp::Line(points),ID=x["name"])
+          apply(detailed_points, 1, function(x) {
+            points <- data.frame(
+              lng = as.numeric(c(x["from_lon"],
+                                 x["to_lon"])),
+              lat = as.numeric(c(x["from_lat"],
+                                 x["to_lat"])),
+              stringsAsFactors = F
+            )
+            sp::coordinates(points) <- c("lng", "lat")
+            sp::Lines(sp::Line(points), ID = x["name"])
           })
         
         row.names(output_table) <- output_table$name
         
-        poly_lines <- sp::SpatialLinesDataFrame(sp::SpatialLines(poly_lines),detailed_points)
+        poly_lines <-
+          sp::SpatialLinesDataFrame(sp::SpatialLines(poly_lines), detailed_points)
         sp::proj4string(poly_lines) <- sp::CRS("+init=epsg:4326")
         
         # Output the response
         response <-
-          list("errorId" = error.id, 
-               "itineraries" = ret.df, 
-               "trip_details" = df2, 
-               "output_table" = output_table, 
-               "poly_lines" = poly_lines,
-               "detailed_points" = detailed_points)
+          list(
+            "errorId" = error.id,
+            "itineraries" = ret.df,
+            "trip_details" = df2,
+            "output_table" = output_table,
+            "poly_lines" = poly_lines,
+            "detailed_points" = detailed_points
+          )
         return (response)
       } else {
         # detail not needed - just return travel time in minutes
         response <-
-          list("errorId" = error.id, "duration" = df$duration/60)
+          list("errorId" = error.id,
+               "duration" = df$duration / 60)
         return (response)
       }
     } else {
@@ -407,7 +487,7 @@ otpTripTime <- function(otpcon,
 ##' @param from 'lat, lon' decimal degrees
 ##' @param to 'lat, lon' decimal degrees
 ##' @param modes defaults to 'TRANSIT, WALK'
-##' @param detail defaults to TRUE 
+##' @param detail defaults to TRUE
 ##' @param date 'YYYY-MM-DD' format
 ##' @param time 12 hour format
 ##' @param maxWalkDistance in meters, defaults to 800
@@ -421,7 +501,7 @@ otpTripTime <- function(otpcon,
 ##' @param wheelchair defaults to FALSE
 ##' @return A list comprising status and journey itineraries (duration, walk time, transit time, waiting time and transfers)
 ##' @author Michael Hodge
-##' @examples 
+##' @examples
 ##'   result <- otpChoropleth(
 ##'     otpcon,
 ##'     from = "51.5128,-3.2347",
@@ -462,11 +542,12 @@ otpChoropleth <- function(otpcon,
     walkReluctance = walkReluctance,
     arriveBy = arriveBy,
     transferPenalty = transferPenalty,
-    minTransferTime = (minTransferTime*60),
+    minTransferTime = (minTransferTime * 60),
     walkSpeed = walkSpeed,
     bikeSpeed = bikeSpeed,
     maxTransfers = maxTransfers,
-    wheelchair = wheelchair)
+    wheelchair = wheelchair
+  )
   
   # Use GET from the httr package to make API call and place in req - returns json by default. Not using numItineraries due to odd OTP behaviour - if request only 1 itinerary don't necessarily get the top/best itinerary, sometimes a suboptimal itinerary is returned. OTP will return default number of itineraries depending on mode. This function returns the first of those itineraries.
   req <- httr::GET(routerUrl, query = params)
@@ -482,14 +563,16 @@ otpChoropleth <- function(otpcon,
     # set error.id to OK
     error.id <- "OK"
     # get first itinerary
-    df <- asjson$plan$itineraries[1,]
+    df <- asjson$plan$itineraries[1, ]
     # check if need to return detailed response
     if (detail == TRUE) {
       # need to convert times from epoch format
       df$start <-
-        strftime(as.POSIXct(df$startTime / 1000, origin = "1970-01-01"), format="%H:%M:%S")
+        strftime(as.POSIXct(df$startTime / 1000, origin = "1970-01-01"),
+                 format = "%H:%M:%S")
       df$end <-
-        strftime(as.POSIXct(df$endTime / 1000, origin = "1970-01-01"), format="%H:%M:%S")
+        strftime(as.POSIXct(df$endTime / 1000, origin = "1970-01-01"),
+                 format = "%H:%M:%S")
       
       # subset the dataframe ready to return
       ret.df <-
@@ -523,7 +606,8 @@ otpChoropleth <- function(otpcon,
     } else {
       # detail not needed - just return travel time in minutes
       response <-
-        list("errorId" = error.id, "duration" = df$duration/60)
+        list("errorId" = error.id,
+             "duration" = df$duration / 60)
       return (response)
     }
   } else {
@@ -568,7 +652,7 @@ otpChoropleth <- function(otpcon,
 otpIsochrone <- function(otpcon,
                          from,
                          modes,
-                         cutoff = c(30,60,90),
+                         cutoff = c(30, 60, 90),
                          batch = TRUE,
                          date,
                          time,
@@ -587,23 +671,27 @@ otpIsochrone <- function(otpcon,
   
   # todo: should just pass these from ... args
   params <- list(
-    fromPlace=from,
-    mode=modes,
-    batch=batch,
-    date=date,
-    time=time,
-    maxWalkDistance=maxWalkDistance,
-    walkReluctance=walkReluctance,
-    walkSpeed=walkSpeed,
-    bikeSpeed=bikeSpeed,
-    minTransferTime=(minTransferTime*60),
-    maxTransfers=maxTransfers,
-    wheelchair=wheelchair,
-    arriveBy=arriveBy)
+    fromPlace = from,
+    mode = modes,
+    batch = batch,
+    date = date,
+    time = time,
+    maxWalkDistance = maxWalkDistance,
+    walkReluctance = walkReluctance,
+    walkSpeed = walkSpeed,
+    bikeSpeed = bikeSpeed,
+    minTransferTime = (minTransferTime * 60),
+    maxTransfers = maxTransfers,
+    wheelchair = wheelchair,
+    arriveBy = arriveBy
+  )
   
   # api accepts multiple cutoffSec args:
   # http://docs.opentripplanner.org/en/latest/Intermediate-Tutorial/#calculating-travel-time-isochrones
-  params <- append(params, as.list(setNames(cutoff*60, rep("cutoffSec", length(cutoff)))))
+  params <-
+    append(params, as.list(setNames(cutoff * 60, rep(
+      "cutoffSec", length(cutoff)
+    ))))
   
   # Use GET from the httr package to make API call and place in req - returns json by default
   req <- httr::GET(routerUrl, query = params)
@@ -618,5 +706,5 @@ otpIsochrone <- function(otpcon,
     status <- "ERROR"
   }
   
-  return (list(status=status, response=text))
+  return (list(status = status, response = text))
 }
