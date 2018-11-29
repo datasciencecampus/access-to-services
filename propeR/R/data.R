@@ -37,9 +37,11 @@ importLocationData <- function(src) {
           propeR::postcodeToDecimalDegrees(data_points$postcode[i])
         if (pc_content$status == '404') {
           warning(
-            "Warning: Postcode",
+            "Warning: Postcode ",
+            data_points$postcode[i],
+            "for location"
             data_points$name[i],
-            "cannot be convert to a latitude and longitude.
+            " cannot be convert to a latitude and longitude.
             This location shall be removed from the list.\n"
           )
           
