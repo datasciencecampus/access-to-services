@@ -11,7 +11,7 @@ pointToPoint(output.dir, otpcon, originPoints, originPointsRow = 1,
   bikeSpeed = 4.3, minTransferTime = 1, maxTransfers = 10,
   wheelchair = F, arriveBy = F, preWaitTime = 60,
   transportColours = list(TRANSIT = "#000000", WALK = "#A14296", BUS =
-  "#48C1B1", RAIL = "#4D7BC5", CAR = "#8D4084", BICYCLE = "#4AA6C3"),
+  "#48C1B1", RAIL = "#4D7BC5", CAR = "#E825D6", BICYCLE = "#4AA6C3"),
   mapZoom = 12)
 }
 \arguments{

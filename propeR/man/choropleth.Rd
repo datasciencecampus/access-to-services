@@ -4,12 +4,14 @@
 \alias{choropleth}
 \title{Calculates an isochrone map from a single origin}
 \usage{
-choropleth(output.dir, otpcon, originPoints, originPolygons, destinationPoints,
-  destinationPointsRow = 1, startDateAndTime = "2018-08-18 12:00:00",
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
-  walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, durationCutoff = 60, waitingCutoff = 10,
-  transferCutoff = 1, palColor = "Blues", mapZoom = 12)
+choropleth(output.dir, otpcon, originPoints, originPolygons,
+  destinationPoints, destinationPointsRow = 1,
+  startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
+  maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
+  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
+  wheelchair = F, arriveBy = F, durationCutoff = 60,
+  waitingCutoff = 10, transferCutoff = 1, palColor = "Blues",
+  palColorCat = c("#820e0e", "#407746"), mapZoom = 12)
 }
 \arguments{
 \item{otpcon}{OTP router URL}
@@ -49,6 +51,8 @@ choropleth(output.dir, otpcon, originPoints, originPolygons, destinationPoints,
 \item{transferCutoff}{defaults to 1}
 
 \item{palColor}{the color palette of the map, defaults to 'Blues'}
+
+\item{palColorCat}{the color palette of the catergorical map, defaults to c("#820e0e", "#407746")}
 
 \item{mapZoom}{defaults to 12}
 }

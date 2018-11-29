@@ -9,12 +9,12 @@ pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   destinationPoints, destinationPointsRow = 1,
   startDateAndTime = "2018-08-18 12:00:00",
   endDateAndTime = "2018-08-18 15:00:00", timeIncrease = 60,
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
-  walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, preWaitTime = 60,
-  transportColours = list(TRANSIT = "#000000", WALK = "#A14296", BUS =
-  "#48C1B1", RAIL = "#4D7BC5", CAR = "#8D4084", BICYCLE = "#4AA6C3"),
-  mapZoom = 12)
+  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
+  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
+  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, preWaitTime = 60, transportColours = list(TRANSIT =
+  "#000000", WALK = "#A14296", BUS = "#48C1B1", RAIL = "#4D7BC5", CAR =
+  "#8D4084", BICYCLE = "#4AA6C3"), mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -64,7 +64,7 @@ Saves an animated map as a gif and journey details as CSV to output directory
 }
 \description{
 Calculates the journey time and details between a single origin and destination between a start
-and end time and date. Outputs (and saves) a animated gif map of the polyline between origin and 
+and end time and date. Outputs (and saves) a animated gif map of the polyline between origin and
 destination, as well as a CSV file of journey details.
 }
 \examples{

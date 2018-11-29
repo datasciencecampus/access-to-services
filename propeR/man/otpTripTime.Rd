@@ -4,11 +4,11 @@
 \alias{otpTripTime}
 \title{Returns trip time from OTP}
 \usage{
-otpTripTime(otpcon, from, to, modes = "WALK,TRANSIT", detail = TRUE, date,
-  time, maxWalkDistance = 800, walkReluctance = 2, arriveBy = "false",
-  transferPenalty = 0, minTransferTime = 1, walkSpeed = 1.4,
-  bikeSpeed = 4.3, maxTransfers = 10, wheelchair = FALSE,
-  preWaitTime = 60)
+otpTripTime(otpcon, from, to, modes = "WALK,TRANSIT", detail = TRUE,
+  date, time, maxWalkDistance = 800, walkReluctance = 2,
+  arriveBy = "false", transferPenalty = 0, minTransferTime = 1,
+  walkSpeed = 1.4, bikeSpeed = 4.3, maxTransfers = 10,
+  wheelchair = FALSE, preWaitTime = 60)
 }
 \arguments{
 \item{otpcon}{OTP router URL}
