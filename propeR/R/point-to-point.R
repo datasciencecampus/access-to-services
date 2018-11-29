@@ -36,186 +36,288 @@
 pointToPoint <- function(output.dir,
                          otpcon,
                          originPoints,
-                         originPointsRow=1,
+                         originPointsRow = 1,
                          destinationPoints,
-                         destinationPointsRow=1,
+                         destinationPointsRow = 1,
                          # otpTime args
-                         startDateAndTime="2018-08-18 12:00:00",
-                         modes="WALK, TRANSIT",
-                         maxWalkDistance=1000,
-                         walkReluctance=2,
-                         walkSpeed=1.4,
-                         bikeSpeed=4.3,
-                         minTransferTime=1,
-                         maxTransfers=10,
-                         wheelchair=F,
-                         arriveBy=F,
-                         preWaitTime=60,
+                         startDateAndTime = "2018-08-18 12:00:00",
+                         modes = "WALK, TRANSIT",
+                         maxWalkDistance = 1000,
+                         walkReluctance = 2,
+                         walkSpeed = 1.4,
+                         bikeSpeed = 4.3,
+                         minTransferTime = 1,
+                         maxTransfers = 10,
+                         wheelchair = F,
+                         arriveBy = F,
+                         preWaitTime = 60,
                          # colours
-                         transportColours=list(TRANSIT="#000000", WALK="#A14296", BUS="#48C1B1", RAIL="#4D7BC5", CAR="#E825D6", BICYCLE="#4AA6C3"),
+                         transportColours = list(
+                           TRANSIT = "#000000",
+                           WALK = "#A14296",
+                           BUS = "#48C1B1",
+                           RAIL = "#4D7BC5",
+                           CAR = "#E825D6",
+                           BICYCLE = "#4AA6C3"
+                         ),
                          # leaflet map args
-                         mapZoom=12) {
+                         mapZoom = 12) {
+  message("Now running the propeR pointToPoint tool.\n")
   
-  message("Now running the propeR pointToPoint tool.\n")  
+  pal_transport <-
+    leaflet::colorFactor(
+      palette = unlist(transportColours, use.names = F),
+      # Creating colour palette
+      levels = as.factor(names(transportColours)),
+      reverse = FALSE
+    )
   
-  pal_transport <- leaflet::colorFactor(palette=unlist(transportColours, use.names=F), # Creating colour palette
-                                        levels=as.factor(names(transportColours)),
-                                        reverse=FALSE)
+  pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
   
-  pal_time_date=leaflet::colorFactor(c("#FFFFFF"), domain=NULL) # Creating colour palette
+  origin_points_row_num <-
+    originPointsRow # Set origin using a row from the origin dataframe
+  destination_points_row_num <-
+    destinationPointsRow # Set destination using a row from the origin dataframe
   
-  origin_points_row_num <- originPointsRow # Set origin using a row from the origin dataframe 
-  destination_points_row_num <- destinationPointsRow # Set destination using a row from the origin dataframe
-  
-  if (origin_points_row_num > nrow(originPoints)){
+  if (origin_points_row_num > nrow(originPoints)) {
     message("Row is not in origin file, process aborted.\n")
-    unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder folder is exists
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder folder is exists
     break
   }
   
-  if (destination_points_row_num > nrow(destinationPoints)){
+  if (destination_points_row_num > nrow(destinationPoints)) {
     message("Row is not in destination file, process aborted.\n")
-    unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder folder is exists
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder folder is exists
     break
   }
   
-  from_origin <- originPoints[origin_points_row_num,] # Takes the specified row from the data
-  to_destination <- destinationPoints[destination_points_row_num,] # Takes the specified row from the data
+  from_origin <-
+    originPoints[origin_points_row_num, ] # Takes the specified row from the data
+  to_destination <-
+    destinationPoints[destination_points_row_num, ] # Takes the specified row from the data
   
   # Tidying variables ----------
-  start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") # Sets start time
+  start_time <-
+    format(as.POSIXct(startDateAndTime), "%I:%M %p") # Sets start time
   start_date <- as.Date(startDateAndTime) # Sets start date
-  date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
+  date_time_legend <-
+    format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
   
   point_to_point <- otpTripTime(
     otpcon,
-    detail = TRUE, # Gives full breakdown of journey if TRUE
-    from = from_origin$lat_lon, # Takes the latitude and longitude from specified origin
-    to =   to_destination$lat_lon, # Takes the latitude and longitude from specified destination
-    modes = modes, 
-    date = start_date, # Takes the date as specified above
-    time = start_time, # Takes the time as specified above
+    detail = TRUE,
+    # Gives full breakdown of journey if TRUE
+    from = from_origin$lat_lon,
+    # Takes the latitude and longitude from specified origin
+    to =   to_destination$lat_lon,
+    # Takes the latitude and longitude from specified destination
+    modes = modes,
+    date = start_date,
+    # Takes the date as specified above
+    time = start_time,
+    # Takes the time as specified above
     maxWalkDistance = maxWalkDistance,
     walkReluctance = walkReluctance,
-    walkSpeed = walkSpeed, 
-    bikeSpeed = bikeSpeed, 
-    minTransferTime = minTransferTime, 
-    maxTransfers = maxTransfers, 
-    wheelchair = wheelchair, 
-    arriveBy = arriveBy, 
-    preWaitTime = preWaitTime) # The start time and date
+    walkSpeed = walkSpeed,
+    bikeSpeed = bikeSpeed,
+    minTransferTime = minTransferTime,
+    maxTransfers = maxTransfers,
+    wheelchair = wheelchair,
+    arriveBy = arriveBy,
+    preWaitTime = preWaitTime
+  ) # The start time and date
   
-  point_to_point_table <- point_to_point$output_table # Outputs to a table
+  point_to_point_table <-
+    point_to_point$output_table # Outputs to a table
   View(point_to_point_table) # Shows the output table
   
   
-  if (!is.null(point_to_point_table)){ # Creates results and maps based on whether journey is found or not
-    poly_lines <- point_to_point$poly_lines # The SpatialLinesDataFrame required to create polylines for leaflet
-    poly_lines <- sp::spTransform(poly_lines, sp::CRS("+init=epsg:4326"))
+  if (!is.null(point_to_point_table)) {
+    # Creates results and maps based on whether journey is found or not
+    poly_lines <-
+      point_to_point$poly_lines # The SpatialLinesDataFrame required to create polylines for leaflet
+    poly_lines <-
+      sp::spTransform(poly_lines, sp::CRS("+init=epsg:4326"))
     
-    popup_poly_lines <- # generates a popup for the poly_lines_lines feature
-      paste0("<strong>Mode: </strong>",
-             poly_lines$mode,
-             "<br><strong>Route: </strong>",
-             poly_lines$route,
-             "<br><strong>Operator: </strong>",
-             poly_lines$agencyName,
-             "<br><strong>Duration: </strong>",
-             round(poly_lines$duration/60, digits=2), " mins",
-             "<br><strong>Distance: </strong>",
-             round(poly_lines$duration, digits=2), " meters")
+    popup_poly_lines <-
+      # generates a popup for the poly_lines_lines feature
+      paste0(
+        "<strong>Mode: </strong>",
+        poly_lines$mode,
+        "<br><strong>Route: </strong>",
+        poly_lines$route,
+        "<br><strong>Operator: </strong>",
+        poly_lines$agencyName,
+        "<br><strong>Duration: </strong>",
+        round(poly_lines$duration / 60, digits = 2),
+        " mins",
+        "<br><strong>Distance: </strong>",
+        round(poly_lines$duration, digits = 2),
+        " meters"
+      )
     
     # Creating a leaflet map from results
     library(leaflet)
     m <- leaflet()
     m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
-    m <- addScaleBar(m) 
-    m <- setView(m, lat=(from_origin$lat+to_destination$lat)/2, # Focuses on midpoint between origin and destination
-                 lng=(from_origin$lon+to_destination$lon)/2, # Focuses on midpoint between origin and destination
-                 zoom=mapZoom) 
-    m <- addAwesomeMarkers(m, data = from_origin, # Adds the origin as a marker
-                           lat = ~lat, 
-                           lng = ~lon,
-                           popup = ~name,
-                           icon = makeAwesomeIcon(icon= "hourglass-start", 
-                                                  markerColor = "red", 
-                                                  iconColor = "white", 
-                                                  library = "fa")) 
-    m <- addPolylines(m, data = poly_lines, # Adds polylines from origin to destination
-                      popup = popup_poly_lines,
-                      color = ~pal_transport(poly_lines$mode), 
-                      weight = 5,
-                      opacity = 1)
-    m <- addCircleMarkers(m, data = point_to_point_table, # Adds circles for each stage of the journey
-                          lat = ~from_lat, 
-                          lng = ~from_lon, 
-                          fillColor = ~pal_transport(point_to_point_table$mode),
-                          stroke = FALSE, 
-                          fillOpacity = 1, 
-                          popup = ~mode) 
-    m <- addLegend(m, pal = pal_transport, # Adds a legend for the trip
-                   values = point_to_point_table$mode, 
-                   opacity = 1.0, 
-                   title = "Transport Mode") 
-    m <- addLegend(m, pal = pal_time_date,
-                   opacity = 0.0,
-                   values = date_time_legend,
-                   position = "bottomleft",
-                   title = "Date and Time") 
-    m <- addAwesomeMarkers(m, data = to_destination, # Adds the destination as a marker
-                           lat = ~lat,
-                           lng = ~lon,
-                           popup = ~name,
-                           icon = makeAwesomeIcon(icon= "hourglass-end", 
-                                                  markerColor = "blue", 
-                                                  iconColor = "white", 
-                                                  library = "fa"))
+    m <- addScaleBar(m)
+    m <-
+      setView(
+        m,
+        lat = (from_origin$lat + to_destination$lat) / 2,
+        # Focuses on midpoint between origin and destination
+        lng = (from_origin$lon + to_destination$lon) / 2,
+        # Focuses on midpoint between origin and destination
+        zoom = mapZoom
+      )
+    m <-
+      addAwesomeMarkers(
+        m,
+        data = from_origin,
+        # Adds the origin as a marker
+        lat = ~ lat,
+        lng = ~ lon,
+        popup = ~ name,
+        icon = makeAwesomeIcon(
+          icon = "hourglass-start",
+          markerColor = "red",
+          iconColor = "white",
+          library = "fa"
+        )
+      )
+    m <-
+      addPolylines(
+        m,
+        data = poly_lines,
+        # Adds polylines from origin to destination
+        popup = popup_poly_lines,
+        color = ~ pal_transport(poly_lines$mode),
+        weight = 5,
+        opacity = 1
+      )
+    m <-
+      addCircleMarkers(
+        m,
+        data = point_to_point_table,
+        # Adds circles for each stage of the journey
+        lat = ~ from_lat,
+        lng = ~ from_lon,
+        fillColor = ~ pal_transport(point_to_point_table$mode),
+        stroke = FALSE,
+        fillOpacity = 1,
+        popup = ~ mode
+      )
+    m <-
+      addLegend(
+        m,
+        pal = pal_transport,
+        # Adds a legend for the trip
+        values = point_to_point_table$mode,
+        opacity = 1.0,
+        title = "Transport Mode"
+      )
+    m <- addLegend(
+      m,
+      pal = pal_time_date,
+      opacity = 0.0,
+      values = date_time_legend,
+      position = "bottomleft",
+      title = "Date and Time"
+    )
+    m <-
+      addAwesomeMarkers(
+        m,
+        data = to_destination,
+        # Adds the destination as a marker
+        lat = ~ lat,
+        lng = ~ lon,
+        popup = ~ name,
+        icon = makeAwesomeIcon(
+          icon = "hourglass-end",
+          markerColor = "blue",
+          iconColor = "white",
+          library = "fa"
+        )
+      )
     
-  } else { # If no journey is found
+  } else {
+    # If no journey is found
     
     m <- leaflet()
-    m <- addTiles(m, group = "leaf") 
-    m <- addScaleBar(m) 
-    m <- setView(m, lat=(from_origin$lat+to_destination$lat)/2, # Focuses on midpoint between origin and destination
-                 lng=(from_origin$lon+to_destination$lon)/2, # Focuses on midpoint between origin and destination
-                 zoom=mapZoom) 
-    m <- addAwesomeMarkers(m, data = from_origin, # Adds the origin as a marker
-                           lat = ~lat, 
-                           lng = ~lon,
-                           popup = ~name,
-                           icon = makeAwesomeIcon(icon= "hourglass-start", 
-                                                  markerColor = "blue", 
-                                                  iconColor = "white", 
-                                                  library = "fa")) 
-    m <- addAwesomeMarkers(m, data = to_destination, # Adds the destination as a marker
-                           lat = ~lat,
-                           lng = ~lon,
-                           popup = ~name,
-                           icon = makeAwesomeIcon(icon= "hourglass-end", 
-                                                  markerColor = "orange", 
-                                                  iconColor = "white", 
-                                                  library = "fa")) 
-    m <- addLegend(m, pal = pal_time_date,
-                   opacity = 0.0,
-                   values = date_time_legend,
-                   position = "bottomleft",
-                   title = "Date and Time")
+    m <- addTiles(m, group = "leaf")
+    m <- addScaleBar(m)
+    m <-
+      setView(
+        m,
+        lat = (from_origin$lat + to_destination$lat) / 2,
+        # Focuses on midpoint between origin and destination
+        lng = (from_origin$lon + to_destination$lon) / 2,
+        # Focuses on midpoint between origin and destination
+        zoom = mapZoom
+      )
+    m <-
+      addAwesomeMarkers(
+        m,
+        data = from_origin,
+        # Adds the origin as a marker
+        lat = ~ lat,
+        lng = ~ lon,
+        popup = ~ name,
+        icon = makeAwesomeIcon(
+          icon = "hourglass-start",
+          markerColor = "blue",
+          iconColor = "white",
+          library = "fa"
+        )
+      )
+    m <-
+      addAwesomeMarkers(
+        m,
+        data = to_destination,
+        # Adds the destination as a marker
+        lat = ~ lat,
+        lng = ~ lon,
+        popup = ~ name,
+        icon = makeAwesomeIcon(
+          icon = "hourglass-end",
+          markerColor = "orange",
+          iconColor = "white",
+          library = "fa"
+        )
+      )
+    m <- addLegend(
+      m,
+      pal = pal_time_date,
+      opacity = 0.0,
+      values = date_time_legend,
+      position = "bottomleft",
+      title = "Date and Time"
+    )
     
   }
   
   # Plots leaflet map in Viewer and saves to disk, also saves table as csv ----------
   
-  message("Analysis complete, now saving outputs to ",output.dir,", please wait.\n")
-
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
+  message("Analysis complete, now saving outputs to ",
+          output.dir,
+          ", please wait.\n")
+  
+  stamp <-
+    format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
   invisible(print(m)) # plots map to Viewer
-  mapview::mapshot(m, file = paste0(output.dir, "/p2p-",stamp,".png")) # Saves map to output directory
-  htmlwidgets::saveWidget(m, file = paste0(output.dir, "/p2p-",stamp,".html"), selfcontained = TRUE) # Saves as an interactive HTML webpage
-  unlink(paste0(output.dir,"/p2p-",stamp,"_files"), recursive = TRUE) # Deletes temporary folder created by mapshot
-
-  write.csv(point_to_point$itineraries[1,], file = paste0(output.dir,"/p2p-",stamp,".csv"),row.names=FALSE) # Saves trip details as a CSV
+  mapview::mapshot(m, file = paste0(output.dir, "/p2p-", stamp, ".png")) # Saves map to output directory
+  htmlwidgets::saveWidget(m,
+                          file = paste0(output.dir, "/p2p-", stamp, ".html"),
+                          selfcontained = TRUE) # Saves as an interactive HTML webpage
+  unlink(paste0(output.dir, "/p2p-", stamp, "_files"), recursive = TRUE) # Deletes temporary folder created by mapshot
   
-  unlink(paste0(output.dir,"/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  write.csv(
+    point_to_point$itineraries[1, ],
+    file = paste0(output.dir, "/p2p-", stamp, ".csv"),
+    row.names = FALSE
+  ) # Saves trip details as a CSV
   
-  point_to_point$itineraries[1,]$duration
+  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  
+  point_to_point$itineraries[1, ]$duration
 }
