@@ -81,6 +81,9 @@ isochroneMulti <- function(output.dir,
   start_num <- 1
   end_num <- nrow(originPoints)
   
+  originPoints_removed <- c()
+  originPoints_removed_list <- c()
+  
   for (i in start_num:end_num) {
     # Start loop to calculate journey details
     
@@ -120,77 +123,106 @@ isochroneMulti <- function(output.dir,
               rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE))
       # Converts the polygons to be handled in leaflet
       if ("try-error" %in% class(t)) {
+        originPoints_removed <- c(originPoints_removed,originPoints$name[i])
+        originPoints_removed_list <- c(originPoints_removed_list,i)
+        message(
+          "Removed ",
+          originPoints$name[i],
+          " from analysis as no polygon could be generated from it."
+        )
         next
-      } else{
+        
+      } else {
         isochrone_polygons <-
           rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE)
+        
+        isochrone_polygons@data$name <-
+          from_origin$name # adds name to json
+        sp::proj4string(destination_points_spdf) <-
+          sp::proj4string(isochrone_polygons) # Take projection
+        time_df_tmp <-
+          data.frame(matrix(, ncol = nrow(destinationPoints), nrow = 1)) # Create time dataframe
+        isochrone_polygons_split <-
+          sp::split(isochrone_polygons, isochrone_polygons@data$time) # Split into names
+        for (n in 1:length(isochroneCutOffs)) {
+          time_df_tmp2 <-
+            sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
+          time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
+          time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
+          time_df_tmp[n,] <- time_df_tmp2[, 2]
+          remove(time_df_tmp2)
+        }
+        options(warn = -1)
+        for (n in 1:ncol(time_df_tmp)) {
+          time_df_tmp[length(isochroneCutOffs) + 1, n] <-
+            min(time_df_tmp[1:length(isochroneCutOffs), n], na.rm = TRUE)
+        }
+        options(warn = 0)
+        rownames(time_df_tmp)[length(isochroneCutOffs) + 1] <-
+          originPoints$name[i]
+        time_df <- time_df_tmp[length(isochroneCutOffs) + 1,]
       }
-      isochrone_polygons <-
-        rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE) # Converts the polygons to be handled in leaflet
-      isochrone_polygons@data$name <-
-        from_origin$name # adds name to json
-      sp::proj4string(destination_points_spdf) <-
-        sp::proj4string(isochrone_polygons) # Take projection
-      time_df_tmp <-
-        data.frame(matrix(, ncol = nrow(destinationPoints), nrow = 1)) # Create time dataframe
-      isochrone_polygons_split <-
-        sp::split(isochrone_polygons, isochrone_polygons@data$time) # Split into names
-      for (n in 1:length(isochroneCutOffs)) {
-        time_df_tmp2 <-
-          sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
-        time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
-        time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
-        time_df_tmp[n,] <- time_df_tmp2[, 2]
-        remove(time_df_tmp2)
-      }
-      options(warn = -1)
-      for (n in 1:ncol(time_df_tmp)) {
-        time_df_tmp[length(isochroneCutOffs) + 1, n] <-
-          min(time_df_tmp[1:length(isochroneCutOffs), n], na.rm = TRUE)
-      }
-      options(warn = 0)
-      rownames(time_df_tmp)[length(isochroneCutOffs) + 1] <-
-        originPoints$name[i]
-      time_df <- time_df_tmp[length(isochroneCutOffs) + 1,]
     } else {
       t <-
         try(isochrone_polygons_tmp <-
               rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE))
       # Converts the polygons to be handled in leaflet
       if ("try-error" %in% class(t)) {
+        originPoints_removed <- c(originPoints_removed,originPoints$name[i])
+        originPoints_removed_list <- c(originPoints_removed_list,i)
+        message(
+          "Removed ",
+          originPoints$name[i],
+          " from analysis as no polygon could be generated from it."
+        )
         next
+        
       } else {
         isochrone_polygons_tmp <-
           rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE)
+        
+        isochrone_polygons_tmp@data$name <-
+          from_origin$name # adds name to json
+        
+        if (exists("isochrone_polygons")) {
+          isochrone_polygons <-
+            rbind(isochrone_polygons, isochrone_polygons_tmp)
+        } else {
+          isochrone_polygons <- isochrone_polygons_tmp
+        }
+        
+        sp::proj4string(destination_points_spdf) <-
+          sp::proj4string(isochrone_polygons_tmp) # Take projection
+        time_df_tmp <-
+          data.frame(matrix(, ncol = nrow(destinationPoints), nrow = 1)) # Create time dataframe
+        isochrone_polygons_split <-
+          sp::split(isochrone_polygons_tmp,
+                    isochrone_polygons_tmp@data$time) # Split into names
+        for (n in 1:length(isochroneCutOffs)) {
+          time_df_tmp2 <-
+            sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
+          time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
+          time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
+          time_df_tmp[n,] <- time_df_tmp2[, 2]
+        }
+        options(warn = -1)
+        for (n in 1:ncol(time_df_tmp)) {
+          time_df_tmp[length(isochroneCutOffs) + 1, n] <-
+            min(time_df_tmp[1:length(isochroneCutOffs), n], na.rm = TRUE)
+        }
+        options(warn = 0)
+        rownames(time_df_tmp)[length(isochroneCutOffs) + 1] <-
+          originPoints$name[i]
+        
+        if (exists("time_df")) {
+          time_df <-
+            rbind(time_df, time_df_tmp[length(isochroneCutOffs) + 1,])
+        } else {
+          time_df <- time_df_tmp[length(isochroneCutOffs) + 1,]
+          
+        }
+        
       }
-      isochrone_polygons_tmp@data$name <-
-        from_origin$name # adds name to json
-      isochrone_polygons <-
-        rbind(isochrone_polygons, isochrone_polygons_tmp)
-      sp::proj4string(destination_points_spdf) <-
-        sp::proj4string(isochrone_polygons_tmp) # Take projection
-      time_df_tmp <-
-        data.frame(matrix(, ncol = nrow(destinationPoints), nrow = 1)) # Create time dataframe
-      isochrone_polygons_split <-
-        sp::split(isochrone_polygons_tmp,
-                  isochrone_polygons_tmp@data$time) # Split into names
-      for (n in 1:length(isochroneCutOffs)) {
-        time_df_tmp2 <-
-          sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
-        time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
-        time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
-        time_df_tmp[n,] <- time_df_tmp2[, 2]
-      }
-      options(warn = -1)
-      for (n in 1:ncol(time_df_tmp)) {
-        time_df_tmp[length(isochroneCutOffs) + 1, n] <-
-          min(time_df_tmp[1:length(isochroneCutOffs), n], na.rm = TRUE)
-      }
-      options(warn = 0)
-      rownames(time_df_tmp)[length(isochroneCutOffs) + 1] <-
-        originPoints$name[i]
-      time_df <-
-        rbind(time_df, time_df_tmp[length(isochroneCutOffs) + 1,])
     }
     
     end.time <- Sys.time()
@@ -234,6 +266,8 @@ isochroneMulti <- function(output.dir,
       )
     }
   }
+  
+  originPoints <- originPoints[-c(originPoints_removed_list), ]
   
   for (n in 1:nrow(destinationPoints)) {
     colnames(time_df)[n] <- destinationPoints$name[n]
@@ -332,8 +366,16 @@ isochroneMulti <- function(output.dir,
     row.names = TRUE
   ) # Saves trip details as a CSV
   
+  if (length(originPoints_removed > 0)) {
+    write.csv(
+      originPoints_removed,
+      file = paste0(output.dir, "/originPoints-removed-", stamp, ".csv"),
+      row.names = TRUE
+    ) # Saves trip details as a CSV
+  }
+  
   unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
-
+  
   rgdal::writeOGR(
     isochrone_polygons,
     dsn = paste0(
