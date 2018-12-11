@@ -267,7 +267,9 @@ isochroneMulti <- function(output.dir,
     }
   }
   
-  originPoints <- originPoints[-c(originPoints_removed_list), ]
+  if (length(originPoints_removed > 0)) {
+    originPoints <- originPoints[-c(originPoints_removed_list), ]
+  }
   
   for (n in 1:nrow(destinationPoints)) {
     colnames(time_df)[n] <- destinationPoints$name[n]
