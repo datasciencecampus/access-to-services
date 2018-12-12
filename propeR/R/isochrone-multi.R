@@ -89,7 +89,7 @@ isochroneMulti <- function(output.dir,
     
     start.time <- Sys.time()
     
-    from_origin <- originPoints[i,]
+    from_origin <- originPoints[i, ]
     
     # Calls otpIsochrone from otp script to get the isochrone from origin for
     # parameters above
@@ -116,6 +116,8 @@ isochroneMulti <- function(output.dir,
       cutoff = isochroneCutOffs
     )
     
+    options(warn = -1)
+    
     if (i == start_num) {
       # Combines outputs
       t <-
@@ -123,8 +125,8 @@ isochroneMulti <- function(output.dir,
               rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE))
       # Converts the polygons to be handled in leaflet
       if ("try-error" %in% class(t)) {
-        originPoints_removed <- c(originPoints_removed,originPoints$name[i])
-        originPoints_removed_list <- c(originPoints_removed_list,i)
+        originPoints_removed <- c(originPoints_removed, originPoints$name[i])
+        originPoints_removed_list <- c(originPoints_removed_list, i)
         message(
           "Removed ",
           originPoints$name[i],
@@ -141,16 +143,30 @@ isochroneMulti <- function(output.dir,
         sp::proj4string(destination_points_spdf) <-
           sp::proj4string(isochrone_polygons) # Take projection
         time_df_tmp <-
-          data.frame(matrix(, ncol = nrow(destinationPoints), nrow = 1)) # Create time dataframe
+          data.frame(matrix(
+            ,
+            ncol = nrow(destinationPoints),
+            nrow = 1
+          )) # Create time dataframe
         isochrone_polygons_split <-
           sp::split(isochrone_polygons, isochrone_polygons@data$time) # Split into names
         for (n in 1:length(isochroneCutOffs)) {
-          time_df_tmp2 <-
-            sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
-          time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
-          time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
-          time_df_tmp[n,] <- time_df_tmp2[, 2]
-          remove(time_df_tmp2)
+          if ("try-error" %in% class(t)) {
+            time_df_tmp[n, ] <- Inf
+            message("Some polygons could not be generated, A cutoff level may be too small for ",
+                    originPoints$name[i],
+                    ".")
+            next
+            
+          } else {
+            time_df_tmp2 <-
+              sp::over(destination_points_spdf,
+                       isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
+            time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
+            time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index),]
+            time_df_tmp[n, ] <- time_df_tmp2[, 2]
+            remove(time_df_tmp2)
+          }
         }
         options(warn = -1)
         for (n in 1:ncol(time_df_tmp)) {
@@ -160,7 +176,7 @@ isochroneMulti <- function(output.dir,
         options(warn = 0)
         rownames(time_df_tmp)[length(isochroneCutOffs) + 1] <-
           originPoints$name[i]
-        time_df <- time_df_tmp[length(isochroneCutOffs) + 1,]
+        time_df <- time_df_tmp[length(isochroneCutOffs) + 1, ]
       }
     } else {
       t <-
@@ -168,8 +184,8 @@ isochroneMulti <- function(output.dir,
               rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE))
       # Converts the polygons to be handled in leaflet
       if ("try-error" %in% class(t)) {
-        originPoints_removed <- c(originPoints_removed,originPoints$name[i])
-        originPoints_removed_list <- c(originPoints_removed_list,i)
+        originPoints_removed <- c(originPoints_removed, originPoints$name[i])
+        originPoints_removed_list <- c(originPoints_removed_list, i)
         message(
           "Removed ",
           originPoints$name[i],
@@ -194,31 +210,50 @@ isochroneMulti <- function(output.dir,
         sp::proj4string(destination_points_spdf) <-
           sp::proj4string(isochrone_polygons_tmp) # Take projection
         time_df_tmp <-
-          data.frame(matrix(, ncol = nrow(destinationPoints), nrow = 1)) # Create time dataframe
+          data.frame(matrix(
+            ,
+            ncol = nrow(destinationPoints),
+            nrow = 1
+          )) # Create time dataframe
         isochrone_polygons_split <-
           sp::split(isochrone_polygons_tmp,
                     isochrone_polygons_tmp@data$time) # Split into names
         for (n in 1:length(isochroneCutOffs)) {
-          time_df_tmp2 <-
-            sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
-          time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
-          time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
-          time_df_tmp[n,] <- time_df_tmp2[, 2]
+          t <-
+            try(time_df_tmp2 <-
+                  sp::over(destination_points_spdf,
+                           isochrone_polygons_split[[n]]))
+          # Converts the polygons to be handled in leaflet
+          if ("try-error" %in% class(t)) {
+            time_df_tmp[n, ] <- Inf
+            message("Some polygons could not be generated, A cutoff level may be too small for ",
+                    originPoints$name[i],
+                    ".")
+            next
+            
+          } else {
+            time_df_tmp2 <-
+              sp::over(destination_points_spdf,
+                       isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
+            time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
+            time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index),]
+            time_df_tmp[n, ] <- time_df_tmp2[, 2]
+          }
         }
-        options(warn = -1)
+        
         for (n in 1:ncol(time_df_tmp)) {
           time_df_tmp[length(isochroneCutOffs) + 1, n] <-
             min(time_df_tmp[1:length(isochroneCutOffs), n], na.rm = TRUE)
         }
-        options(warn = 0)
+        
         rownames(time_df_tmp)[length(isochroneCutOffs) + 1] <-
           originPoints$name[i]
         
         if (exists("time_df")) {
           time_df <-
-            rbind(time_df, time_df_tmp[length(isochroneCutOffs) + 1,])
+            rbind(time_df, time_df_tmp[length(isochroneCutOffs) + 1, ])
         } else {
-          time_df <- time_df_tmp[length(isochroneCutOffs) + 1,]
+          time_df <- time_df_tmp[length(isochroneCutOffs) + 1, ]
           
         }
         
@@ -267,8 +302,10 @@ isochroneMulti <- function(output.dir,
     }
   }
   
+  options(warn = 0)
+  
   if (length(originPoints_removed > 0)) {
-    originPoints <- originPoints[-c(originPoints_removed_list), ]
+    originPoints <- originPoints[-c(originPoints_removed_list),]
   }
   
   for (n in 1:nrow(destinationPoints)) {
@@ -380,12 +417,10 @@ isochroneMulti <- function(output.dir,
   
   rgdal::writeOGR(
     isochrone_polygons,
-    dsn = paste0(
-      output.dir,
-      "/isochrone_multi",
-      stamp,
-      ".geoJSON"
-    ),
+    dsn = paste0(output.dir,
+                 "/isochrone_multi",
+                 stamp,
+                 ".geoJSON"),
     layer = "isochrone_polygons",
     driver = "GeoJSON"
   )
