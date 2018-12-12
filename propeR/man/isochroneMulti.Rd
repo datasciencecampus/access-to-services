@@ -7,9 +7,9 @@
 isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
   startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
   maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
-  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, isochroneCutOffs = c(30, 60, 90),
-  palColor = "Blues", mapZoom = 12)
+  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, isochroneCutOffs = c(30, 60, 90), palColor = "Blues",
+  mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
