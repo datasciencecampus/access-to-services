@@ -37,6 +37,7 @@ isochrone <- function(output.dir,
                       originPoints,
                       originPointsRow = 1,
                       destinationPoints,
+                      destinationPointsRow = 1,
                       # otpIsochrone args
                       startDateAndTime = "2018-08-18 12:00:00",
                       modes = "WALK, TRANSIT",
@@ -65,6 +66,9 @@ isochrone <- function(output.dir,
   origin_points_row_num <-
     originPointsRow # Set origin using a row from the origin dataframe
   
+  destination_points_row_num <-
+    destinationPointsRow # Set destination using a row from the destination dataframe
+  
   if (origin_points_row_num > nrow(originPoints)) {
     message('Row is not in origin file, process aborted.\n')
     unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
@@ -86,6 +90,7 @@ isochrone <- function(output.dir,
     batch = TRUE,
     # If true, goal direction is turned off and a full path tree is built (specify only once)
     from = from_origin$lat_lon,
+    to = from_origin$lat_lon,
     # Takes the latitude and longitude from specified origin
     modes = modes,
     date = start_date,

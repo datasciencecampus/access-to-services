@@ -99,6 +99,7 @@ isochroneMulti <- function(output.dir,
       batch = TRUE,
       # If true, goal direction is turned off and a full path tree is built (specify only once)
       from = from_origin$lat_lon,
+      to = from_origin$lat_lon,
       # Takes the latitude and longitude from specified origin
       modes = modes,
       date = start_date,
