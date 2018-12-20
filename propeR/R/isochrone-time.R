@@ -43,6 +43,7 @@ isochroneTime <- function(output.dir,
                           originPoints,
                           originPointsRow = 1,
                           destinationPoints,
+                          destinationPointsRow = 1,
                           # otpIsochrone args
                           startDateAndTime = "2018-08-18 12:00:00",
                           endDateAndTime = "2018-08-18 15:00:00",
@@ -126,6 +127,7 @@ isochroneTime <- function(output.dir,
       batch = TRUE,
       # If true, goal direction is turned off and a full path tree is built (specify only once)
       from = from_origin$lat_lon,
+      to = from_origin$lat_lon,
       # Takes the latitude and longitude from specified origin
       modes = modes,
       date = date,

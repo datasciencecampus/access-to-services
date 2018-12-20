@@ -651,6 +651,7 @@ otpChoropleth <- function(otpcon,
 ##' @export
 otpIsochrone <- function(otpcon,
                          from,
+                         to,
                          modes,
                          cutoff = c(30, 60, 90),
                          batch = TRUE,
@@ -672,6 +673,7 @@ otpIsochrone <- function(otpcon,
   # todo: should just pass these from ... args
   params <- list(
     fromPlace = from,
+    toPlace = to,
     mode = modes,
     batch = batch,
     date = date,
