@@ -10,12 +10,16 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
   maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
   bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
   wheelchair = F, arriveBy = F, isochroneCutOffs = c(30, 60, 90),
-  map = FALSE, geojson = FALSE, palColor = "Blues", mapZoom = 12)
+  mapOutput = FALSE, geojsonOutput = FALSE,
+  mapPolygonColours = "Blues", mapZoom = 12,
+  mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
+  mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
+  mapLegendOpacity = 0.5)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{OTP router URL}
+\item{otpcon}{The OTP router URL}
 
 \item{originPoints}{The variable containing origin(s), see ?importLocationData}
 
@@ -23,42 +27,55 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
 
-\item{startDateAndTime}{in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
-\item{modes}{defaults to 'TRANSIT, WALK'}
+\item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
-\item{maxWalkDistance}{in meters, defaults to 1000}
+\item{maxWalkDistance}{The maximum walking distance, in meters, defaults to 1000 m}
 
-\item{walkReluctance}{defaults to 2 (range 0 - 20)}
+\item{walkReluctance}{The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))}
 
-\item{walkSpeed}{in m/s, defaults to 1.4}
+\item{walkSpeed}{The walking soeed, in meters per second, defaults to 1.4 m/s}
 
-\item{bikeSpeed}{in m/s, defaults to 4.3}
+\item{bikeSpeed}{The cycling speed, in meters per second, defaults to 4.3 m/s}
 
-\item{minTransferTime}{in minutes, defaults to 1}
+\item{minTransferTime}{The maximum transfer time, in minutes, defaults to 0 mins (no time specified)}
 
-\item{maxTransfers}{defaults to 10}
+\item{maxTransfers}{The maximum number of transfers, defaults to 10}
 
-\item{wheelchair}{defaults to FALSE}
+\item{wheelchair}{If TRUE, uses on wheeelchair friendly stops, defaults to FALSE}
 
-\item{arriveBy}{defaults to FALSE}
+\item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{isochroneCutOffs}{a list of cutoffs in minutes, defaults to c(30, 60, 90)}
+\item{isochroneCutOffs}{Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)}
 
-\item{map}{specify whether you want to output a map}
+\item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
-\item{geojson}{specific whether you want to output a GeoJSON file, defaults to FALSE}
+\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 
-\item{palColor}{the color palette of the map, defaults to 'Blues'}
+\item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
 
-\item{mapZoom}{defaults to 12}
+\item{mapZoom}{The zoom level of the map, defaults to 12}
+
+\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
+
+\item{mapPolygonLineOpacity}{Specifies the opacity of the polygon line, defaults to 1 (solid)}
+
+\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
+
+\item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
+
+\item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 }
 \value{
-Saves map as a png and journey details as CSV to output directory
+Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygon as a GeoJSON)
 }
 \description{
 Generates an isochrone map from a single origin and checks whether destinations
-fall within isochrone, and if so, at what cutoff time amount.
+fall within isochrone, and if so, at what cutoff time amount. 
+A CSV file of journey details is saved in the output folder.
+A map of the journey can also be saved as a PNG image and HTML file.
+The polygon can also be saved as a GeoJSON file.
 }
 \examples{
   isochrone(
