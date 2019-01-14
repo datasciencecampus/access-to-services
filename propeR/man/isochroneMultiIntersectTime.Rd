@@ -2,15 +2,17 @@
 % Please edit documentation in R/isochrone-multi-intersect-time.R
 \name{isochroneMultiIntersectTime}
 \alias{isochroneMultiIntersectTime}
-\title{Calculates an isochrone map for multiple origins.}
+\title{Generates a map of intersecting polygons for multiple origins between a start and end
+time and date.}
 \usage{
-isochroneMultiIntersectTime(output.dir, otpcon, originPoints, destinationPoints,
-  startDateAndTime = "2018-08-18 12:00:00",
+isochroneMultiIntersectTime(output.dir, otpcon, originPoints,
+  destinationPoints, startDateAndTime = "2018-08-18 12:00:00",
   endDateAndTime = "2018-08-18 15:00:00", timeIncrease = 60,
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
-  walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, isochroneCutOffs = 60,
-  palColorMarker = "Greys", palColorPolygon = "#6BAED6", mapZoom = 12)
+  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
+  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
+  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, isochroneCutOffs = 60, palColorMarker = "Greys",
+  palColorPolygon = "#6BAED6", mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -57,7 +59,8 @@ isochroneMultiIntersectTime(output.dir, otpcon, originPoints, destinationPoints,
 Saves an animated map as a gif to output directory
 }
 \description{
-Finds the intersection between a start and end time and date.
+Calculates a number of polygons for the intersection between multiple origins and finds the intersection, between a start and end time and date.
+Saves map as an animated GIF.
 }
 \examples{
   isochroneMultiIntersect(

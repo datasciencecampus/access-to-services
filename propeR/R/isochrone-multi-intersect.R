@@ -1,6 +1,6 @@
 ##' Generates a GeoJSON of intersecting polygons for multiple origins
 ##'
-##' Calculates an isochrone map for the intersection between multiple origins and finds the intersection.
+##' Calculates an polygon for the intersection between multiple origins and finds the intersection.
 ##' Saves polygon as a GeoJSON file.
 ##'
 ##' @param output.dir The directory for the output files

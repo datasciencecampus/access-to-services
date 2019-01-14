@@ -2,14 +2,16 @@
 % Please edit documentation in R/isochrone-multi-intersect.R
 \name{isochroneMultiIntersect}
 \alias{isochroneMultiIntersect}
-\title{Isochrone map for multiple origins}
+\title{Generates a GeoJSON of intersecting polygons for multiple origins}
 \usage{
-isochroneMultiIntersect(output.dir, otpcon, originPoints, destinationPoints,
-  startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
-  maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
-  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = 60, palColorMarker = "Greys",
-  palColorPolygon = "#6BAED6", mapZoom = 12)
+isochroneMultiIntersect(output.dir, otpcon, originPoints,
+  destinationPoints, startDateAndTime = "2018-08-18 12:00:00",
+  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
+  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
+  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, isochroneCutOffs = 60, map = FALSE, geojson = TRUE,
+  palColorMarker = "Greys", palColorPolygon = "#6BAED6",
+  mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -42,6 +44,10 @@ isochroneMultiIntersect(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{isochroneCutOffs}{in minutes, defaults to 60}
 
+\item{map}{specify whether you want output a leaflet map, defaults to FALSE}
+
+\item{geojson}{specific whether you want to output a GeoJSON file, defaults to TRUE}
+
 \item{palColorPolygon}{the color palette of the poygon, defaults to 'Blue'}
 
 \item{mapZoom}{defaults to 12}
@@ -52,7 +58,8 @@ isochroneMultiIntersect(output.dir, otpcon, originPoints, destinationPoints,
 Saves map as a png and geojson of the intersection area to output directory
 }
 \description{
-Calculates an isochrone map for multiple origins and finds the intersection.
+Calculates an polygon for the intersection between multiple origins and finds the intersection.
+Saves polygon as a GeoJSON file.
 }
 \examples{
   isochroneMultiIntersect(

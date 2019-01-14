@@ -8,9 +8,9 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
   destinationPoints, destinationPointsRow = 1,
   startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
   maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
-  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = c(30, 60, 90), palColor = "Blues",
-  mapZoom = 12)
+  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
+  wheelchair = F, arriveBy = F, isochroneCutOffs = c(30, 60, 90),
+  map = FALSE, geojson = FALSE, palColor = "Blues", mapZoom = 12)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -44,6 +44,10 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{arriveBy}{defaults to FALSE}
 
 \item{isochroneCutOffs}{a list of cutoffs in minutes, defaults to c(30, 60, 90)}
+
+\item{map}{specify whether you want to output a map}
+
+\item{geojson}{specific whether you want to output a GeoJSON file, defaults to FALSE}
 
 \item{palColor}{the color palette of the map, defaults to 'Blues'}
 
