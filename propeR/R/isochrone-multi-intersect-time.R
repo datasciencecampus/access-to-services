@@ -1,6 +1,8 @@
-##' Calculates an isochrone map for multiple origins.
+##' Generates a map of intersecting polygons for multiple origins between a start and end
+##' time and date.
 ##'
-##' Finds the intersection between a start and end time and date.
+##' Calculates a number of polygons for the intersection between multiple origins and finds the intersection, between a start and end time and date.
+##' Saves map as an animated GIF.
 ##'
 ##' @param output.dir The directory for the output files
 ##' @param otpcon OTP router URL
@@ -59,10 +61,16 @@ isochroneMultiIntersectTime <- function(output.dir,
                                         mapZoom = 12) {
   message("Now running the propeR isochroneMultiIntersectTime tool.\n")
   
+  library(leaflet)
   pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
   palIsochrone = leaflet::colorFactor(palColorMarker, NULL, n = length(originPoints)) # Creating colour palette
+  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  dir.create(paste0(output.dir, "/tmp_folder")) # Creates tmp_folder
   
-  # Tidying variables ----------
+  #########################
+  #### SETUP VARIABLES ####
+  #########################
+  
   date_time_legend <-
     format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
   time_series <-
@@ -70,16 +78,13 @@ isochroneMultiIntersectTime <- function(output.dir,
         as.POSIXct(endDateAndTime),
         by = timeIncrease * 60) # Creates a time series between start and end dates and times based on the increment in time
   
-  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
-  dir.create(paste0(output.dir, "/tmp_folder")) # Creates tmp_folder
-  
-  message(
-    "Creating ",
-    nrow(originPoints) * length(time_series),
-    " isochrones, please wait...\n"
-  )
-  
   isoNum <- 0
+  totNum <- nrow(originPoints) * length(time_series)
+  
+  message("Creating ",
+          totNum,
+          " isochrones, please wait...\n")
+  time.taken <- vector()
   
   for (num in 1:length(time_series)) {
     # Start loop to calculate journey details
@@ -92,10 +97,9 @@ isochroneMultiIntersectTime <- function(output.dir,
         format(time_series[num], "%B %d %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
       time <- format(time_series[num], "%I:%M %p")
       date <- format(time_series[num], "%m/%d/%Y")
-      from_origin <- originPoints[i,]
+      from_origin <- originPoints[i, ]
       
-      # Calls otpIsochrone from otp script to get the isochrone from origin for
-      # parameters above
+      start.time <- Sys.time()
       
       isochrone <- propeR::otpIsochrone(
         otpcon,
@@ -119,7 +123,7 @@ isochroneMultiIntersectTime <- function(output.dir,
         cutoff = isochroneCutOffs # A time cutoff as described above
       )
       
-      if (i == 1) {
+      if (isoNum == 1) {
         # Combines outputs
         isochrone_multi <- isochrone
       } else {
@@ -129,12 +133,31 @@ isochroneMultiIntersectTime <- function(output.dir,
           c(isochrone_multi$response, isochrone$response)
       }
       
-      message(
-        isoNum,
-        " out of ",
-        nrow(originPoints) * length(time_series),
-        " isochrones complete."
-      )
+      end.time <- Sys.time()
+      time.taken[isoNum] <- round(end.time - start.time, digits = 2)
+      
+      if (isoNum < nrow(originPoints) * length(time_series)) {
+        message(
+          isoNum,
+          " out of ",
+          totNum,
+          " isochrones complete. Time taken ",
+          round(sum(time.taken), digit = 2),
+          " seconds. Estimated time left is approx. ",
+          round((mean(time.taken) * totNum) - sum(time.taken),
+                digits = 2),
+          " seconds."
+        )
+      } else {
+        message(
+          isoNum,
+          " out of ",
+          totNum,
+          " isochrones complete. Time taken ",
+          sum(time.taken),
+          " seconds."
+        )
+      }
       
     }
     
@@ -169,8 +192,6 @@ isochroneMultiIntersectTime <- function(output.dir,
       }
     }
     
-    # Creating a leaflet map from results
-    library(leaflet)
     m <- leaflet()
     m <- addScaleBar(m)
     m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
@@ -231,7 +252,9 @@ isochroneMultiIntersectTime <- function(output.dir,
     mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", i, "_", num, ".png")) # Saves map in temp folder
   }
   
-  # Plots leaflet map gif in Viewer and saves to disk, also saves table as csv ----------
+  ######################
+  #### SAVE RESULTS ####
+  ######################
   
   message("Analysis complete, now saving outputs to ",
           output.dir,

@@ -1,6 +1,7 @@
-##' Isochrone map for multiple origins
+##' Generates a GeoJSON of intersecting polygons for multiple origins
 ##'
-##' Calculates an isochrone map for multiple origins and finds the intersection.
+##' Calculates an isochrone map for the intersection between multiple origins and finds the intersection.
+##' Saves polygon as a GeoJSON file.
 ##'
 ##' @param output.dir The directory for the output files
 ##' @param otpcon OTP router URL
@@ -17,6 +18,8 @@
 ##' @param wheelchair defaults to FALSE
 ##' @param arriveBy defaults to FALSE
 ##' @param isochroneCutOffs in minutes, defaults to 60
+##' @param map specify whether you want output a leaflet map, defaults to FALSE
+##' @param geojson specific whether you want to output a GeoJSON file, defaults to TRUE
 ##' @param palColorMarkers the color palette of the markers, defaults to 'Greys'
 ##' @param palColorPolygon the color palette of the poygon, defaults to 'Blue'
 ##' @param mapZoom defaults to 12
@@ -49,16 +52,24 @@ isochroneMultiIntersect <- function(output.dir,
                                     arriveBy = F,
                                     # function specific args
                                     isochroneCutOffs = 60,
-                                    # colours
+                                    # leaflet map args
+                                    map = FALSE,
+                                    geojson = TRUE,
                                     palColorMarker = "Greys",
                                     palColorPolygon = "#6BAED6",
-                                    # leaflet map args
                                     mapZoom = 12) {
   message("Now running the propeR isochroneMultiIntersect tool.\n")
   
-  palIsochrone = leaflet::colorFactor(palColorMarker, NULL, n = length(originPoints)) # Creating colour palette
+  if (map == TRUE) {
+    library(leaflet)
+    palIsochrone = leaflet::colorFactor(palColorMarker, NULL, n = length(originPoints)) # Creating colour palette
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  }
   
-  # Tidying variables ----------
+  #########################
+  #### SETUP VARIABLES ####
+  #########################
+  
   if (is.null(originPoints$mode)) {
     originPoints$mode <- modes
   }
@@ -73,15 +84,12 @@ isochroneMultiIntersect <- function(output.dir,
     originPoints$date <- as.Date(startDateAndTime)
   }
   
-  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
-  dir.create(paste0(output.dir, "/tmp_folder")) # Creates tmp_folder
-  
   message("Creating ", nrow(originPoints), " isochrones, please wait...")
-  time.taken <- list(0)
+  time.taken <- vector()
   
   for (i in 1:nrow(originPoints)) {
     #Changes transport modes to OTP transport modes
-    from_origin <- originPoints[i, ]
+    from_origin <- originPoints[i,]
     if (from_origin$mode == "Public Transport") {
       mode <- "TRANSIT,WALK"
     } else if (from_origin$mode == "Driving") {
@@ -99,9 +107,6 @@ isochroneMultiIntersect <- function(output.dir,
     }
     
     start.time <- Sys.time()
-    
-    # Calls otpIsochrone from otp script to get the isochrone from origin for
-    # parameters above
     
     isochrone <- propeR::otpIsochrone(
       otpcon,
@@ -144,9 +149,12 @@ isochroneMultiIntersect <- function(output.dir,
         " out of ",
         nrow(originPoints),
         " isochrones complete. Time taken ",
-        do.call(sum, time.taken),
+        round(sum(time.taken), digit = 2),
         " seconds. Estimated time left is approx. ",
-        (do.call(mean, time.taken) * nrow(originPoints)) - do.call(sum, time.taken),
+        round((
+          mean(time.taken) * nrow(originPoints)
+        ) - sum(time.taken),
+        digits = 2),
         " seconds."
       )
     } else {
@@ -155,17 +163,18 @@ isochroneMultiIntersect <- function(output.dir,
         " out of ",
         nrow(originPoints),
         " isochrones complete. Time taken ",
-        do.call(sum, time.taken),
+        sum(time.taken),
         " seconds."
       )
     }
     
-  }#end origin loop.
+  }
   
   message("Finding the intersect between ",
           nrow(originPoints),
           " isochrones, please wait...")
-  time.taken <- list(0)
+  
+  time.taken <- vector()
   
   for (n in 1:length(isochrone_multi$status)) {
     start.time <- Sys.time()
@@ -205,9 +214,12 @@ isochroneMultiIntersect <- function(output.dir,
         " out of ",
         length(isochrone_multi$status),
         " intersections complete. Time taken ",
-        do.call(sum, time.taken),
+        round(sum(time.taken), digit = 2),
         " seconds. Estimated time left is approx. ",
-        (do.call(mean, time.taken) * nrow(originPoints)) - do.call(sum, time.taken),
+        round((
+          mean(time.taken) * nrow(originPoints)
+        ) - sum(time.taken),
+        digits = 2),
         " seconds."
       )
     } else {
@@ -216,92 +228,97 @@ isochroneMultiIntersect <- function(output.dir,
         " out of ",
         length(isochrone_multi$status),
         " intersections complete. Time taken ",
-        do.call(sum, time.taken),
+        sum(time.taken),
         " seconds."
       )
     }
     
   }
   
-  popup_originPoints <-
-    # generates a popup for the poly_lines_lines feature
-    paste0(
-      "<strong>Name: </strong>",
-      originPoints$name,
-      "<br><strong>Mode: </strong>",
-      originPoints$mode,
-      "<br><strong>Duration: </strong>",
-      round(originPoints$max_duration, digits = 2),
-      " mins",
-      "<br><strong>Date: </strong>",
-      originPoints$date,
-      "<br><strong>Time: </strong>",
-      originPoints$time
-    )
+  #########################
+  #### OPTIONAL EXTRAS ####
+  #########################
   
   
-  # Creating a leaflet map from results
-  
-  # todo: all these leaflet options can be provided in function args.
-  library(leaflet)
-  m <- leaflet()
-  m <- addScaleBar(m)
-  m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
-  m <-
-    setView(
+  if (map == TRUE) {
+    popup_originPoints <-
+      # generates a popup for the poly_lines_lines feature
+      paste0(
+        "<strong>Name: </strong>",
+        originPoints$name,
+        "<br><strong>Mode: </strong>",
+        originPoints$mode,
+        "<br><strong>Duration: </strong>",
+        round(originPoints$max_duration, digits = 2),
+        " mins",
+        "<br><strong>Date: </strong>",
+        originPoints$date,
+        "<br><strong>Time: </strong>",
+        originPoints$time
+      )
+    
+    # todo: all these leaflet options can be provided in function args.
+    m <- leaflet()
+    m <- addScaleBar(m)
+    m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    m <-
+      setView(
+        m,
+        lat = mean(originPoints$lat),
+        # Focuses on the origin
+        lng = mean(originPoints$lon),
+        # Focuses on the origin
+        zoom = mapZoom
+      )
+    m <-
+      addPolygons(
+        m,
+        data = s_poly_intersect,
+        # Adds polygons from journey
+        stroke = TRUE,
+        weight = 5,
+        color = palColorPolygon,
+        opacity = 1,
+        smoothFactor = 0.3,
+        fillOpacity = 0.6,
+        fillColor = palColorPolygon
+      )
+    m <-
+      addCircleMarkers(
+        m,
+        data = originPoints,
+        # Adds circles for each stage of the journey
+        lat = ~ lat,
+        lng = ~ lon,
+        radius = 8,
+        fillColor = palIsochrone(originPoints$name),
+        stroke = TRUE,
+        color = "black",
+        weight = 1,
+        opacity = 1,
+        fillOpacity = 0.8,
+        popup = popup_originPoints
+      )
+    m <- addLegend(
       m,
-      lat = mean(originPoints$lat),
-      # Focuses on the origin
-      lng = mean(originPoints$lon),
-      # Focuses on the origin
-      zoom = mapZoom
+      pal = palIsochrone,
+      # Adds a legend for the trip
+      values = paste(
+        originPoints$name,
+        " by ",
+        originPoints$mode,
+        " in ",
+        originPoints$max_duration,
+        " mins",
+        sep = ""
+      ),
+      opacity = 0.8
     )
-  m <-
-    addPolygons(
-      m,
-      data = s_poly_intersect,
-      # Adds polygons from journey
-      stroke = TRUE,
-      weight = 5,
-      color = palColorPolygon,
-      opacity = 1,
-      smoothFactor = 0.3,
-      fillOpacity = 0.6,
-      fillColor = palColorPolygon
-    )
-  m <-
-    addCircleMarkers(
-      m,
-      data = originPoints,
-      # Adds circles for each stage of the journey
-      lat = ~ lat,
-      lng = ~ lon,
-      radius = 8,
-      fillColor = palIsochrone(originPoints$name),
-      stroke = TRUE,
-      color = "black",
-      weight = 1,
-      opacity = 1,
-      fillOpacity = 0.8,
-      popup = popup_originPoints
-    )
-  m <- addLegend(
-    m,
-    pal = palIsochrone,
-    # Adds a legend for the trip
-    values = paste(
-      originPoints$name,
-      " by ",
-      originPoints$mode,
-      " in ",
-      originPoints$max_duration,
-      " mins",
-      sep = ""
-    ),
-    opacity = 0.8
-  )
+  }
   
-  # Plots leaflet map gif in Viewer and saves to disk, also saves table as csv ----------
+  ######################
+  #### SAVE RESULTS ####
+  ######################
   
   message("Analysis complete, now saving outputs to ",
           output.dir,
@@ -310,30 +327,31 @@ isochroneMultiIntersect <- function(output.dir,
   stamp <-
     format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
   
-  invisible(print(m)) # plots map to Viewer
-  
-  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes maps_tmp folder of pngs
-  
-  mapview::mapshot(m,
-                   file = paste0(output.dir, "/isochrone_multi_intersect-", stamp, ".png"))
-  htmlwidgets::saveWidget(m,
-                          file = paste0(output.dir, "/isochrone_multi_merge-", stamp, ".html")) # Saves as an interactive HTML webpage
-  unlink(paste0(output.dir, "/isochrone_multi_merge-", stamp, "_files"),
-         recursive = TRUE) # Deletes tmp_folder
-  
   s_poly_intersect <-
     as(s_poly_intersect, "SpatialPolygonsDataFrame")
   
-  rgdal::writeOGR(
-    s_poly_intersect,
-    dsn = paste0(
-      output.dir,
-      "/isochrone_multi_intersect-",
-      stamp,
-      ".geoJSON"
-    ),
-    layer = "s_poly_intersect",
-    driver = "GeoJSON"
-  )
+  if (geojson == TRUE) {
+    rgdal::writeOGR(
+      s_poly_intersect,
+      dsn = paste0(
+        output.dir,
+        "/isochrone_multi_intersect-",
+        stamp,
+        ".geoJSON"
+      ),
+      layer = "s_poly_intersect",
+      driver = "GeoJSON"
+    )
+  }
   
+  if (map == TRUE) {
+    invisible(print(m)) # plots map to Viewer
+    mapview::mapshot(m,
+                     file = paste0(output.dir, "/isochrone_multi_intersect-", stamp, ".png"))
+    htmlwidgets::saveWidget(m,
+                            file = paste0(output.dir, "/isochrone_multi_merge-", stamp, ".html")) # Saves as an interactive HTML webpage
+    unlink(paste0(output.dir, "/isochrone_multi_merge-", stamp, "_files"),
+           recursive = TRUE) # Deletes tmp_folder
+  }
+
 }

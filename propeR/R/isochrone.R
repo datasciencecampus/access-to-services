@@ -20,6 +20,7 @@
 ##' @param arriveBy defaults to FALSE
 ##' @param isochroneCutOffs a list of cutoffs in minutes, defaults to c(30, 60, 90)
 ##' @param map specify whether you want to output a map
+##' @param geojson specific whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param palColor the color palette of the map, defaults to 'Blues'
 ##' @param mapZoom defaults to 12
 ##' @return Saves map as a png and journey details as CSV to output directory
@@ -54,6 +55,7 @@ isochrone <- function(output.dir,
                       isochroneCutOffs = c(30, 60, 90),
                       # leaflet map args
                       map = FALSE,
+                      geojson = FALSE,
                       palColor = "Blues",
                       mapZoom = 12) {
   message("Now running the propeR isochrone tool.\n")
@@ -81,7 +83,7 @@ isochrone <- function(output.dir,
   }
   
   from_origin <-
-    originPoints[origin_points_row_num, ] # Takes the specified row from the data
+    originPoints[origin_points_row_num,] # Takes the specified row from the data
   
   # Tidying variables ----------
   start_time <-
@@ -167,7 +169,7 @@ isochrone <- function(output.dir,
   )
   
   destination_points_non_na <-
-    subset(destinationPoints, !(is.na(destinationPoints["travel_time"])))
+    subset(destinationPoints,!(is.na(destinationPoints["travel_time"])))
   
   #########################
   #### OPTIONAL EXTRAS ####
@@ -274,14 +276,7 @@ isochrone <- function(output.dir,
     row.names = FALSE
   ) # Saves trip details as a CSV
   
-  if (map == TRUE) {
-    invisible(print(m)) # plots map to Viewer
-    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) # Saves map to output directory
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) # Saves as an interactive HTML webpage
-    unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
-           recursive = TRUE) # Deletes temporary folder created by mapshot
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
-    
+  if (geojson == TRUE) {
     rgdal::writeOGR(
       isochrone_polygons,
       dsn = paste0(output.dir,
@@ -292,4 +287,14 @@ isochrone <- function(output.dir,
       driver = "GeoJSON"
     )
   }
+  
+  if (map == TRUE) {
+    invisible(print(m)) # plots map to Viewer
+    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) # Saves map to output directory
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) # Saves as an interactive HTML webpage
+    unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
+           recursive = TRUE) # Deletes temporary folder created by mapshot
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  }
+  
 }

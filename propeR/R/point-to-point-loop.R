@@ -1,26 +1,28 @@
-##' Calculates an isochrone map from a single origin
+##' Calculates the journey for a number of origins and/or destinations.
 ##'
-##' .. content for \details{} ..
+##' Calculates the journey time and details between multiple origins and/or destinations. 
+##' A CSV file of journey details is saved in the output folder.
 ##'
 ##' @param output.dir The directory for the output files
-##' @param otpcon OTP router URL
+##' @param otpcon The OTP router URL
 ##' @param originPoints The variable containing origin(s), see ?importLocationData
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
-##' @param destinationPoints The variable containing destination(s), see ?importLocationData
+##' @param destinationPoints The variable containing destination(s) see ?importLocationData
 ##' @param destinationPointsRow The row of destinationPoints to be used, defaults to 1
-##' @param loopType Specify the type of loop, origin (1), destination (2) or both (0, default)
-##' @param return Specify whether the journey should be calculated as a return or not (default is True)
-##' @param startDateAndTime in 'YYYY-MM-DD HH:MM:SS' format
-##' @param modes defaults to 'TRANSIT, WALK'
-##' @param maxWalkDistance in meters, defaults to 1000
-##' @param walkReluctance defaults to 2 (range 0 - 20)
-##' @param walkSpeed in m/s, defaults to 1.4
-##' @param bikeSpeed in m/s, defaults to 4.3
-##' @param minTransferTime in minutes, defaults to 1
-##' @param maxTransfers defaults to 10
-##' @param wheelchair defaults to FALSE
-##' @param arriveBy defaults to FALSE
-##' @return Returns a csv of journey details to the output directory
+##' @param journeyLoop Specifies the type of loop, only origins (1), only destinations (2), or both (0, default)
+##' @param journeyReturn Specifies whether the journey should be calculated as a return or not (default is True)
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
+##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
+##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
+##' @param walkSpeed The walking soeed, in meters per second, defaults to 1.4 m/s
+##' @param bikeSpeed The cycling speed, in meters per second, defaults to 4.3 m/s
+##' @param minTransferTime The maximum transfer time, in minutes, defaults to 0 mins (no time specified)
+##' @param maxTransfers The maximum number of transfers, defaults to 10
+##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
+##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
+##' @param
+##' @return Saves journey details as CSV to output directory
 ##' @author Michael Hodge
 ##' @examples
 ##'   pointToPointLoop(
@@ -37,8 +39,8 @@ pointToPointLoop <- function(output.dir,
                              originPointsRow = 1,
                              destinationPoints,
                              destinationPointsRow = 1,
-                             loopType = 0,
-                             return = TRUE,
+                             journeyLoop = 0,
+                             journeyReturn = TRUE,
                              # otpTime args
                              startDateAndTime = "2018-08-13 09:00:00",
                              modes = "WALK, TRANSIT",
@@ -56,16 +58,16 @@ pointToPointLoop <- function(output.dir,
   #### SETUP VARIABLES ####
   #########################
   
-  if (return == TRUE) {
+  if (journeyReturn == TRUE) {
     multiplier <- 2
   } else {
     multiplier <- 1
   }
   
-  if (loopType == 0) {
+  if (journeyLoop == 0) {
     originPointsEnd <- nrow(originPoints)
     destinationPointsEnd <- nrow(destinationPoints)
-  } else if (loopType == 1) {
+  } else if (journeyLoop == 1) {
     originPointsEnd <- nrow(originPoints)
     destinationPointsEnd <- 1
     
@@ -78,7 +80,7 @@ pointToPointLoop <- function(output.dir,
       break
     }
     
-  } else if (loopType == 2) {
+  } else if (journeyLoop == 2) {
     originPointsEnd <- 1
     destinationPointsEnd <- nrow(destinationPoints)
     
@@ -92,7 +94,7 @@ pointToPointLoop <- function(output.dir,
     }
     
   } else {
-    message('Parameter type for loopType unknown')
+    message('Parameter type for journeyLoop unknown')
     break
   }
   
@@ -117,13 +119,13 @@ pointToPointLoop <- function(output.dir,
       for (i in 1:originPointsEnd) {
         start.time <- Sys.time()
         
-        if (loopType == 0) {
+        if (journeyLoop == 0) {
           from_origin <- originPoints[i,]
           to_destination <- destinationPoints[k,]
-        } else if (loopType == 1) {
+        } else if (journeyLoop == 1) {
           from_origin <- originPoints[i,]
           to_destination <- destinationPoints[destinationPointsRow, ]
-        } else if (loopType == 2) {
+        } else if (journeyLoop == 2) {
           from_origin <- originPoints[originPointsRow,]
           to_destination <- destinationPoints[k, ]
         }

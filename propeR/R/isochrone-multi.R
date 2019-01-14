@@ -18,7 +18,8 @@
 ##' @param wheelchair defaults to FALSE
 ##' @param arriveBy defaults to FALSE
 ##' @param isochroneCutOffs a list of cutoffs in minutes, defaults to c(30, 60, 90)
-##' @param map specify whether you want to output a map
+##' @param map specify whether you want output a leaflet map, defaults to FALSE
+##' @param geojson specific whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param palColor the color palette of the map, defaults to 'Blues'
 ##' @param mapZoom defaults to 12
 ##' @return Saves map as a png and destination results as CSV to output directory
@@ -51,6 +52,7 @@ isochroneMulti <- function(output.dir,
                            isochroneCutOffs = c(30, 60, 90),
                            # leaflet map args
                            map = FALSE,
+                           geojson = FALSE,
                            palColor = "Blues",
                            mapZoom = 12) {
   message("Now running the propeR isochroneMulti tool.\n")
@@ -91,7 +93,7 @@ isochroneMulti <- function(output.dir,
     
     start.time <- Sys.time()
     
-    from_origin <- originPoints[i,]
+    from_origin <- originPoints[i, ]
     
     isochrone <- propeR::otpIsochrone(
       otpcon,
@@ -153,7 +155,7 @@ isochroneMulti <- function(output.dir,
           sp::split(isochrone_polygons, isochrone_polygons@data$time) # Split into names
         for (n in 1:length(isochroneCutOffs)) {
           if ("try-error" %in% class(t)) {
-            time_df_tmp[n,] <- Inf
+            time_df_tmp[n, ] <- Inf
             message(
               "Some polygons could not be generated, A cutoff level may be too small for ",
               originPoints$name[i],
@@ -167,8 +169,9 @@ isochroneMulti <- function(output.dir,
                        isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
             time_df_tmp2$index <-
               as.numeric(row.names(time_df_tmp2))
-            time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
-            time_df_tmp[n,] <- time_df_tmp2[, 2]
+            time_df_tmp2 <-
+              time_df_tmp2[order(time_df_tmp2$index),]
+            time_df_tmp[n, ] <- time_df_tmp2[, 2]
             remove(time_df_tmp2)
           }
         }
@@ -180,7 +183,7 @@ isochroneMulti <- function(output.dir,
         options(warn = 0)
         rownames(time_df_tmp)[length(isochroneCutOffs) + 1] <-
           originPoints$name[i]
-        time_df <- time_df_tmp[length(isochroneCutOffs) + 1,]
+        time_df <- time_df_tmp[length(isochroneCutOffs) + 1, ]
       }
     } else {
       t <-
@@ -230,7 +233,7 @@ isochroneMulti <- function(output.dir,
                            isochrone_polygons_split[[n]]))
           # Converts the polygons to be handled in leaflet
           if ("try-error" %in% class(t)) {
-            time_df_tmp[n,] <- Inf
+            time_df_tmp[n, ] <- Inf
             message(
               "Some polygons could not be generated, A cutoff level may be too small for ",
               originPoints$name[i],
@@ -244,8 +247,9 @@ isochroneMulti <- function(output.dir,
                        isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
             time_df_tmp2$index <-
               as.numeric(row.names(time_df_tmp2))
-            time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index), ]
-            time_df_tmp[n,] <- time_df_tmp2[, 2]
+            time_df_tmp2 <-
+              time_df_tmp2[order(time_df_tmp2$index),]
+            time_df_tmp[n, ] <- time_df_tmp2[, 2]
           }
         }
         
@@ -259,9 +263,9 @@ isochroneMulti <- function(output.dir,
         
         if (exists("time_df")) {
           time_df <-
-            rbind(time_df, time_df_tmp[length(isochroneCutOffs) + 1,])
+            rbind(time_df, time_df_tmp[length(isochroneCutOffs) + 1, ])
         } else {
-          time_df <- time_df_tmp[length(isochroneCutOffs) + 1,]
+          time_df <- time_df_tmp[length(isochroneCutOffs) + 1, ]
           
         }
         
@@ -316,7 +320,7 @@ isochroneMulti <- function(output.dir,
   options(warn = 0)
   
   if (length(originPoints_removed > 0)) {
-    originPoints <- originPoints[-c(originPoints_removed_list), ]
+    originPoints <- originPoints[-c(originPoints_removed_list),]
   }
   
   for (n in 1:nrow(destinationPoints)) {
@@ -423,14 +427,7 @@ isochroneMulti <- function(output.dir,
     ) # Saves trip details as a CSV
   }
   
-  if (map == TRUE) {
-    invisible(print(m)) # plots map to Viewer
-    mapview::mapshot(m, file = paste0(output.dir, "/isochrone_multi-", stamp, ".png"))
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone_multi-", stamp, ".html")) # Saves as an interactive HTML webpage
-    unlink(paste0(output.dir, "/isochrone_multi-", stamp, "_files"),
-           recursive = TRUE) # Deletes temporary folder created by mapshot
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
-    
+  if (geojson == TRUE) {
     rgdal::writeOGR(
       isochrone_polygons,
       dsn = paste0(output.dir,
@@ -440,5 +437,14 @@ isochroneMulti <- function(output.dir,
       layer = "isochrone_polygons",
       driver = "GeoJSON"
     )
+  }
+  
+  if (map == TRUE) {
+    invisible(print(m)) # plots map to Viewer
+    mapview::mapshot(m, file = paste0(output.dir, "/isochrone_multi-", stamp, ".png"))
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone_multi-", stamp, ".html")) # Saves as an interactive HTML webpage
+    unlink(paste0(output.dir, "/isochrone_multi-", stamp, "_files"),
+           recursive = TRUE) # Deletes temporary folder created by mapshot
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
   }
 }

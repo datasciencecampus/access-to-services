@@ -1,29 +1,35 @@
 ##' Calculates the journey for a single origin and destination.
 ##'
-##' Calculates the journey time and details between a single origin and destination. Default is to save a CSV file of journey details.
-##' Optional output is a map of the polyline between origin and destination, which also is saved as a PNG and HTML file.
+##' Calculates the journey time and details between a single origin and destination. 
+##' A CSV file of journey details is saved in the output folder.
+##' A map of the journey can also be saved as a PNG image and HTML file.
 ##'
 ##' @param output.dir The directory for the output files
-##' @param otpcon OTP router URL
+##' @param otpcon The OTP router URL
 ##' @param originPoints The variable containing origin(s), see ?importLocationData
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData
 ##' @param destinationPointsRow The row of destinationPoints to be used, defaults to 1
-##' @param startDateAndTime in 'YYYY-MM-DD HH:MM:SS' format
-##' @param modes defaults to 'TRANSIT, WALK'
-##' @param maxWalkDistance in meters, defaults to 1000
-##' @param walkReluctance defaults to 2 (range 0 - 20)
-##' @param walkSpeed in m/s, defaults to 1.4
-##' @param bikeSpeed in m/s, defaults to 4.3
-##' @param minTransferTime in minutes, defaults to 0
-##' @param maxTransfers defaults to 10
-##' @param wheelchair defaults to FALSE
-##' @param arriveBy defaults to FALSE
-##' @param preWaitTime in minutes, defaults to 60
-##' @param map specify whether you want to output a map, defaults to FALSE
-##' @param transportColours A list defining the colours to assign to each mode of transport.
-##' @param mapZoom defaults to 12
-##' @return Saves map as a png and journey details as CSV to output directory
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
+##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
+##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
+##' @param walkSpeed The walking soeed, in meters per second, defaults to 1.4 m/s
+##' @param bikeSpeed The cycling speed, in meters per second, defaults to 4.3 m/s
+##' @param minTransferTime The maximum transfer time, in minutes, defaults to 0 mins (no time specified)
+##' @param maxTransfers The maximum number of transfers, defaults to 10
+##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
+##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
+##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 60 mins
+##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
+##' @param mapPolylineColours A list defining the colours to assign to each mode of transport.
+##' @param mapZoom The zoom level of the map, defaults to 12
+##' @param mapPolylineWeight Specifies the weight of the polyline, defaults to 5 px
+##' @param mapPolylineOpacity Specifies the opacity of the polyline, defaults to 1 (solid)
+##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 1 (solid)
+##' @param 
+##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats)
 ##' @author Michael Hodge
 ##' @examples
 ##'   pointToPoint(
@@ -53,8 +59,8 @@ pointToPoint <- function(output.dir,
                          arriveBy = F,
                          preWaitTime = 60,
                          # leaflet map args
-                         map = FALSE,
-                         transportColours = list(
+                         mapOutput = FALSE,
+                         mapPolylineColours = list(
                            TRANSIT = "#000000",
                            WALK = "#A14296",
                            BUS = "#48C1B1",
@@ -62,15 +68,19 @@ pointToPoint <- function(output.dir,
                            CAR = "#E825D6",
                            BICYCLE = "#4AA6C3"
                          ),
-                         mapZoom = 12) {
+                         mapZoom = 12,
+                         mapPolylineWeight = 5,
+                         mapPolylineOpacity = 1,
+                         mapMarkerOpacity = 1,
+                         mapLegendOpacity = 1) {
   message("Now running the propeR pointToPoint tool.\n")
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     library(leaflet)
     pal_transport <-
       leaflet::colorFactor(
-        palette = unlist(transportColours, use.names = F),
-        levels = as.factor(names(transportColours)),
+        palette = unlist(mapPolylineColours, use.names = F),
+        levels = as.factor(names(mapPolylineColours)),
         reverse = FALSE
       )
     pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL)
@@ -174,7 +184,7 @@ pointToPoint <- function(output.dir,
     #### OPTIONAL EXTRAS ####
     #########################
     
-    if (map == TRUE) {
+    if (mapOutput == TRUE) {
       message("Generating map, please wait.\n")
       
       poly_lines <-
@@ -233,8 +243,8 @@ pointToPoint <- function(output.dir,
           # Adds polylines from origin to destination
           popup = popup_poly_lines,
           color = ~ pal_transport(poly_lines$mode),
-          weight = 5,
-          opacity = 1
+          weight = mapPolylineWeight,
+          opacity = mapPolylineOpacity
         )
       m <-
         addCircleMarkers(
@@ -245,7 +255,7 @@ pointToPoint <- function(output.dir,
           lng = ~ from_lon,
           fillColor = ~ pal_transport(point_to_point_table$mode),
           stroke = FALSE,
-          fillOpacity = 1,
+          fillOpacity = mapMarkerOpacity,
           popup = ~ mode
         )
       m <-
@@ -254,13 +264,13 @@ pointToPoint <- function(output.dir,
           pal = pal_transport,
           # Adds a legend for the trip
           values = point_to_point_table$mode,
-          opacity = 1.0,
+          opacity = mapLegendOpacity,
           title = "Transport Mode"
         )
       m <- addLegend(
         m,
         pal = pal_time_date,
-        opacity = 0.0,
+        opacity = mapLegendOpacity,
         values = date_time_legend,
         position = "bottomleft",
         title = "Date and Time"
@@ -305,7 +315,7 @@ pointToPoint <- function(output.dir,
       row.names = FALSE
     ) # Saves journey leg details as a CSV
     
-    if (map == TRUE) {
+    if (mmapOutputap == TRUE) {
       invisible(print(m)) # plots map to Viewer
       mapview::mapshot(m, file = paste0(output.dir, "/p2p-", stamp, ".png")) # Saves map to output directory
       htmlwidgets::saveWidget(
