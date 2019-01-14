@@ -4,26 +4,32 @@
 ##' Saves polygon as a GeoJSON file.
 ##'
 ##' @param output.dir The directory for the output files
-##' @param otpcon OTP router URL
+##' @param otpcon The OTP router URL
 ##' @param originPoints The variable containing origin(s), see ?importLocationData
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData
-##' @param startDateAndTime in 'YYYY-MM-DD HH:MM:SS' format
-##' @param modes defaults to 'TRANSIT, WALK'
-##' @param maxWalkDistance in meters, defaults to 1000
-##' @param walkReluctance defaults to 2 (range 0 - 20)
-##' @param walkSpeed in m/s, defaults to 1.4
-##' @param bikeSpeed in m/s, defaults to 4.3
-##' @param minTransferTime in minutes, defaults to 1
-##' @param maxTransfers defaults to 10
-##' @param wheelchair defaults to FALSE
-##' @param arriveBy defaults to FALSE
-##' @param isochroneCutOffs in minutes, defaults to 60
-##' @param map specify whether you want output a leaflet map, defaults to FALSE
-##' @param geojson specific whether you want to output a GeoJSON file, defaults to TRUE
-##' @param palColorMarkers the color palette of the markers, defaults to 'Greys'
-##' @param palColorPolygon the color palette of the poygon, defaults to 'Blue'
-##' @param mapZoom defaults to 12
-##' @return Saves map as a png and geojson of the intersection area to output directory
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
+##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
+##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
+##' @param walkSpeed The walking soeed, in meters per second, defaults to 1.4 m/s
+##' @param bikeSpeed The cycling speed, in meters per second, defaults to 4.3 m/s
+##' @param minTransferTime The maximum transfer time, in minutes, defaults to 0 mins (no time specified)
+##' @param maxTransfers The maximum number of transfers, defaults to 10
+##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
+##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
+##' @param isochroneCutOffs Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)
+##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
+##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
+##' @param mapMarkerColours the color palette of the markers, defaults to 'Greys'
+##' @param mapPolygonColours the color palette of the poygon, defaults to 'Blue'
+##' @param mapZoom The zoom level of the map, defaults to 12
+##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
+##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
+##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
+##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param
+##' @return Saves map as a Geojson of the intersection area to output directory (optional: a map in PNG and HTML formats)
 ##' @author Michael Hodge
 ##' @examples
 ##'   isochroneMultiIntersect(
@@ -53,16 +59,21 @@ isochroneMultiIntersect <- function(output.dir,
                                     # function specific args
                                     isochroneCutOffs = 60,
                                     # leaflet map args
-                                    map = FALSE,
-                                    geojson = TRUE,
-                                    palColorMarker = "Greys",
-                                    palColorPolygon = "#6BAED6",
-                                    mapZoom = 12) {
+                                    mapOutput = FALSE,
+                                    geojsonOutput = TRUE,
+                                    mapMarkerColours = "Greys",
+                                    mapPolygonColours = "#6BAED6",
+                                    mapZoom = 12,
+                                    mapPolygonLineWeight = 5,
+                                    mapPolygonLineOpacity = 1,
+                                    mapPolygonFillOpacity = 0.6,
+                                    mapMarkerOpacity = 1,
+                                    mapLegendOpacity = 0.5) {
   message("Now running the propeR isochroneMultiIntersect tool.\n")
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     library(leaflet)
-    palIsochrone = leaflet::colorFactor(palColorMarker, NULL, n = length(originPoints)) # Creating colour palette
+    palIsochrone = leaflet::colorFactor(mapMarkerColours, NULL, n = length(originPoints)) # Creating colour palette
     unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
   }
   
@@ -240,7 +251,7 @@ isochroneMultiIntersect <- function(output.dir,
   #########################
   
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     popup_originPoints <-
       # generates a popup for the poly_lines_lines feature
       paste0(
@@ -276,11 +287,11 @@ isochroneMultiIntersect <- function(output.dir,
         data = s_poly_intersect,
         # Adds polygons from journey
         stroke = TRUE,
-        weight = 5,
+        weight = mapPolygonLineWeight,
         color = palColorPolygon,
-        opacity = 1,
+        opacity = mapPolygonLineOpacity,
         smoothFactor = 0.3,
-        fillOpacity = 0.6,
+        fillOpacity = mapPolygonFillOpacity,
         fillColor = palColorPolygon
       )
     m <-
@@ -295,7 +306,7 @@ isochroneMultiIntersect <- function(output.dir,
         stroke = TRUE,
         color = "black",
         weight = 1,
-        opacity = 1,
+        opacity = mapMarkerOpacity,
         fillOpacity = 0.8,
         popup = popup_originPoints
       )
@@ -312,7 +323,7 @@ isochroneMultiIntersect <- function(output.dir,
         " mins",
         sep = ""
       ),
-      opacity = 0.8
+      opacity = mapLegendOpacity
     )
   }
   
@@ -330,7 +341,7 @@ isochroneMultiIntersect <- function(output.dir,
   s_poly_intersect <-
     as(s_poly_intersect, "SpatialPolygonsDataFrame")
   
-  if (geojson == TRUE) {
+  if (geojsonOutput == TRUE) {
     rgdal::writeOGR(
       s_poly_intersect,
       dsn = paste0(
@@ -344,7 +355,7 @@ isochroneMultiIntersect <- function(output.dir,
     )
   }
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     invisible(print(m)) # plots map to Viewer
     mapview::mapshot(m,
                      file = paste0(output.dir, "/isochrone_multi_intersect-", stamp, ".png"))

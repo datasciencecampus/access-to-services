@@ -4,29 +4,38 @@
 ##' Generates an isochrone map from a single origin between a start and end
 ##' time and date, and checks whether destinations fall within isochrone,
 ##' and if so, at what cutoff time amount.
+##' A CSV file of journey details is saved in the output folder.
+##' A map of the journey can also be saved as a PNG image and HTML file.
 ##'
 ##' @param output.dir The directory for the output files
-##' @param otpcon OTP router URL
+##' @param otpcon The OTP router URL
 ##' @param originPoints The variable containing origin(s), see ?importLocationData
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData
-##' @param startDateAndTime in 'YYYY-MM-DD HH:MM:SS' format
-##' @param endDateAndTime in 'YYYY-MM-DD HH:MM:SS' format
-##' @param timeIncrease in minutes, default 60
-##' @param modes defaults to 'TRANSIT, WALK'
-##' @param maxWalkDistance in meters, defaults to 1000
-##' @param walkReluctance defaults to 2 (range 0 - 20)
-##' @param walkSpeed in m/s, defaults to 1.4
-##' @param bikeSpeed in m/s, defaults to 4.3
-##' @param minTransferTime in minutes, defaults to 1
-##' @param maxTransfers defaults to 10
-##' @param wheelchair defaults to FALSE
-##' @param arriveBy defaults to FALSE
-##' @param isochroneCutOffs a list of cutoffs in minutes, defaults to c(30, 60, 90)
-##' @param map specify whether you want to output a map
-##' @param palColor the color palette of the map, defaults to 'Blues'
-##' @param mapZoom defaults to 12
-##' @return Saves an animated map as a gif and journey details as CSV to output directory
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param endDateAndTime The end time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param timeIncrease The time increase in minutes, default 60
+##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
+##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
+##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
+##' @param walkSpeed The walking soeed, in meters per second, defaults to 1.4 m/s
+##' @param bikeSpeed The cycling speed, in meters per second, defaults to 4.3 m/s
+##' @param minTransferTime The maximum transfer time, in minutes, defaults to 0 mins (no time specified)
+##' @param maxTransfers The maximum number of transfers, defaults to 10
+##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
+##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
+##' @param isochroneCutOffs Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)
+##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
+##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
+##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
+##' @param mapZoom The zoom level of the map, defaults to 12
+##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
+##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
+##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
+##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param
+##' @return Saves journey details as CSV to output directory (optional: an animated map in GIF format)
 ##' @author Michael Hodge
 ##' @examples
 ##'   isochroneTime(
@@ -61,15 +70,20 @@ isochroneTime <- function(output.dir,
                           # function specific args.
                           isochroneCutOffs = c(30, 60, 90),
                           # leaflet map args
-                          map = FALSE,
-                          palColor = "Blues",
-                          mapZoom = 12) {
+                          mapOutput = FALSE,
+                          mapPolygonColours = "Blues",
+                          mapZoom = 12,
+                          mapPolygonLineWeight = 5,
+                          mapPolygonLineOpacity = 1,
+                          mapPolygonFillOpacity = 0.6,
+                          mapMarkerOpacity = 1,
+                          mapLegendOpacity = 0.5) {
   message("Now running the propeR isochroneTime tool.\n")
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     library(leaflet)
     pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
-    palIsochrone = leaflet::colorFactor(palColor, NULL, n = length(isochroneCutOffs)) # Creating colour palette
+    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs)) # Creating colour palette
     dir.create(paste0(output.dir, "/tmp_folder")) # Creates tmp_folder folder for pngs
   }
   
@@ -194,7 +208,7 @@ isochroneTime <- function(output.dir,
     #### OPTIONAL EXTRAS ####
     #########################
     
-    if (map == TRUE) {
+    if (mapOutput == TRUE) {
       library(leaflet)
       m <- leaflet()
       m <- addScaleBar(m)
@@ -211,11 +225,11 @@ isochroneTime <- function(output.dir,
         data = isochrone_polygons,
         stroke = TRUE,
         color = palIsochrone(rev(isochroneCutOffs)),
-        opacity = 1,
-        weight = 5,
+        opacity = mapPolygonLineOpacity,
+        weight = mapPolygonLineWeight,
         dashArray = 2,
         smoothFactor = 0.3,
-        fillOpacity = 0.6,
+        fillOpacity = mapPolygonFillOpacity,
         fillColor = palIsochrone(rev(isochroneCutOffs))
       )
       m <- addCircleMarkers(
@@ -226,9 +240,9 @@ isochroneTime <- function(output.dir,
         fillColor = "white",
         stroke = TRUE,
         color = "black",
-        opacity = 1,
+        opacity = mapMarkerOpacity,
         weight = 2,
-        fillOpacity = 1,
+        fillOpacity = mapMarkerOpacity,
         radius = 10
       )
       m <- addCircleMarkers(
@@ -239,9 +253,9 @@ isochroneTime <- function(output.dir,
         fillColor = "black",
         stroke = TRUE,
         color = "black",
-        opacity = 1,
+        opacity = mapMarkerOpacity,
         weight = 2,
-        fillOpacity = 1,
+        fillOpacity = mapMarkerOpacity,
         radius = 10
       )
       m <-
@@ -250,7 +264,7 @@ isochroneTime <- function(output.dir,
           pal = palIsochrone,
           # Adds a legend for the trip
           values = isochroneCutOffs,
-          opacity = 0.5,
+          mapLegendOpacity = 0.5,
           title = "Duration (minutes)"
         )
       m <-
@@ -327,7 +341,7 @@ isochroneTime <- function(output.dir,
     row.names = FALSE
   ) # Saves trip details as a CSV
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     message("Making and saving GIF, this may take a while.")
     library(dplyr)
     list.files(

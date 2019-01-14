@@ -315,7 +315,7 @@ pointToPoint <- function(output.dir,
       row.names = FALSE
     ) # Saves journey leg details as a CSV
     
-    if (mmapOutputap == TRUE) {
+    if (mapOutput == TRUE) {
       invisible(print(m)) # plots map to Viewer
       mapview::mapshot(m, file = paste0(output.dir, "/p2p-", stamp, ".png")) # Saves map to output directory
       htmlwidgets::saveWidget(

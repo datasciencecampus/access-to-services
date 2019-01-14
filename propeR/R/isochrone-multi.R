@@ -2,27 +2,37 @@
 ##'
 ##' Generates an isochrone map from multiple origins and checks whether destinations
 ##' fall within isochrones, and if so, at what cutoff time amount.
+##' A CSV file of journey details is saved in the output folder.
+##' A map of the journey can also be saved as a PNG image and HTML file.
+##' The polygons can also be saved as a GeoJSON file.
 ##'
 ##' @param output.dir The directory for the output files
-##' @param otpcon OTP router URL
+##' @param otpcon The OTP router URL
 ##' @param originPoints The variable containing origin(s), see ?importLocationData
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData
-##' @param startDateAndTime in 'YYYY-MM-DD HH:MM:SS' format
-##' @param modes defaults to 'TRANSIT, WALK'
-##' @param maxWalkDistance in meters, defaults to 1000
-##' @param walkReluctance defaults to 2 (range 0 - 20)
-##' @param walkSpeed in m/s, defaults to 1.4
-##' @param bikeSpeed in m/s, defaults to 4.3
-##' @param minTransferTime in minutes, defaults to 1
-##' @param maxTransfers defaults to 10
-##' @param wheelchair defaults to FALSE
-##' @param arriveBy defaults to FALSE
-##' @param isochroneCutOffs a list of cutoffs in minutes, defaults to c(30, 60, 90)
-##' @param map specify whether you want output a leaflet map, defaults to FALSE
-##' @param geojson specific whether you want to output a GeoJSON file, defaults to FALSE
-##' @param palColor the color palette of the map, defaults to 'Blues'
-##' @param mapZoom defaults to 12
-##' @return Saves map as a png and destination results as CSV to output directory
+##' @param journeyReturn Specifies whether the journey should be calculated as a return or not (default is FALSE)
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
+##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
+##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
+##' @param walkSpeed The walking soeed, in meters per second, defaults to 1.4 m/s
+##' @param bikeSpeed The cycling speed, in meters per second, defaults to 4.3 m/s
+##' @param minTransferTime The maximum transfer time, in minutes, defaults to 0 mins (no time specified)
+##' @param maxTransfers The maximum number of transfers, defaults to 10
+##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
+##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
+##' @param isochroneCutOffs Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)
+##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
+##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
+##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
+##' @param mapZoom The zoom level of the map, defaults to 12
+##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
+##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
+##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
+##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param
+##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
 ##' @author Michael Hodge
 ##' @examples
 ##'   isochroneMulti(
@@ -37,6 +47,7 @@ isochroneMulti <- function(output.dir,
                            otpcon,
                            originPoints,
                            destinationPoints,
+                           journeyReturn = FALSE,
                            # otpIsochrone args
                            startDateAndTime = "2018-08-18 12:00:00",
                            modes = "WALK, TRANSIT",
@@ -51,15 +62,20 @@ isochroneMulti <- function(output.dir,
                            # function specific args.
                            isochroneCutOffs = c(30, 60, 90),
                            # leaflet map args
-                           map = FALSE,
-                           geojson = FALSE,
-                           palColor = "Blues",
-                           mapZoom = 12) {
+                           mapOutput = FALSE,
+                           geojsonOutput = FALSE,
+                           mapPolygonColours = "Blues",
+                           mapZoom = 12,
+                           mapPolygonLineWeight = 5,
+                           mapPolygonLineOpacity = 1,
+                           mapPolygonFillOpacity = 0.6,
+                           mapMarkerOpacity = 1,
+                           mapLegendOpacity = 0.5) {
   message("Now running the propeR isochroneMulti tool.\n")
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     library(leaflet)
-    palIsochrone = leaflet::colorFactor(palColor, NULL, n = length(isochroneCutOffs)) # Creating colour palette
+    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs)) # Creating colour palette
     unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
   }
   
@@ -338,7 +354,7 @@ isochroneMulti <- function(output.dir,
   #########################
   
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     m <- leaflet()
     m <- addScaleBar(m)
     m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
@@ -355,11 +371,11 @@ isochroneMulti <- function(output.dir,
         # Adds polygons from journey
         stroke = TRUE,
         color = palIsochrone(rev(isochroneCutOffs)),
-        opacity = 1,
-        weight = 5,
+        opacity = mapPolygonLineOpacity,
+        weight = mapPolygonLineWeight,
         dashArray = 2,
         smoothFactor = 0.3,
-        fillOpacity = 0.6,
+        fillOpacity = mapPolygonFillOpacity,
         fillColor = palIsochrone(rev(isochroneCutOffs))
       )
     m <-
@@ -372,9 +388,9 @@ isochroneMulti <- function(output.dir,
         fillColor = "white",
         stroke = TRUE,
         color = "black",
-        opacity = 1,
+        opacity = mapMarkerOpacity,
         weight = 2,
-        fillOpacity = 1,
+        fillOpacity = mapMarkerOpacity,
         radius = 10
       )
     m <- addLegend(
@@ -382,7 +398,7 @@ isochroneMulti <- function(output.dir,
       pal = palIsochrone,
       # Adds a legend for the trip
       values = isochroneCutOffs,
-      opacity = 0.5,
+      opacity = mapLegendOpacity,
       title = "Duration (minutes)"
     )
     m <-
@@ -427,7 +443,7 @@ isochroneMulti <- function(output.dir,
     ) # Saves trip details as a CSV
   }
   
-  if (geojson == TRUE) {
+  if (geojsonOutput == TRUE) {
     rgdal::writeOGR(
       isochrone_polygons,
       dsn = paste0(output.dir,
@@ -439,7 +455,7 @@ isochroneMulti <- function(output.dir,
     )
   }
   
-  if (map == TRUE) {
+  if (mapOutput == TRUE) {
     invisible(print(m)) # plots map to Viewer
     mapview::mapshot(m, file = paste0(output.dir, "/isochrone_multi-", stamp, ".png"))
     htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone_multi-", stamp, ".html")) # Saves as an interactive HTML webpage

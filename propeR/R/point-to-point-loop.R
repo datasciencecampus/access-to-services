@@ -10,7 +10,7 @@
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData
 ##' @param destinationPointsRow The row of destinationPoints to be used, defaults to 1
 ##' @param journeyLoop Specifies the type of loop, only origins (1), only destinations (2), or both (0, default)
-##' @param journeyReturn Specifies whether the journey should be calculated as a return or not (default is True)
+##' @param journeyReturn Specifies whether the journey should be calculated as a return or not (default is TRUE)
 ##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
 ##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
 ##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
