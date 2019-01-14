@@ -23,6 +23,7 @@
 ##' @param wheelchair defaults to FALSE
 ##' @param arriveBy defaults to FALSE
 ##' @param isochroneCutOffs a list of cutoffs in minutes, defaults to c(30, 60, 90)
+##' @param map specify whether you want to output a map
 ##' @param palColor the color palette of the map, defaults to 'Blues'
 ##' @param mapZoom defaults to 12
 ##' @return Saves an animated map as a gif and journey details as CSV to output directory
@@ -59,16 +60,22 @@ isochroneTime <- function(output.dir,
                           arriveBy = F,
                           # function specific args.
                           isochroneCutOffs = c(30, 60, 90),
-                          # colours
-                          palColor = "Blues",
                           # leaflet map args
+                          map = FALSE,
+                          palColor = "Blues",
                           mapZoom = 12) {
   message("Now running the propeR isochroneTime tool.\n")
   
-  pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
-  palIsochrone = leaflet::colorFactor(palColor, NULL, n = length(isochroneCutOffs)) # Creating colour palette
+  if (map == TRUE) {
+    library(leaflet)
+    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
+    palIsochrone = leaflet::colorFactor(palColor, NULL, n = length(isochroneCutOffs)) # Creating colour palette
+    dir.create(paste0(output.dir, "/tmp_folder")) # Creates tmp_folder folder for pngs
+  }
   
-  dir.create(paste0(output.dir, "/tmp_folder")) # Creates tmp_folder folder for pngs
+  #########################
+  #### SETUP VARIABLES ####
+  #########################
   
   # Set Origin and Destination if multiple are in csv ----------
   origin_points_row_num <-
@@ -81,9 +88,8 @@ isochroneTime <- function(output.dir,
   }
   
   from_origin <-
-    originPoints[origin_points_row_num, ] # Takes the specified row from the data
+    originPoints[origin_points_row_num,] # Takes the specified row from the data
   
-  # Tidying variables ----------
   start_time <-
     format(as.POSIXct(startDateAndTime), "%I:%M %p") # Sets start time
   start_date <- as.Date(startDateAndTime) # Sets start date
@@ -99,17 +105,16 @@ isochroneTime <- function(output.dir,
   destination_points_output[as.character(time_series)] <-
     NA # Creates column for each time_series which we will get journey time for later
   
+  ###########################
+  #### CALL OTP FUNCTION ####
+  ###########################
+  
   message("Creating ",
           length(time_series),
           " isochrones, please wait...")
-  time.taken <- list(0)
+  time.taken <- vector()
   
-  # SCRIPT
-  # Calls otpIsochrone from otp script to get the isochrone from origin for
-  # parameters above
   for (i in 1:length(time_series)) {
-    # Start loop to calculate journey details
-    
     start.time <- Sys.time()
     stamp <-
       format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
@@ -118,9 +123,6 @@ isochroneTime <- function(output.dir,
       format(time_series[i], "%B %d %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
     time <- format(time_series[i], "%I:%M %p")
     date <- format(time_series[i], "%m/%d/%Y")
-    
-    # Calls otpIsochrone from otp script to get the isochrone from origin for
-    # parameters above
     
     isochrone <- propeR::otpIsochrone(
       otpcon,
@@ -186,93 +188,98 @@ isochroneTime <- function(output.dir,
     destinationPoints$travel_time <- time_df$travel_time / 60
     
     destination_points_non_na <-
-      subset(destinationPoints, !(is.na(destinationPoints["travel_time"])))
+      subset(destinationPoints,!(is.na(destinationPoints["travel_time"])))
     
-    # Creating a leaflet map from results
-    library(leaflet)
-    m <- leaflet()
-    m <- addScaleBar(m)
-    m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
-    m <- setView(m,
-                 lat = from_origin$lat,
-                 # Focuses on the origin
-                 lng = from_origin$lon,
-                 # Focuses on the origin
-                 zoom = mapZoom)
-    m <- addPolygons(
-      m,
-      data = isochrone_polygons,
-      stroke = TRUE,
-      color = palIsochrone(rev(isochroneCutOffs)),
-      opacity = 1,
-      weight = 5,
-      dashArray = 2,
-      smoothFactor = 0.3,
-      fillOpacity = 0.6,
-      fillColor = palIsochrone(rev(isochroneCutOffs))
-    )
-    m <- addCircleMarkers(
-      m,
-      data = destinationPoints,
-      lat = ~ lat,
-      lng = ~ lon,
-      fillColor = "white",
-      stroke = TRUE,
-      color = "black",
-      opacity = 1,
-      weight = 2,
-      fillOpacity = 1,
-      radius = 10
-    )
-    m <- addCircleMarkers(
-      m,
-      data = destination_points_non_na,
-      lat = ~ lat,
-      lng = ~ lon,
-      fillColor = "black",
-      stroke = TRUE,
-      color = "black",
-      opacity = 1,
-      weight = 2,
-      fillOpacity = 1,
-      radius = 10
-    )
-    m <-
-      addLegend(
+    #########################
+    #### OPTIONAL EXTRAS ####
+    #########################
+    
+    if (map == TRUE) {
+      library(leaflet)
+      m <- leaflet()
+      m <- addScaleBar(m)
+      m <-
+        addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+      m <- setView(m,
+                   lat = from_origin$lat,
+                   # Focuses on the origin
+                   lng = from_origin$lon,
+                   # Focuses on the origin
+                   zoom = mapZoom)
+      m <- addPolygons(
         m,
-        pal = palIsochrone,
-        # Adds a legend for the trip
-        values = isochroneCutOffs,
-        opacity = 0.5,
-        title = "Duration (minutes)"
+        data = isochrone_polygons,
+        stroke = TRUE,
+        color = palIsochrone(rev(isochroneCutOffs)),
+        opacity = 1,
+        weight = 5,
+        dashArray = 2,
+        smoothFactor = 0.3,
+        fillOpacity = 0.6,
+        fillColor = palIsochrone(rev(isochroneCutOffs))
       )
-    m <-
-      addLegend(
+      m <- addCircleMarkers(
         m,
-        pal = pal_time_date,
-        # Adds a legend for the time
-        values = date_time_legend,
-        position = "bottomleft",
-        title = "Date and Time"
-      )
-    m <-
-      addAwesomeMarkers(
-        m,
-        data = from_origin,
-        # Adds the origin as a marker
+        data = destinationPoints,
         lat = ~ lat,
         lng = ~ lon,
-        popup = ~ name,
-        icon = makeAwesomeIcon(
-          icon = "hourglass-start",
-          markerColor = "red",
-          iconColor = "white",
-          library = "fa"
-        )
+        fillColor = "white",
+        stroke = TRUE,
+        color = "black",
+        opacity = 1,
+        weight = 2,
+        fillOpacity = 1,
+        radius = 10
       )
-    
-    
-    mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", stamp, ".png")) # Saves map in temp folder
+      m <- addCircleMarkers(
+        m,
+        data = destination_points_non_na,
+        lat = ~ lat,
+        lng = ~ lon,
+        fillColor = "black",
+        stroke = TRUE,
+        color = "black",
+        opacity = 1,
+        weight = 2,
+        fillOpacity = 1,
+        radius = 10
+      )
+      m <-
+        addLegend(
+          m,
+          pal = palIsochrone,
+          # Adds a legend for the trip
+          values = isochroneCutOffs,
+          opacity = 0.5,
+          title = "Duration (minutes)"
+        )
+      m <-
+        addLegend(
+          m,
+          pal = pal_time_date,
+          # Adds a legend for the time
+          values = date_time_legend,
+          position = "bottomleft",
+          title = "Date and Time"
+        )
+      m <-
+        addAwesomeMarkers(
+          m,
+          data = from_origin,
+          # Adds the origin as a marker
+          lat = ~ lat,
+          lng = ~ lon,
+          popup = ~ name,
+          icon = makeAwesomeIcon(
+            icon = "hourglass-start",
+            markerColor = "red",
+            iconColor = "white",
+            library = "fa"
+          )
+        )
+      
+      mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", stamp, ".png")) # Saves map in temp folder
+    }
     
     end.time <- Sys.time()
     time.taken[i] <- round(end.time - start.time, digits = 2)
@@ -283,9 +290,12 @@ isochroneTime <- function(output.dir,
         " out of ",
         length(time_series),
         " isochrones complete. Time taken ",
-        do.call(sum, time.taken),
+        round(sum(time.taken), digit = 2),
         " seconds. Estimated time left is approx. ",
-        (do.call(mean, time.taken) * length(time_series)) - do.call(sum, time.taken),
+        round((
+          mean(time.taken) * length(time_series)
+        ) - sum(time.taken),
+        digits = 2),
         " seconds."
       )
     } else {
@@ -294,13 +304,15 @@ isochroneTime <- function(output.dir,
         " out of ",
         length(time_series),
         " isochrones complete. Time taken ",
-        do.call(sum, time.taken),
+        sum(time.taken),
         " seconds."
       )
     }
   }
   
-  # Plots leaflet map gif in Viewer and saves to disk, also saves table as csv ----------
+  ######################
+  #### SAVE RESULTS ####
+  ######################
   
   message("Analysis complete, now saving outputs to ",
           output.dir,
@@ -309,28 +321,30 @@ isochroneTime <- function(output.dir,
   stamp <-
     format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
   
-  library(dplyr)
-  list.files(
-    path = paste0(output.dir, "/tmp_folder"),
-    pattern = "*.png",
-    full.names = T
-  ) %>%  # Creates gif of results
-    purrr::map(magick::image_read) %>%  # reads each path file
-    magick::image_join() %>% # joins image
-    magick::image_animate(fps = 5) %>%  # animates, can opt for number of loops
-    magick::image_write(paste0(output.dir, "/isochrone_time-", stamp, ".gif")) # write to current dir
-  
-  m <-
-    magick::image_read(paste0(output.dir, "/isochrone_time-", stamp, ".gif")) %>%
-    magick::image_scale("600") # Loads GIF into R
-  
-  invisible(print(m)) # plots map to Viewer
-  
   write.csv(
     destination_points_output,
     file = paste0(output.dir, "/output_isochrone_inc-", stamp, ".csv"),
     row.names = FALSE
   ) # Saves trip details as a CSV
   
-  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  if (map == TRUE) {
+    message("Making and saving GIF, this may take a while.")
+    library(dplyr)
+    list.files(
+      path = paste0(output.dir, "/tmp_folder"),
+      pattern = "*.png",
+      full.names = T
+    ) %>%  # Creates gif of results
+      purrr::map(magick::image_read) %>%  # reads each path file
+      magick::image_join() %>% # joins image
+      magick::image_animate(fps = 5) %>%  # animates, can opt for number of loops
+      magick::image_write(paste0(output.dir, "/isochrone_time-", stamp, ".gif")) # write to current dir
+    
+    m <-
+      magick::image_read(paste0(output.dir, "/isochrone_time-", stamp, ".gif")) %>%
+      magick::image_scale("600") # Loads GIF into R
+    
+    invisible(print(m)) # plots map to Viewer
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+  }
 }

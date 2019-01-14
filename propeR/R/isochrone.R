@@ -19,6 +19,7 @@
 ##' @param wheelchair defaults to FALSE
 ##' @param arriveBy defaults to FALSE
 ##' @param isochroneCutOffs a list of cutoffs in minutes, defaults to c(30, 60, 90)
+##' @param map specify whether you want to output a map
 ##' @param palColor the color palette of the map, defaults to 'Blues'
 ##' @param mapZoom defaults to 12
 ##' @return Saves map as a png and journey details as CSV to output directory
@@ -51,17 +52,21 @@ isochrone <- function(output.dir,
                       arriveBy = F,
                       # function specific args.
                       isochroneCutOffs = c(30, 60, 90),
-                      # colours
-                      palColor = "Blues",
                       # leaflet map args
+                      map = FALSE,
+                      palColor = "Blues",
                       mapZoom = 12) {
   message("Now running the propeR isochrone tool.\n")
   
-  pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
+  if (map == TRUE) {
+    library(leaflet)
+    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
+    palIsochrone = leaflet::colorFactor(palColor, NULL, n = length(isochroneCutOffs)) # Creating colour palette
+  }
   
-  palIsochrone = leaflet::colorFactor(palColor, NULL, n = length(isochroneCutOffs)) # Creating colour palette
-  
-  # Set Origin and Destination if multiple are in csv ----------
+  #########################
+  #### SETUP VARIABLES ####
+  #########################
   
   origin_points_row_num <-
     originPointsRow # Set origin using a row from the origin dataframe
@@ -76,7 +81,7 @@ isochrone <- function(output.dir,
   }
   
   from_origin <-
-    originPoints[origin_points_row_num,] # Takes the specified row from the data
+    originPoints[origin_points_row_num, ] # Takes the specified row from the data
   
   # Tidying variables ----------
   start_time <-
@@ -84,6 +89,10 @@ isochrone <- function(output.dir,
   start_date <- as.Date(startDateAndTime) # Sets start date
   date_time_legend <-
     format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
+  
+  ###########################
+  #### CALL OTP FUNCTION ####
+  ###########################
   
   isochrone <- propeR::otpIsochrone(
     otpcon,
@@ -158,91 +167,99 @@ isochrone <- function(output.dir,
   )
   
   destination_points_non_na <-
-    subset(destinationPoints,!(is.na(destinationPoints["travel_time"])))
+    subset(destinationPoints, !(is.na(destinationPoints["travel_time"])))
   
-  # Creating a leaflet map from results
+  #########################
+  #### OPTIONAL EXTRAS ####
+  #########################
   
-  library(leaflet)
-  m <- leaflet()
-  m <- addScaleBar(m)
-  m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
-  m <- setView(m,
-               lat = from_origin$lat,
-               lng = from_origin$lon,
-               zoom = mapZoom)
-  m <- addPolygons(
-    m,
-    data = isochrone_polygons,
-    stroke = TRUE,
-    color = palIsochrone(rev(isochroneCutOffs)),
-    opacity = 1,
-    weight = 5,
-    dashArray = 2,
-    smoothFactor = 0.3,
-    fillOpacity = 0.6,
-    fillColor = palIsochrone(rev(isochroneCutOffs))
-  )
-  m <- addCircleMarkers(
-    m,
-    data = destinationPoints,
-    lat = ~ lat,
-    lng = ~ lon,
-    popup = ~ name,
-    fillColor = "black",
-    stroke = TRUE,
-    color = "black",
-    opacity = 1,
-    weight = 2,
-    fillOpacity = 1,
-    radius = 10
-  )
-  m <- addCircleMarkers(
-    m,
-    data = destination_points_non_na,
-    lat = ~ lat,
-    lng = ~ lon,
-    popup = ~ name,
-    fillColor = "white",
-    stroke = TRUE,
-    color = "black",
-    opacity = 1,
-    weight = 2,
-    fillOpacity = 1,
-    radius = 10
-  )
-  m <- addLegend(
-    m,
-    pal = palIsochrone,
-    values = isochroneCutOffs,
-    opacity = 0.5,
-    title = "Duration (minutes)"
-  )
-  m <- addLegend(
-    m,
-    pal = pal_time_date,
-    opacity = 0.0,
-    values = date_time_legend,
-    position = "bottomleft",
-    title = "Date and Time"
-  )
-  m <-
-    addAwesomeMarkers(
+  if (map == TRUE) {
+    message("Generating map, please wait.")
+    
+    library(leaflet)
+    m <- leaflet()
+    m <- addScaleBar(m)
+    m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    m <- setView(m,
+                 lat = from_origin$lat,
+                 lng = from_origin$lon,
+                 zoom = mapZoom)
+    m <- addPolygons(
       m,
-      data = from_origin,
-      # Adds the origin as a marker
+      data = isochrone_polygons,
+      stroke = TRUE,
+      color = palIsochrone(rev(isochroneCutOffs)),
+      opacity = 1,
+      weight = 5,
+      dashArray = 2,
+      smoothFactor = 0.3,
+      fillOpacity = 0.6,
+      fillColor = palIsochrone(rev(isochroneCutOffs))
+    )
+    m <- addCircleMarkers(
+      m,
+      data = destinationPoints,
       lat = ~ lat,
       lng = ~ lon,
       popup = ~ name,
-      icon = makeAwesomeIcon(
-        icon = "hourglass-start",
-        markerColor = "red",
-        iconColor = "white",
-        library = "fa"
-      )
+      fillColor = "black",
+      stroke = TRUE,
+      color = "black",
+      opacity = 1,
+      weight = 2,
+      fillOpacity = 1,
+      radius = 10
     )
+    m <- addCircleMarkers(
+      m,
+      data = destination_points_non_na,
+      lat = ~ lat,
+      lng = ~ lon,
+      popup = ~ name,
+      fillColor = "white",
+      stroke = TRUE,
+      color = "black",
+      opacity = 1,
+      weight = 2,
+      fillOpacity = 1,
+      radius = 10
+    )
+    m <- addLegend(
+      m,
+      pal = palIsochrone,
+      values = isochroneCutOffs,
+      opacity = 0.5,
+      title = "Duration (minutes)"
+    )
+    m <- addLegend(
+      m,
+      pal = pal_time_date,
+      opacity = 0.0,
+      values = date_time_legend,
+      position = "bottomleft",
+      title = "Date and Time"
+    )
+    m <-
+      addAwesomeMarkers(
+        m,
+        data = from_origin,
+        # Adds the origin as a marker
+        lat = ~ lat,
+        lng = ~ lon,
+        popup = ~ name,
+        icon = makeAwesomeIcon(
+          icon = "hourglass-start",
+          markerColor = "red",
+          iconColor = "white",
+          library = "fa"
+        )
+      )
+    
+  }
   
-  
-  # Plots leaflet map in Viewer and saves to disk, also saves table as csv ----------
+  ######################
+  #### SAVE RESULTS ####
+  ######################
   
   message("Analysis complete, now saving outputs to ",
           output.dir,
@@ -251,30 +268,28 @@ isochrone <- function(output.dir,
   stamp <-
     format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
   
-  invisible(print(m)) # plots map to Viewer
-  mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) # Saves map to output directory
-  htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) # Saves as an interactive HTML webpage
-  unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
-         recursive = TRUE) # Deletes temporary folder created by mapshot
-  
   write.csv(
     destinationPoints,
     file = paste0(output.dir, "/isochrone-", stamp, ".csv"),
     row.names = FALSE
   ) # Saves trip details as a CSV
   
-  unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
-  
-  rgdal::writeOGR(
-    isochrone_polygons,
-    dsn = paste0(
-      output.dir,
-      "/isochrone",
-      stamp,
-      ".geoJSON"
-    ),
-    layer = "isochrone_polygons",
-    driver = "GeoJSON"
-  )
-  
+  if (map == TRUE) {
+    invisible(print(m)) # plots map to Viewer
+    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) # Saves map to output directory
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) # Saves as an interactive HTML webpage
+    unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
+           recursive = TRUE) # Deletes temporary folder created by mapshot
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+    
+    rgdal::writeOGR(
+      isochrone_polygons,
+      dsn = paste0(output.dir,
+                   "/isochrone",
+                   stamp,
+                   ".geoJSON"),
+      layer = "isochrone_polygons",
+      driver = "GeoJSON"
+    )
+  }
 }
