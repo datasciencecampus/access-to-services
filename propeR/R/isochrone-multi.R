@@ -100,6 +100,8 @@ isochroneMulti <- function(output.dir,
   
   start_num <- 1
   end_num <- nrow(originPoints)
+  run_num <- 0
+  total_run_num <- end_num
   
   originPoints_removed <- c()
   originPoints_removed_list <- c()
@@ -110,6 +112,8 @@ isochroneMulti <- function(output.dir,
     start.time <- Sys.time()
     
     from_origin <- originPoints[i, ]
+    
+    run_num <- run_num + 1
     
     isochrone <- propeR::otpIsochrone(
       otpcon,
@@ -140,16 +144,22 @@ isochroneMulti <- function(output.dir,
       # Combines outputs
       t <-
         try(isochrone_polygons <-
-              rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE))
+              rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE), silent = TRUE)
       # Converts the polygons to be handled in leaflet
       if ("try-error" %in% class(t)) {
         originPoints_removed <-
           c(originPoints_removed, originPoints$name[i])
         originPoints_removed_list <- c(originPoints_removed_list, i)
+        run_num <- run_num - 1
+        total_run_num <- total_run_num - 1
+        time.taken[i] <- round(end.time - start.time, digits = 2)
         message(
           "Removed ",
           originPoints$name[i],
-          " from analysis as no polygon could be generated from it."
+          " from analysis as no polygon could be generated from it. Total isochrones is now ",
+          total_run_num,
+          " not ",
+          end_num
         )
         next
         
@@ -204,16 +214,22 @@ isochroneMulti <- function(output.dir,
     } else {
       t <-
         try(isochrone_polygons_tmp <-
-              rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE))
+              rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE), silent = TRUE)
       # Converts the polygons to be handled in leaflet
       if ("try-error" %in% class(t)) {
         originPoints_removed <-
           c(originPoints_removed, originPoints$name[i])
         originPoints_removed_list <- c(originPoints_removed_list, i)
+        run_num <- run_num - 1
+        total_run_num <- total_run_num - 1
+        time.taken[i] <- round(end.time - start.time, digits = 2)
         message(
           "Removed ",
           originPoints$name[i],
-          " from analysis as no polygon could be generated from it."
+          " from analysis as no polygon could be generated from it. Total isochrones is now ",
+          total_run_num,
+          " not ",
+          end_num
         )
         next
         
@@ -309,23 +325,23 @@ isochroneMulti <- function(output.dir,
     
     if (i < nrow(originPoints)) {
       message(
-        i,
+        run_num,
         " out of ",
-        nrow(originPoints),
+        total_run_num,
         " isochrones complete. Time taken ",
         round(sum(time.taken), digit = 2),
         " seconds. Estimated time left is approx. ",
         round((
-          mean(time.taken) * nrow(originPoints)
+          mean(time.taken) * total_run_num
         ) - sum(time.taken),
         digits = 2),
         " seconds."
       )
     } else {
       message(
-        i,
+        run_num,
         " out of ",
-        nrow(originPoints),
+        total_run_num,
         " isochrones complete. Time taken ",
         sum(time.taken),
         " seconds."
@@ -343,9 +359,17 @@ isochroneMulti <- function(output.dir,
     colnames(time_df)[n] <- destinationPoints$name[n]
   }
   
-  for (n in 1:nrow(originPoints)) {
-    rownames(time_df)[n] <- originPoints$name[n]
-  }
+  # for (n in 1:nrow(originPoints)) {
+  #   if (n > 1){
+  #     if (originPoints$name[n] %in% rownames(time_df)) {
+  #       rownames(time_df)[n] <- paste0(originPoints$name[n],'_1')
+  #     } else {
+  #       rownames(time_df)[n] <- toString(originPoints$name[n])
+  #     }
+  #   } else {
+  #     rownames(time_df)[n] <- toString(originPoints$name[n])
+  #   }
+  # }
   
   time_df <- time_df / 60
   
