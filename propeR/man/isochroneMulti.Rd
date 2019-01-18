@@ -5,12 +5,12 @@
 \title{Generates an isochrone map for multiple origins.}
 \usage{
 isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
-  journeyReturn = FALSE, startDateAndTime = "2018-08-18 12:00:00",
+  journeyReturn = F, startDateAndTime = "2018-08-18 12:00:00",
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = c(30, 60, 90), mapOutput = FALSE,
-  geojsonOutput = FALSE, mapPolygonColours = "Blues", mapZoom = 12,
+  arriveBy = F, isochroneCutOffs = c(30, 60, 90), mapOutput = F,
+  geojsonOutput = F, mapPolygonColours = "Blues", mapZoom = "bb",
   mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
   mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
   mapLegendOpacity = 0.5)
@@ -18,11 +18,11 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{The OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
 \item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is FALSE)}
 
@@ -54,7 +54,7 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
 
-\item{mapZoom}{The zoom level of the map, defaults to 12}
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 
 \item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
 
@@ -72,9 +72,9 @@ Saves journey details as CSV to output directory (optional: a map in PNG and HTM
 \description{
 Generates an isochrone map from multiple origins and checks whether destinations
 fall within isochrones, and if so, at what cutoff time amount.
-A CSV file of journey details is saved in the output folder.
-A map of the journey can also be saved as a PNG image and HTML file.
-The polygons can also be saved as a GeoJSON file.
+A comma separated value file of journey times for each origin and destination is saved in the output folder.
+A map of the journey can also be saved as a .png image and .html file.
+The polygons can also be saved as a .GeoJSON file.
 }
 \examples{
   isochroneMulti(

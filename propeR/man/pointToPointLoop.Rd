@@ -6,22 +6,22 @@
 \usage{
 pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
   destinationPoints, destinationPointsRow = 1, journeyLoop = 0,
-  journeyReturn = TRUE, startDateAndTime = "2018-08-13 09:00:00",
+  journeyReturn = T, startDateAndTime = "2018-08-13 09:00:00",
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F)
+  arriveBy = F, preWaitTime = 15)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{The OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
 \item{originPointsRow}{The row of originPoints to be used, defaults to 1}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
 \item{destinationPointsRow}{The row of destinationPoints to be used, defaults to 1}
 
@@ -48,13 +48,15 @@ pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{wheelchair}{If TRUE, uses on wheeelchair friendly stops, defaults to FALSE}
 
 \item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
+
+\item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
 }
 \value{
-Saves journey details as CSV to output directory
+Saves journey details as comma separated value file to output directory
 }
 \description{
 Calculates the journey time and details between multiple origins and/or destinations. 
-A CSV file of journey details is saved in the output folder.
+A comma separated value file of journey details is saved in the output folder.
 }
 \examples{
   pointToPointLoop(
@@ -62,6 +64,8 @@ A CSV file of journey details is saved in the output folder.
     otpcon,
     originPoints,
     destinationPoints,
+    journeyLoop = 0,
+    journeyReturn = TRUE,
     startDateAndTime = "2018-08-18 12:00:00"
   )
 }

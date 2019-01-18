@@ -12,8 +12,8 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = c(30, 60, 90), mapOutput = FALSE,
-  mapPolygonColours = "Blues", mapZoom = 12,
+  arriveBy = F, isochroneCutOffs = c(30, 60, 90), mapOutput = F,
+  mapPolygonColours = "Blues", mapZoom = "bb",
   mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
   mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
   mapLegendOpacity = 0.5)
@@ -21,13 +21,13 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{The OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
 \item{originPointsRow}{The row of originPoints to be used, defaults to 1}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
 \item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
@@ -59,7 +59,7 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
 
-\item{mapZoom}{The zoom level of the map, defaults to 12}
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 
 \item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
 
@@ -74,14 +74,14 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 }
 \value{
-Saves journey details as CSV to output directory (optional: an animated map in GIF format)
+Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 }
 \description{
-Generates an isochrone map from a single origin between a start and end
+Generates isochrone polygons from a single origin between a start and end
 time and date, and checks whether destinations fall within isochrone,
 and if so, at what cutoff time amount.
-A CSV file of journey details is saved in the output folder.
-A map of the journey can also be saved as a PNG image and HTML file.
+A comma separated value file of journey times for each destination (and time) is saved in the output folder.
+An animated map of the journey can also be saved as a .gif image.
 }
 \examples{
   isochroneTime(

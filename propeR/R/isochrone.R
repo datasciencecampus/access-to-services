@@ -31,7 +31,6 @@
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
-##' @param
 ##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved)
 ##' @author Michael Hodge
 ##' @examples

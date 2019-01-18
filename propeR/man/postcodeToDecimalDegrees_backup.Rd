@@ -2,7 +2,7 @@
 % Please edit documentation in R/geo-util.R
 \name{postcodeToDecimalDegrees_backup}
 \alias{postcodeToDecimalDegrees_backup}
-\title{A backup simple postcode to latitude and longitude converter.}
+\title{A backup postcode to latitude and longitude converter.}
 \usage{
 postcodeToDecimalDegrees_backup(postcode)
 }

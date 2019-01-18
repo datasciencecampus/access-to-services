@@ -31,7 +31,6 @@
 ##' @param mapPolylineOpacity Specifies the opacity of the polyline, defaults to 1 (solid)
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 1 (solid)
-##' @param
 ##' @return Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 ##' @author Michael Hodge
 ##' @examples

@@ -12,22 +12,22 @@ pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, preWaitTime = 60, mapOutput = FALSE,
+  arriveBy = F, preWaitTime = 15, mapOutput = F,
   mapPolylineColours = list(TRANSIT = "#000000", WALK = "#A14296", BUS =
   "#48C1B1", RAIL = "#4D7BC5", CAR = "#8D4084", BICYCLE = "#4AA6C3"),
-  mapZoom = 12, mapPolylineWeight = 5, mapPolylineOpacity = 1,
+  mapZoom = "bb", mapPolylineWeight = 5, mapPolylineOpacity = 1,
   mapMarkerOpacity = 1, mapLegendOpacity = 1)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{The OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
 \item{originPointsRow}{The row of originPoints to be used, defaults to 1}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
 \item{destinationPointsRow}{The row of destinationPoints to be used, defaults to 1}
 
@@ -55,13 +55,13 @@ pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 60 mins}
+\item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
 
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
 \item{mapPolylineColours}{A list defining the colours to assign to each mode of transport.}
 
-\item{mapZoom}{The zoom level of the map, defaults to 12}
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 
 \item{mapPolylineWeight}{Specifies the weight of the polyline, defaults to 5 px}
 
@@ -72,12 +72,12 @@ pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 1 (solid)}
 }
 \value{
-Saves journey details as CSV to output directory (optional: an animated map in GIF format)
+Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 }
 \description{
 Calculates the journey time and details between a single origin and destination between a start
-and end time and date. A CSV file of journey details is saved in the output folder.
-An animated map of the journey can also be saved as a GIF file.
+and end time and date. A comma separated value file of journey details is saved in the output folder.
+An animated map of the journey can also be saved as a .gif image.
 }
 \examples{
   pointToPointTime(

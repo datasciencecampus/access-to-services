@@ -28,7 +28,6 @@
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
-##' @param
 ##' @return Saves map as a Geojson of the intersection area to output directory (optional: a map in PNG and HTML formats)
 ##' @author Michael Hodge
 ##' @examples

@@ -22,7 +22,6 @@
 ##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
 ##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins
-##' @param
 ##' @return Saves journey details as comma separated value file to output directory
 ##' @author Michael Hodge
 ##' @examples

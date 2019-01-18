@@ -2,18 +2,18 @@
 % Please edit documentation in R/data.R
 \name{importGeojsonData}
 \alias{importGeojsonData}
-\title{Imports Geojson Data}
+\title{Imports GeoJSON Data}
 \usage{
 importGeojsonData(src)
 }
 \arguments{
-\item{src}{.Geojson file source}
+\item{src}{The source for the .GeoJSON file}
 }
 \value{
 Large SpatialPolygonsDataFrame of origin polygons
 }
 \description{
-Imports polygon data (origin) from a geojson file
+Imports polygon data from a GeoJSON file
 }
 \examples{
 originPolygons <- importGeojsonData('C:\\Users\\User\\Documents\\origins.geojson')

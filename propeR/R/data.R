@@ -7,7 +7,6 @@
 ##' @param loncol The title of the header of the column containing the longitudinal values, default is "lon"
 ##' @param latcol The title of the header of the column containing the latitudinal values, default is "lat"
 ##' @param postcodecol  The title of the header of the column containing the postcode values, default is "postcode"
-##' @param
 ##' @return R dataframe of location points
 ##' @author Michael Hodge
 ##' @examples originPoints <- importLocationData('C:\Users\User\Documents\origins.csv', idcol = "name", loncol = "lon", latcol = "lat")
