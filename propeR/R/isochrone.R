@@ -1,16 +1,16 @@
 ##' Generates an isochrone map from a single origin
 ##'
-##' Generates an isochrone map from a single origin and checks whether destinations
+##' Generates an isochrone polygon from a single origin and checks whether destinations
 ##' fall within isochrone, and if so, at what cutoff time amount. 
-##' A CSV file of journey details is saved in the output folder.
-##' A map of the journey can also be saved as a PNG image and HTML file.
-##' The polygon can also be saved as a GeoJSON file.
+##' A comma separated value file of journey times for each destination is saved in the output folder.
+##' A map of the journey can also be saved as a .png image and .html file.
+##' The polygon can also be saved as a .GeoJSON file.
 ##'
 ##' @param output.dir The directory for the output files
-##' @param otpcon The OTP router URL
-##' @param originPoints The variable containing origin(s), see ?importLocationData
+##' @param otpcon The OTP router URL, see ?otpcon for details
+##' @param originPoints The variable containing origin(s), see ?importLocationData for details
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
-##' @param destinationPoints The variable containing destination(s) see ?importLocationData
+##' @param destinationPoints The variable containing destination(s) see ?importLocationData for details
 ##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
 ##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
 ##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
@@ -25,14 +25,14 @@
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
-##' @param mapZoom The zoom level of the map, defaults to 12
+##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
 ##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
 ##' @param
-##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygon as a GeoJSON)
+##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved)
 ##' @author Michael Hodge
 ##' @examples
 ##'   isochrone(
@@ -63,21 +63,22 @@ isochrone <- function(output.dir,
                       # function specific args.
                       isochroneCutOffs = c(30, 60, 90),
                       # leaflet map args
-                      mapOutput = FALSE,
-                      geojsonOutput = FALSE,
+                      mapOutput = F,
+                      geojsonOutput = F,
                       mapPolygonColours = "Blues",
-                      mapZoom = 12,
+                      mapZoom = "bb",
                       mapPolygonLineWeight = 5,
                       mapPolygonLineOpacity = 1,
                       mapPolygonFillOpacity = 0.6,
                       mapMarkerOpacity = 1,
                       mapLegendOpacity = 0.5) {
+  
   message("Now running the propeR isochrone tool.\n")
   
-  if (mapOutput == TRUE) {
+  if (mapOutput == T) {
     library(leaflet)
-    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
-    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs)) # Creating colour palette
+    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) 
+    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
   }
   
   #########################
@@ -85,26 +86,25 @@ isochrone <- function(output.dir,
   #########################
   
   origin_points_row_num <-
-    originPointsRow # Set origin using a row from the origin dataframe
+    originPointsRow 
   
   destination_points_row_num <-
-    destinationPointsRow # Set destination using a row from the destination dataframe
+    destinationPointsRow 
   
   if (origin_points_row_num > nrow(originPoints)) {
     message('Row is not in origin file, process aborted.\n')
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
     break
   }
   
   from_origin <-
-    originPoints[origin_points_row_num,] # Takes the specified row from the data
+    originPoints[origin_points_row_num,] 
   
-  # Tidying variables ----------
   start_time <-
-    format(as.POSIXct(startDateAndTime), "%I:%M %p") # Sets start time
-  start_date <- as.Date(startDateAndTime) # Sets start date
+    format(as.POSIXct(startDateAndTime), "%I:%M %p") 
+  start_date <- as.Date(startDateAndTime) 
   date_time_legend <-
-    format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
+    format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") 
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -112,16 +112,12 @@ isochrone <- function(output.dir,
   
   isochrone <- propeR::otpIsochrone(
     otpcon,
-    batch = TRUE,
-    # If true, goal direction is turned off and a full path tree is built (specify only once)
+    batch = T,
     from = from_origin$lat_lon,
     to = from_origin$lat_lon,
-    # Takes the latitude and longitude from specified origin
     modes = modes,
     date = start_date,
-    # Takes the date as specified above
     time = start_time,
-    # Takes the time as specified above
     maxWalkDistance = maxWalkDistance,
     walkReluctance = walkReluctance,
     walkSpeed = walkSpeed,
@@ -134,36 +130,39 @@ isochrone <- function(output.dir,
   )
   
   isochrone_polygons <-
-    rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = FALSE) # Converts the polygons to be handled in leaflet
+    rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = F) 
   
   destination_points_spdf <-
-    destinationPoints # Create a spatialdataframe
+    destinationPoints 
+  
   sp::coordinates(destination_points_spdf) <-
-    ~ lon + lat # Take lat and lon for coordinates
+    ~ lon + lat 
+  
   sp::proj4string(destination_points_spdf) <-
-    sp::proj4string(isochrone_polygons) # Take projection
+    sp::proj4string(isochrone_polygons) 
+  
   isochrone_polygons_split <-
-    sp::split(isochrone_polygons, isochrone_polygons@data$time) # Split into cutoff times
+    sp::split(isochrone_polygons, isochrone_polygons@data$time) 
+  
   time_df <-
     data.frame(matrix(
       ,
       ncol = length(isochroneCutOffs),
       nrow = nrow(destination_points_spdf)
-    )) # Create time dataframe
+    )) 
   
   for (i in 1:length(isochroneCutOffs)) {
     time_df_tmp <-
-      sp::over(destination_points_spdf, isochrone_polygons_split[[i]]) # Finds the polygon the destination point falls within
+      sp::over(destination_points_spdf, isochrone_polygons_split[[i]])
     time_df[, i] <- time_df_tmp[, 2]
   }
   
   for (i in 1:nrow(destination_points_spdf)) {
-    # Finds the smallest duration from time_df dataframe
     if (is.na(time_df[i, length(isochroneCutOffs)])) {
       time_df[i, length(isochroneCutOffs) + 1] = NA
     } else {
       time_df[i, length(isochroneCutOffs) + 1] = min(time_df[i, 1:length(isochroneCutOffs)], na.rm =
-                                                       TRUE)
+                                                       T)
     }
   }
   
@@ -189,21 +188,34 @@ isochrone <- function(output.dir,
   #### OPTIONAL EXTRAS ####
   #########################
   
-  if (mapOutput == TRUE) {
+  if (mapOutput == T) {
     message("Generating map, please wait.")
     
     library(leaflet)
     m <- leaflet()
     m <- addScaleBar(m)
     m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
-    m <- setView(m,
-                 lat = from_origin$lat,
-                 lng = from_origin$lon,
-                 zoom = mapZoom)
+    
+    if (is.numeric(mapZoom)){
+      m <- setView(
+        m,
+        lat = (from_origin$lat + mean(destinationPoints$lat)) / 2,
+        lng = (from_origin$lon + mean(destinationPoints$lon)) / 2,
+        zoom = mapZoom
+      )
+    } else {
+      m <- fitBounds(
+        m,
+        min(min(from_origin$lon),min(destinationPoints$lon),isochrone_polygons@bbox[1]),
+        min(min(from_origin$lat),min(destinationPoints$lat),isochrone_polygons@bbox[2]),
+        max(max(from_origin$lon),max(destinationPoints$lon),isochrone_polygons@bbox[3]),
+        max(max(from_origin$lat),max(destinationPoints$lat),isochrone_polygons@bbox[4]))
+    }
+    
     m <- addPolygons(
       m,
       data = isochrone_polygons,
-      stroke = TRUE,
+      stroke = T,
       color = palIsochrone(rev(isochroneCutOffs)),
       opacity = mapPolygonLineOpacity,
       weight = mapPolygonLineWeight,
@@ -219,7 +231,7 @@ isochrone <- function(output.dir,
       lng = ~ lon,
       popup = ~ name,
       fillColor = "black",
-      stroke = TRUE,
+      stroke = T,
       color = "black",
       opacity = mapMarkerOpacity,
       weight = 2,
@@ -233,7 +245,7 @@ isochrone <- function(output.dir,
       lng = ~ lon,
       popup = ~ name,
       fillColor = "white",
-      stroke = TRUE,
+      stroke = T,
       color = "black",
       opacity = mapMarkerOpacity,
       weight = 2,
@@ -244,7 +256,7 @@ isochrone <- function(output.dir,
       m,
       pal = palIsochrone,
       values = isochroneCutOffs,
-      mapLegendOpacity = 0.5,
+      opacity = mapLegendOpacity,
       title = "Duration (minutes)"
     )
     m <- addLegend(
@@ -259,7 +271,6 @@ isochrone <- function(output.dir,
       addAwesomeMarkers(
         m,
         data = from_origin,
-        # Adds the origin as a marker
         lat = ~ lat,
         lng = ~ lon,
         popup = ~ name,
@@ -282,15 +293,15 @@ isochrone <- function(output.dir,
           ", please wait.\n")
   
   stamp <-
-    format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
+    format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
   
   write.csv(
     destinationPoints,
     file = paste0(output.dir, "/isochrone-", stamp, ".csv"),
-    row.names = FALSE
-  ) # Saves trip details as a CSV
+    row.names = F
+  )
   
-  if (geojsonOutput == TRUE) {
+  if (geojsonOutput == T) {
     rgdal::writeOGR(
       isochrone_polygons,
       dsn = paste0(output.dir,
@@ -302,13 +313,13 @@ isochrone <- function(output.dir,
     )
   }
   
-  if (mapOutput == TRUE) {
-    invisible(print(m)) # plots map to Viewer
-    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) # Saves map to output directory
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) # Saves as an interactive HTML webpage
+  if (mapOutput == T) {
+    invisible(print(m))
+    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) 
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) 
     unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
-           recursive = TRUE) # Deletes temporary folder created by mapshot
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+           recursive = T) 
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
   }
-  
+  message("Thanks for using propeR.")
 }

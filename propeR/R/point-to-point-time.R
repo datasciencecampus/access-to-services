@@ -2,14 +2,14 @@
 ##' start and end time and date.
 ##'
 ##' Calculates the journey time and details between a single origin and destination between a start
-##' and end time and date. A CSV file of journey details is saved in the output folder.
-##' An animated map of the journey can also be saved as a GIF file.
+##' and end time and date. A comma separated value file of journey details is saved in the output folder.
+##' An animated map of the journey can also be saved as a .gif image.
 ##'
 ##' @param output.dir The directory for the output files
-##' @param otpcon The OTP router URL
-##' @param originPoints The variable containing origin(s), see ?importLocationData
+##' @param otpcon The OTP router URL, see ?otpcon for details
+##' @param originPoints The variable containing origin(s), see ?importLocationData for details
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
-##' @param destinationPoints The variable containing destination(s) see ?importLocationData
+##' @param destinationPoints The variable containing destination(s) see ?importLocationData for details
 ##' @param destinationPointsRow The row of destinationPoints to be used, defaults to 1
 ##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
 ##' @param endDateAndTime The end time and date, in 'YYYY-MM-DD HH:MM:SS' format
@@ -23,16 +23,16 @@
 ##' @param maxTransfers The maximum number of transfers, defaults to 10
 ##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
-##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 60 mins
+##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param mapPolylineColours A list defining the colours to assign to each mode of transport.
-##' @param mapZoom The zoom level of the map, defaults to 12
+##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
 ##' @param mapPolylineWeight Specifies the weight of the polyline, defaults to 5 px
 ##' @param mapPolylineOpacity Specifies the opacity of the polyline, defaults to 1 (solid)
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 1 (solid)
 ##' @param
-##' @return Saves journey details as CSV to output directory (optional: an animated map in GIF format)
+##' @return Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 ##' @author Michael Hodge
 ##' @examples
 ##'   pointToPointTime(
@@ -64,9 +64,9 @@ pointToPointTime <- function(output.dir,
                              maxTransfers = 5,
                              wheelchair = F,
                              arriveBy = F,
-                             preWaitTime = 60,
+                             preWaitTime = 15,
                              # leaflet map args
-                             mapOutput = FALSE,
+                             mapOutput = F,
                              mapPolylineColours = list(
                                TRANSIT = "#000000",
                                WALK = "#A14296",
@@ -75,24 +75,25 @@ pointToPointTime <- function(output.dir,
                                CAR = "#8D4084",
                                BICYCLE = "#4AA6C3"
                              ),
-                             mapZoom = 12,
+                             mapZoom = "bb",
                              mapPolylineWeight = 5,
                              mapPolylineOpacity = 1,
                              mapMarkerOpacity = 1,
                              mapLegendOpacity = 1) {
+  
   message("Now running the propeR pointToPointTime tool.\n")
   
-  if (mapOutput == TRUE) {
+  if (mapOutput == T) {
     pal_transport <-
       leaflet::colorFactor(
         palette = unlist(mapPolylineColours, use.names = F),
         # Creating colour palette
         levels = as.factor(names(mapPolylineColours)),
-        reverse = FALSE
+        reverse = F
       )
-    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) # Creating colour palette
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
-    dir.create(paste0(output.dir, "/tmp_folder")) # Creates tmp_folder for pngs
+    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL)
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
+    dir.create(paste0(output.dir, "/tmp_folder")) 
   }
   
   #########################
@@ -107,13 +108,13 @@ pointToPointTime <- function(output.dir,
   
   if (origin_points_row_num > nrow(originPoints)) {
     message('Row is not in origin file, process aborted.\n')
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
     break #todo: need a better system to stop code as break shouldn't be used outside a loop
   }
   
   if (destination_points_row_num > nrow(destinationPoints)) {
     message('Row is not in destination file, process aborted.\n')
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
     break #todo: need a better system to stop code as break shouldn't be used outside a loop
   }
   
@@ -123,44 +124,51 @@ pointToPointTime <- function(output.dir,
   to_destination <-
     destinationPoints[destination_points_row_num, ]
   
-  start_date <- as.Date(startDateAndTime) # Sets start date
+  start_date <- as.Date(startDateAndTime)
   
   time_series = seq(as.POSIXct(startDateAndTime),
                     as.POSIXct(endDateAndTime),
-                    by = (timeIncrease) * 60) # Creates a time series between start and end dates and times based on the increment in time
+                    by = (timeIncrease) * 60) 
   
   ###########################
   #### CALL OTP FUNCTION ####
   ###########################
   
+  num.start <- 1
+  num.end <- length(time_series)
+  num.run <- 0
+  num.total <- num.end
+  
   message("Creating ",
-          length(time_series),
+          num.total,
           " point to point connections, please wait...")
   
   time.taken <- vector()
   
-  for (i in 1:length(time_series)) {
+  for (i in num.start:num.end) {
     
     start.time <- Sys.time()
     
-    stamp <-
-      format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
+    num.run <- num.run + 1
     
-    if (mapOutput == TRUE) {
+    stamp <-
+      format(Sys.time(), "%Y_%m_%d_%H_%M_%S") 
+    
+    if (mapOutput == T) {
       date_time_legend <-
-        format(time_series[i], "%d %B %Y %H:%M") # Creates a legend value for date in day, month, year and time in 24 clock format
+        format(time_series[num.run], "%d %B %Y %H:%M") 
     }
     
-    time <- format(time_series[i], "%I:%M %p")
+    time <- format(time_series[num.run], "%I:%M %p")
     
     time_twenty_four <- strftime(as.POSIXct(time_series[i], origin = "1970-01-01"),
-      format = "%H:%M:%S")
+                                 format = "%H:%M:%S")
     
-    date <- as.Date(time_series[i])
+    date <- as.Date(time_series[num.run])
     
     point_to_point <- propeR::otpTripTime(
       otpcon,
-      detail = TRUE,
+      detail = T,
       from = from_origin$lat_lon,
       to = to_destination$lat_lon,
       modes = modes,
@@ -184,31 +192,46 @@ pointToPointTime <- function(output.dir,
     #### OPTIONAL EXTRAS ####
     #########################
     
-    if (mapOutput == TRUE) {
-      if (!is.null(point_to_point_table)) {
+    if (mapOutput == T) {
+      if (!is.null(point_to_point_table) && exists("point_to_point_table")) {
+        
         poly_lines <-
           point_to_point$poly_lines 
         poly_lines <-
           sp::spTransform(poly_lines, sp::CRS("+init=epsg:4326"))
         
+        if (num.run == 1) {
+          lon.min <- min(min(from_origin$lon),min(to_destination$lon),poly_lines@bbox[1])
+          lat.min <- min(min(from_origin$lat),min(to_destination$lat),poly_lines@bbox[2])
+          lon.max <- max(max(from_origin$lon),max(to_destination$lon),poly_lines@bbox[3])
+          lat.max <- max(max(from_origin$lat),max(to_destination$lat),poly_lines@bbox[4])
+        }
+        
         m <- leaflet()
         m <-
           addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
         m <- addScaleBar(m)
-        m <-
-          setView(
+        
+        if (is.numeric(mapZoom)){
+          m <- setView(
             m,
             lat = (from_origin$lat + to_destination$lat) / 2,
-            # Focuses on midpoint between origin and destination
             lng = (from_origin$lon + to_destination$lon) / 2,
-            # Focuses on midpoint between origin and destination
             zoom = mapZoom
           )
+        } else {
+          m <- fitBounds(
+            m,
+            lon.min,
+            lat.min,
+            lon.max,
+            lat.max)
+        }
+        
         m <-
           addAwesomeMarkers(
             m,
             data = from_origin,
-            # Adds the origin as a marker
             lat = ~ lat,
             lng = ~ lon,
             popup = ~ name,
@@ -223,7 +246,6 @@ pointToPointTime <- function(output.dir,
           addPolylines(
             m,
             data = poly_lines,
-            # Adds polylines from origin to destination
             color = ~ pal_transport(poly_lines$mode),
             weight = mapPolylineWeight,
             opacity = mapPolylineOpacity
@@ -232,11 +254,10 @@ pointToPointTime <- function(output.dir,
           addCircleMarkers(
             m,
             data = point_to_point_table,
-            # Adds circles for each stage of the journey
             lat = ~ from_lat,
             lng = ~ from_lon,
             fillColor = ~ pal_transport(point_to_point_table$mode),
-            stroke = FALSE,
+            stroke = F,
             fillOpacity = mapMarkerOpacity,
             popup = ~ mode
           )
@@ -244,7 +265,6 @@ pointToPointTime <- function(output.dir,
           addLegend(
             m,
             pal = pal_transport,
-            # Adds a legend for the trip
             values = point_to_point_table$mode,
             opacity = mapLegendOpacity,
             title = "Transport Mode"
@@ -260,7 +280,6 @@ pointToPointTime <- function(output.dir,
           addAwesomeMarkers(
             m,
             data = to_destination,
-            # Adds the destination as a marker
             lat = ~ lat,
             lng = ~ lon,
             popup = ~ name,
@@ -272,34 +291,47 @@ pointToPointTime <- function(output.dir,
             )
           )
         
-        remove(poly_lines) # Deletes poly_lines for next loop
+        remove(poly_lines)
         
       } else {
-        # If no journey is found
+        
+        if (num.run == 1) {
+          lon.min <- min(min(from_origin$lon),min(to_destination$lon))
+          lat.min <- min(min(from_origin$lat),min(to_destination$lat))
+          lon.max <- max(max(from_origin$lon),max(to_destination$lon))
+          lat.max <- max(max(from_origin$lat),max(to_destination$lat))
+        }
         
         m <- leaflet()
-        m <- addTiles(m, group = "leaf")
+        m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
         m <- addScaleBar(m)
-        m <-
-          setView(
+        
+        if (is.numeric(mapZoom)){
+          m <- setView(
             m,
             lat = (from_origin$lat + to_destination$lat) / 2,
-            # Focuses on midpoint between origin and destination
             lng = (from_origin$lon + to_destination$lon) / 2,
-            # Focuses on midpoint between origin and destination
             zoom = mapZoom
           )
+        } else {
+          m <- fitBounds(
+            m,
+            lon.min,
+            lat.min,
+            lon.max,
+            lat.max)
+        }
+        
         m <-
           addAwesomeMarkers(
             m,
             data = from_origin,
-            # Adds the origin as a marker
             lat = ~ lat,
             lng = ~ lon,
             popup = ~ name,
             icon = makeAwesomeIcon(
               icon = "hourglass-start",
-              markerColor = "blue",
+              markerColor = "red",
               iconColor = "white",
               library = "fa"
             )
@@ -308,16 +340,23 @@ pointToPointTime <- function(output.dir,
           addAwesomeMarkers(
             m,
             data = to_destination,
-            # Adds the destination as a marker
             lat = ~ lat,
             lng = ~ lon,
             popup = ~ name,
             icon = makeAwesomeIcon(
               icon = "hourglass-end",
-              markerColor = "orange",
+              markerColor = "blue",
               iconColor = "white",
               library = "fa"
             )
+          )
+        m <-
+          addLegend(
+            m,
+            pal = pal_transport,
+            values = NA,
+            opacity = mapLegendOpacity,
+            title = "Transport Mode"
           )
         m <- addLegend(
           m,
@@ -328,31 +367,46 @@ pointToPointTime <- function(output.dir,
         )
       }
       
-      mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", stamp, ".png")) # Saves map in temp folder
+      mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", stamp, ".png"))
       
     }
     
-    if (i == 1) {
+    if (num.run == 1) {
       
-      if (point_to_point$errorId == "OK") {
-        
-        point_to_point_table_overview <- point_to_point$itineraries
-        
-        
-        point_to_point_table_overview["origin"] <- 
-          from_origin$name
-        point_to_point_table_overview["destination"] <-
-          to_destination$name
-        point_to_point_table_overview["status"] <-
-          point_to_point$errorId
-        point_to_point_table_overview["distance_km"] <-
-          round((sum(
-            point_to_point$trip_details$distance
-          )) / 1000, digits = 2)
+      if (!is.null(point_to_point$errorId)){
+        if (point_to_point$errorId == "OK") {
+          
+          point_to_point_table_overview <- point_to_point$itineraries
+          
+          point_to_point_table_overview["origin"] <- 
+            from_origin$name
+          point_to_point_table_overview["destination"] <-
+            to_destination$name
+          point_to_point_table_overview["distance_km"] <-
+            round((sum(
+              point_to_point$trip_details$distance
+            )) / 1000, digits = 2)
+          point_to_point_table_overview["startTime"] <- 
+            time_twenty_four
+        } else {
+          # Cannot find journey
+          point_to_point_table_overview <- data.frame(
+            "start" = NA,
+            "end" = NA,
+            "duration" = NA,
+            "walkTime" = NA,
+            "transitTime" = NA,
+            "waitingTime" = NA,
+            "transfers" = NA,
+            "origin" = from_origin$name,
+            "destination" = to_destination$name,
+            "distance_km" = NA,
+            "startTime" = time_twenty_four
+          )
+        }
       } else {
-        # Cannot find journey
         point_to_point_table_overview <- data.frame(
-          "start" = time_twenty_four,
+          "start" = NA,
           "end" = NA,
           "duration" = NA,
           "walkTime" = NA,
@@ -361,49 +415,49 @@ pointToPointTime <- function(output.dir,
           "transfers" = NA,
           "origin" = from_origin$name,
           "destination" = to_destination$name,
-          "status" = point_to_point$errorId,
-          "distance_km" = NA
+          "distance_km" = NA,
+          "startTime" = time_twenty_four
         )
-        
-        
-        # point_to_point_table_overview["start"] <- 'N/A'
-        # point_to_point_table_overview["end"] <- 'N/A'
-        # point_to_point_table_overview["duration"] <- 'N/A'
-        # point_to_point_table_overview["walkTime"] <- 'N/A'
-        # point_to_point_table_overview["transitTime"] <-
-        #   'N/A'
-        # point_to_point_table_overview["waitingTime"] <-
-        #   'N/A'
-        # point_to_point_table_overview["transfers"] <- 'N/A'
-        # point_to_point_table_overview["origin"] <-
-        #   from_origin$name
-        # point_to_point_table_overview["destination"] <-
-        #   to_destination$name
-        # point_to_point_table_overview["status"] <-
-        #   point_to_point$errorId
-        # point_to_point_table_overview["distance_km"] < 'N/A'
       }
       
     } else {
-      
-      if (point_to_point$errorId == "OK") {
+      if (!is.null(point_to_point$errorId)){
+        if (point_to_point$errorId == "OK") {
+          
+          point_to_point_table_overview_tmp <- point_to_point$itineraries
+          point_to_point_table_overview_tmp$origin <- from_origin$name
+          point_to_point_table_overview_tmp$destination <-
+            to_destination$name
+          point_to_point_table_overview_tmp$distance_km <-
+            round((sum(
+              point_to_point$trip_details$distance
+            )) / 1000, digits = 2)
+          point_to_point_table_overview_tmp$startTime <- 
+            time_twenty_four
+        } else {
+          
+          point_to_point_table_overview_tmp <- data.frame(
+            "start" = NA,
+            "end" = NA,
+            "duration" = NA,
+            "walkTime" = NA,
+            "transitTime" = NA,
+            "waitingTime" = NA,
+            "transfers" = NA,
+            "origin" = from_origin$name,
+            "destination" = to_destination$name,
+            "distance_km" = NA,
+            "startTime" = time_twenty_four
+          )
+        }
         
-      point_to_point_table_overview_tmp <- point_to_point$itineraries
-      point_to_point_table_overview_tmp$origin <- from_origin$name
-      point_to_point_table_overview_tmp$destination <-
-        to_destination$name
-      point_to_point_table_overview_tmp$status <-
-        point_to_point$errorId
-      point_to_point_table_overview_tmp$distance_km <-
-        round((sum(
-          point_to_point$trip_details$distance
-        )) / 1000, digits = 2)
-      
-      print(point_to_point_table_overview_tmp)
+        point_to_point_table_overview <-
+          rbind(point_to_point_table_overview,
+                point_to_point_table_overview_tmp)
+        
       } else {
-        
         point_to_point_table_overview_tmp <- data.frame(
-          "start" = time_twenty_four,
+          "start" = NA,
           "end" = NA,
           "duration" = NA,
           "walkTime" = NA,
@@ -412,60 +466,39 @@ pointToPointTime <- function(output.dir,
           "transfers" = NA,
           "origin" = from_origin$name,
           "destination" = to_destination$name,
-          "status" = point_to_point$errorId,
-          "distance_km" = NA
+          "distance_km" = NA,
+          "startTime" = time_twenty_four
         )
-        
-        # point_to_point_table_overview_tmp["start"] <- 'N/A'
-        # point_to_point_table_overview_tmp["end"] <- 'N/A'
-        # point_to_point_table_overview_tmp["duration"] <- 'N/A'
-        # point_to_point_table_overview_tmp["walkTime"] <- 'N/A'
-        # point_to_point_table_overview_tmp["transitTime"] <-
-        #   'N/A'
-        # point_to_point_table_overview_tmp["waitingTime"] <-
-        #   'N/A'
-        # point_to_point_table_overview_tmp["transfers"] <- 'N/A'
-        # point_to_point_table_overview_tmp["origin"] <-
-        #   from_origin$name
-        # point_to_point_table_overview_tmp["destination"] <-
-        #   to_destination$name
-        # point_to_point_table_overview_tmp["status"] <-
-        #   point_to_point$errorId
-        # point_to_point_table_overview_tmp["distance_km"] < 'N/A'
+        point_to_point_table_overview <-
+          rbind(point_to_point_table_overview,
+                point_to_point_table_overview_tmp)
         
       }
-      
-      
-      point_to_point_table_overview <-
-        rbind(point_to_point_table_overview,
-              point_to_point_table_overview_tmp)
-      
-      print(point_to_point_table_overview)
     }
     
     end.time <- Sys.time()
     
-    time.taken[i] <- round(end.time - start.time, digits = 2)
+    time.taken[num.run] <- round(end.time - start.time, digits = 2)
     
-    if (i < length(time_series)) {
+    if (num.run < num.total) {
       message(
-        i,
+        num.run,
         " out of ",
-        length(time_series),
+        num.total,
         " connections complete. Time taken ",
         round(sum(time.taken), digit = 2),
         " seconds. Estimated time left is approx. ",
         round((
-          mean(time.taken) * length(time_series)
+          mean(time.taken) * num.total
         ) - sum(time.taken),
         digits = 2),
         " seconds."
       )
     } else {
       message(
-        i,
+        num.run,
         " out of ",
-        length(time_series),
+        num.total,
         " connections complete. Time taken ",
         sum(time.taken),
         " seconds."
@@ -482,13 +515,13 @@ pointToPointTime <- function(output.dir,
           ", please wait.\n")
   
   stamp <-
-    format(Sys.time(), "%Y_%m_%d_%H_%M_%S") # Windows friendly time stamp
+    format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
   
   for (i in 1:nrow(point_to_point_table_overview)) {
     if (i == 1) {
       point_to_point_table_overview[i,"date"] = format(time_series[i], "%m/%d/%Y")
     } else {
-      if (point_to_point_table_overview[i,"start"] >= point_to_point_table_overview[i - 1,"start"]) {
+      if (format(time_series[i], "%I:%M %p") >= format(time_series[i-1], "%I:%M %p")) {
         point_to_point_table_overview$date[i] = point_to_point_table_overview[i - 1,"date"]
       } else {
         point_to_point_table_overview$date[i] = format(as.Date(
@@ -499,16 +532,16 @@ pointToPointTime <- function(output.dir,
   }
   
   point_to_point_table_overview <-
-    point_to_point_table_overview[, c(10, 8, 9, 12, 1, 2, 11, 3, 4, 5, 6, 7)]
+    point_to_point_table_overview[, c(8, 9, 12, 11, 1, 2, 10, 3, 4, 5, 6, 7)]
   
   colnames(point_to_point_table_overview) <-
     c(
-      "status",
       "origin",
       "destination",
       "date",
-      "start_time",
-      "end_time",
+      "calc_start_time",
+      "journey_start_time",
+      "journey_end_time",
       "distance_km",
       "duration_mins",
       "walk_time_mins",
@@ -519,29 +552,28 @@ pointToPointTime <- function(output.dir,
   
   write.csv(
     point_to_point_table_overview,
-    file = paste0(output.dir, "/p2p_time-", stamp, ".csv"),
-    row.names = FALSE
-  ) # Saves trip details as a CSV
+    file = paste0(output.dir, "/pointToPointTime-", stamp, ".csv"),
+    row.names = F
+  ) 
   
-  if (mapOutput == TRUE) {
+  if (mapOutput == T) {
     library(dplyr)
     list.files(
       path = paste0(output.dir, "/tmp_folder"),
       pattern = "*.png",
       full.names = T
-    ) %>%  # Creates gif of results
-      purrr::map(magick::image_read) %>% # reads each path file
-      magick::image_join() %>%  # joins image
-      magick::image_animate(fps = 5) %>%  # animates, can opt for number of loops
-      magick::image_write(paste0(output.dir, "/p2p_time-", stamp, ".gif")) # write to current dir
+    ) %>% 
+      purrr::map(magick::image_read) %>%
+      magick::image_join() %>%
+      magick::image_animate(fps = 5) %>% 
+      magick::image_write(paste0(output.dir, "/pointToPointTime-", stamp, ".gif"))
     
     m <-
-      magick::image_read(paste0(output.dir, "/p2p_time-", stamp, ".gif")) %>%
-      magick::image_scale("600") # Loads GIF into R
+      magick::image_read(paste0(output.dir, "/pointToPointTime-", stamp, ".gif")) %>%
+      magick::image_scale("600") 
     
-    invisible(print(m)) # plots map to Viewer
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = TRUE) # Deletes tmp_folder if exists
+    invisible(print(m)) 
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
   }
   message("Thanks for using propeR.")
-  point_to_point_table_overview
 }

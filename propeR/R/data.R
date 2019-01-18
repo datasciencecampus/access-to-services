@@ -1,36 +1,67 @@
 ##' Imports Location Data
 ##'
-##' Imports location data (origin or destination) from a comma separated file
+##' Imports location data from a comma separated file containing either latitude and longitude values, or postcode values
 ##'
-##' @param src .CSV file source
-##' @return R dataframe of origin or destination points
+##' @param src The source of the .CSV file
+##' @param idcol The title of the header of the column containing unique identifier names, default is "name"
+##' @param loncol The title of the header of the column containing the longitudinal values, default is "lon"
+##' @param latcol The title of the header of the column containing the latitudinal values, default is "lat"
+##' @param postcodecol  The title of the header of the column containing the postcode values, default is "postcode"
+##' @param
+##' @return R dataframe of location points
 ##' @author Michael Hodge
-##' @examples originPoints <- importLocationData('C:\Users\User\Documents\origins.csv')
-##' destinationPoints <- importLocationData('C:\Users\User\Documents\destinations.csv')
+##' @examples originPoints <- importLocationData('C:\Users\User\Documents\origins.csv', idcol = "name", loncol = "lon", latcol = "lat")
 ##' @export
-importLocationData <- function(src) {
+importLocationData <- function(src,
+                               idcol = "name",
+                               loncol = "lon",
+                               latcol = "lat",
+                               postcodecol = "postcode") {
+  
   data_points <-
     read.csv(src, sep = ",", as.is = TRUE) # Opens file box
+  
+  colnames(data_points)[which(names(data_points) == idcol)] <- "name"
+  colnames(data_points)[which(names(data_points) == loncol)] <- "lon"
+  colnames(data_points)[which(names(data_points) == latcol)] <- "lat"
+  colnames(data_points)[which(names(data_points) == postcodecol)] <- "postcode"
+  
   names(data_points) <-
     tolower(names(data_points)) # Convert column names to lower case
+  
   if ("lat" %in% colnames(data_points))
-    # Checks data to see if lat and lon columns are present
   {
     if (!("lon" %in% colnames(data_points))) {
-      stop("No longitudinal 'lon' column present.")
-      
+      stop(
+        paste0(
+          "No longitudinal column present with the name ",
+          loncol,
+          "\n"
+          )
+        )
     }
   } else {
-    message("No latitude 'lat' column present.\n")
+    message(
+      paste0(
+        "No latitude column present with the name ",
+        latcol,
+        "\n"
+        )
+      )
     
     message(
-      "Will try and find a postcode column in the data. If one is found, it may be able to be converted to latitude and longitude.\n"
-    )
-    # Checks to see if postcode has been given, if so we can convert to lat, lon
-    if ("postcode" %in% colnames(data_points)) {
+      paste0(
+        "Will try and find a postcode column in the data with the name ",
+        postcodecol,
+        ". If one is found, it may be able to be converted to latitude and longitude values.\n"
+        )
+      )
+    
+    if (postcodecol %in% colnames(data_points)) {
       message(
-        "Postcodes were found, will convert to latitude and longitude now. Warning: If a postcode doesn't exist
-        as a latitude and longitude in the predefined database, the location will be removed from the list.\n"
+        "Postcodes were found, and will be converted to latitude and longitude values now. 
+        Warning: If a postcode doesn't exist as a latitude and longitude in the API call,
+        the location will be removed from the list.\n"
       )
       
       data_points$postcode <- gsub('\\s+', '', data_points$postcode)
@@ -52,24 +83,26 @@ importLocationData <- function(src) {
             )
             data_points <- data_points[-i,]
           } else {
-            # todo: not sure this will work...
             data_points$lat[i] <- pc_content$result$latitude
             data_points$lon[i] <- pc_content$result$longitude
           }
         } else {
-          # todo: not sure this will work...
           data_points$lat[i] <- as.double(pc_content$data$latitude)
           data_points$lon[i] <- as.double(pc_content$data$longitude)
         }
       }
     } else {
       stop(
-        "A postcode column cannot be found, please review the data and either provide a latitude 'lat' and longitude
-        'lon' column (best), or postcode, for each location.\n"
+        paste0(
+          "A postcode column with the name",
+          postcodecol,
+          "cannot be found, please review the data and either provide a latitude and longitude
+          column (best), or postcode, for each location.\n"
+        )
       )
-      
     }
   }
+  
   data_points <-
     data_points[order(data_points$name),] # Sort by name
   data_points <-
@@ -77,13 +110,13 @@ importLocationData <- function(src) {
   data_points$lat_lon <-
     with(data_points, paste0(lat, ",", lon)) # Adds a lat_lon column as needed by otp
   data_points
-  }
+}
 
-##' Imports Geojson Data
+##' Imports GeoJSON Data
 ##'
-##' Imports polygon data (origin) from a geojson file
+##' Imports polygon data from a GeoJSON file
 ##'
-##' @param src .Geojson file source
+##' @param src The source for the .GeoJSON file
 ##' @return Large SpatialPolygonsDataFrame of origin polygons
 ##' @author Michael Hodge
 ##' @examples originPolygons <- importGeojsonData('C:\Users\User\Documents\origins.geojson')
