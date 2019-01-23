@@ -511,7 +511,7 @@ Currently, the only output is an animated GIF file. This function is designed to
 
 <p align="center"><img align="center" src="meta/images/isochroneMultiIntersectSensitivity.gif" width="600px"></p>
 
-#### 3.2.10. isochroneMultiIntersectTime
+#### isochroneMultiIntersectTime
 
 Like [`isochroneMultiIntersectSensitivity()`](#isochronemultiintersectsensitivity) this is a visual function, which creates the isochrone intersections between a start and end date/time **only** for uniform parameters for each origin, i.e., the additional origin CSV columns in isochroneMultiIntersect are not considered. The output will be an animated GIF file in the output directory.
 
@@ -530,7 +530,7 @@ isochroneMultiIntersectTime(output.dir = PATH_TO_DIR,
 
 <p align="center"><img align="center" src="meta/images/isochroneMultiIntersectTime.gif" width="600px"></p>
 
-#### 3.2.11. choropleth
+#### choropleth
 
 This function uses the backbone of the `otpTripTime()` function to create a number of OTP API calls for multiple origins to a single destination. It then uses a .GeoJSON file to create polygons and colour them based on the journey details. As a result, the name of the origins between the CSV file and .GeoJSON file must match. Using the sample .GeoJSON file and origin CSV file, we can call this function using:
 
