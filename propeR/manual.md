@@ -374,12 +374,14 @@ isochrone(output.dir = PATH_TO_DIR,
               destinationPoints = destinationPoints,
               startDateAndTime  = '2018-08-18 12:00:00',
               modes = 'WALK, TRANSIT',
-              isochroneCutOffs=c(30,60,90),
+              isochroneCutOffMax = 90,
+              isochroneCutOffMin = 30,
+              isochroneCutOffStep = 30,
               mapOutput = F,
               geojsonOutput = F)
 ```
 
-Will output the message `The number of destinations that are within the maximum travel time is 1/2, or 50%` as only the Principality Stadium can be reached within the maximum specified cutoff time (90 minutes). To change the cutoffs use the function parameter `isochroneCutOffs`, providing a list of cutoff times (in minutes). A tabular output will also show the travel time (in minutes) for each destination:
+Will output the message `The number of destinations that are within the maximum travel time is 1/2, or 50%` as only the Principality Stadium can be reached within the maximum specified cutoff time (90 minutes). To change the cutoffs use the function parameter `isochroneCutOffMax`, `isochroneCutOffMin` and `isochroneCutOffStep`. A tabular output will also show the travel time (in minutes) for each destination:
 
 | name                 	| postcode 	| lat       	| lon       	| lat_lon             	| travel_time 	|
 |----------------------	|----------	|-----------	|-----------	|---------------------	|-------------	|
@@ -406,6 +408,9 @@ isochroneTime(output.dir = PATH_TO_DIR,
               startDateAndTime = '2018-08-18 12:00:00',
               endDateAndTime = '2018-08-18 13:00:00',
               timeIncrease = 20,
+              isochroneCutOffMax = 90,
+              isochroneCutOffMin = 30,
+              isochroneCutOffStep = 30,
               modes = 'WALK, TRANSIT',
               mapOutput = F)
 ```
@@ -437,7 +442,9 @@ isochroneMulti(output.dir = PATH_TO_DIR,
               destinationPoints = destinationPoints,
               startDateAndTime  = '2018-08-18 12:00:00',
               modes = 'WALK, TRANSIT',
-              isochroneCutOffs=c(30,60,90),
+              isochroneCutOffMax = 90,
+              isochroneCutOffMin = 30,
+              isochroneCutOffStep = 30,
               mapOutput = F
               geojsonOutput = F)
 ```
