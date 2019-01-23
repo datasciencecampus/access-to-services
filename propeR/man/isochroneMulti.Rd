@@ -5,53 +5,82 @@
 \title{Generates an isochrone map for multiple origins.}
 \usage{
 isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
-  startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
-  maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
-  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = c(30, 60, 90), palColor = "Blues",
-  mapZoom = 12)
+  journeyReturn = F, startDateAndTime = "2018-08-18 12:00:00",
+  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
+  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
+  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
+  isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
+  isochroneCutOffMax, isochroneCutOffStep), mapOutput = F,
+  geojsonOutput = F, mapPolygonColours = "Blues", mapZoom = "bb",
+  mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
+  mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
+  mapLegendOpacity = 0.5)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
-\item{startDateAndTime}{in 'YYYY-MM-DD HH:MM:SS' format}
+\item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is FALSE)}
 
-\item{modes}{defaults to 'TRANSIT, WALK'}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
-\item{maxWalkDistance}{in meters, defaults to 1000}
+\item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
-\item{walkReluctance}{defaults to 2 (range 0 - 20)}
+\item{maxWalkDistance}{The maximum walking distance, in meters, defaults to 1000 m}
 
-\item{walkSpeed}{in m/s, defaults to 1.4}
+\item{walkReluctance}{The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))}
 
-\item{bikeSpeed}{in m/s, defaults to 4.3}
+\item{walkSpeed}{The walking soeed, in meters per second, defaults to 1.4 m/s}
 
-\item{minTransferTime}{in minutes, defaults to 1}
+\item{bikeSpeed}{The cycling speed, in meters per second, defaults to 4.3 m/s}
 
-\item{maxTransfers}{defaults to 10}
+\item{minTransferTime}{The maximum transfer time, in minutes, defaults to 0 mins (no time specified)}
 
-\item{wheelchair}{defaults to FALSE}
+\item{maxTransfers}{The maximum number of transfers, defaults to 10}
 
-\item{arriveBy}{defaults to FALSE}
+\item{wheelchair}{If TRUE, uses on wheeelchair friendly stops, defaults to FALSE}
 
-\item{isochroneCutOffs}{a list of cutoffs in minutes, defaults to c(30, 60, 90)}
+\item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{palColor}{the color palette of the map, defaults to 'Blues'}
+\item{isochroneCutOffMax}{Provide the maximum cutoff time for the isochrone, defaults 90}
 
-\item{mapZoom}{defaults to 12}
+\item{isochroneCutOffMin}{Provide the minimum cutoff time for the isochrone, defaults 10}
+
+\item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, defaults 10}
+
+\item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
+
+\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
+
+\item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
+
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
+
+\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
+
+\item{mapPolygonLineOpacity}{Specifies the opacity of the polygon line, defaults to 1 (solid)}
+
+\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
+
+\item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
+
+\item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 }
 \value{
-Saves map as a png and destination results as CSV to output directory
+Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
 }
 \description{
 Generates an isochrone map from multiple origins and checks whether destinations
 fall within isochrones, and if so, at what cutoff time amount.
+A comma separated value file of journey times for each origin and destination is saved in the output folder.
+A map of the journey can also be saved as a .png image and .html file.
+The polygons can also be saved as a .GeoJSON file.
 }
 \examples{
   isochroneMulti(

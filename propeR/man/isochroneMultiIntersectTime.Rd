@@ -2,62 +2,78 @@
 % Please edit documentation in R/isochrone-multi-intersect-time.R
 \name{isochroneMultiIntersectTime}
 \alias{isochroneMultiIntersectTime}
-\title{Calculates an isochrone map for multiple origins.}
+\title{Generates an animated map of intersecting polygons for multiple origins between a start and end
+time and date.}
 \usage{
-isochroneMultiIntersectTime(output.dir, otpcon, originPoints, destinationPoints,
-  startDateAndTime = "2018-08-18 12:00:00",
+isochroneMultiIntersectTime(output.dir, otpcon, originPoints,
+  destinationPoints, startDateAndTime = "2018-08-18 12:00:00",
   endDateAndTime = "2018-08-18 15:00:00", timeIncrease = 60,
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
-  walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, isochroneCutOffs = 60,
-  palColorMarker = "Greys", palColorPolygon = "#6BAED6", mapZoom = 12)
+  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
+  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
+  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, isochroneCutOffs = 60, mapMarkerColours = "Greys",
+  mapPolygonColours = "#6BAED6", mapZoom = "bb",
+  mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
+  mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
+  mapLegendOpacity = 0.5)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
-\item{startDateAndTime}{in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
-\item{endDateAndTime}{in 'YYYY-MM-DD HH:MM:SS' format}
+\item{endDateAndTime}{The end time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
-\item{timeIncrease}{in minutes, default 60}
+\item{timeIncrease}{The time increase in minutes, default 60}
 
-\item{modes}{defaults to 'TRANSIT, WALK'}
+\item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
-\item{maxWalkDistance}{in meters, defaults to 1000}
+\item{maxWalkDistance}{The maximum walking distance, in meters, defaults to 1000 m}
 
-\item{walkReluctance}{defaults to 2 (range 0 - 20)}
+\item{walkReluctance}{The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))}
 
-\item{walkSpeed}{in m/s, defaults to 1.4}
+\item{walkSpeed}{The walking soeed, in meters per second, defaults to 1.4 m/s}
 
-\item{bikeSpeed}{in m/s, defaults to 4.3}
+\item{bikeSpeed}{The cycling speed, in meters per second, defaults to 4.3 m/s}
 
-\item{minTransferTime}{in minutes, defaults to 1}
+\item{minTransferTime}{The maximum transfer time, in minutes, defaults to 0 mins (no time specified)}
 
-\item{maxTransfers}{defaults to 10}
+\item{maxTransfers}{The maximum number of transfers, defaults to 10}
 
-\item{wheelchair}{defaults to FALSE}
+\item{wheelchair}{If TRUE, uses on wheeelchair friendly stops, defaults to FALSE}
 
-\item{arriveBy}{defaults to FALSE}
+\item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{isochroneCutOffs}{in minutes, defaults to 60}
+\item{isochroneCutOffs}{Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)}
 
-\item{palColorPolygon}{the color palette of the poygon, defaults to 'Blue'}
+\item{mapMarkerColours}{the color palette of the markers, defaults to 'Greys'}
 
-\item{mapZoom}{defaults to 12}
+\item{mapPolygonColours}{the color palette of the poygon, defaults to 'Blue'}
 
-\item{palColorMarkers}{the color palette of the markers, defaults to 'Greys'}
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
+
+\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
+
+\item{mapPolygonLineOpacity}{Specifies the opacity of the polygon line, defaults to 1 (solid)}
+
+\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
+
+\item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
+
+\item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 }
 \value{
 Saves an animated map as a gif to output directory
 }
 \description{
-Finds the intersection between a start and end time and date.
+Calculates a series of polygons for the intersection between multiple origins and finds the intersection, between a start and end time and date.
+Saves intersecting map as an animated .gif image.
 }
 \examples{
   isochroneMultiIntersect(

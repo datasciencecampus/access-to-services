@@ -9,56 +9,68 @@ pointToPoint(output.dir, otpcon, originPoints, originPointsRow = 1,
   startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
   maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.4,
   bikeSpeed = 4.3, minTransferTime = 1, maxTransfers = 10,
-  wheelchair = F, arriveBy = F, preWaitTime = 60,
-  transportColours = list(TRANSIT = "#000000", WALK = "#A14296", BUS =
+  wheelchair = F, arriveBy = F, preWaitTime = 15, mapOutput = F,
+  mapPolylineColours = list(TRANSIT = "#000000", WALK = "#A14296", BUS =
   "#48C1B1", RAIL = "#4D7BC5", CAR = "#E825D6", BICYCLE = "#4AA6C3"),
-  mapZoom = 12)
+  mapZoom = "bb", mapPolylineWeight = 5, mapPolylineOpacity = 1,
+  mapMarkerOpacity = 1, mapLegendOpacity = 1)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
 \item{originPointsRow}{The row of originPoints to be used, defaults to 1}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
 \item{destinationPointsRow}{The row of destinationPoints to be used, defaults to 1}
 
-\item{startDateAndTime}{in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
-\item{modes}{defaults to 'TRANSIT, WALK'}
+\item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
-\item{maxWalkDistance}{in meters, defaults to 1000}
+\item{maxWalkDistance}{The maximum walking distance, in meters, defaults to 1000 m}
 
-\item{walkReluctance}{defaults to 2 (range 0 - 20)}
+\item{walkReluctance}{The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))}
 
-\item{walkSpeed}{in m/s, defaults to 1.4}
+\item{walkSpeed}{The walking soeed, in meters per second, defaults to 1.4 m/s}
 
-\item{bikeSpeed}{in m/s, defaults to 4.3}
+\item{bikeSpeed}{The cycling speed, in meters per second, defaults to 4.3 m/s}
 
-\item{minTransferTime}{in minutes, defaults to 0}
+\item{minTransferTime}{The maximum transfer time, in minutes, defaults to 0 mins (no time specified)}
 
-\item{maxTransfers}{defaults to 10}
+\item{maxTransfers}{The maximum number of transfers, defaults to 10}
 
-\item{wheelchair}{defaults to FALSE}
+\item{wheelchair}{If TRUE, uses on wheeelchair friendly stops, defaults to FALSE}
 
-\item{arriveBy}{defaults to FALSE}
+\item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{preWaitTime}{in minutes, defaults to 60}
+\item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
 
-\item{transportColours}{A list defining the colours to assign to each mode of transport.}
+\item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
-\item{mapZoom}{defaults to 12}
+\item{mapPolylineColours}{A list defining the colours to assign to each mode of transport.}
+
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
+
+\item{mapPolylineWeight}{Specifies the weight of the polyline, defaults to 5 px}
+
+\item{mapPolylineOpacity}{Specifies the opacity of the polyline, defaults to 1 (solid)}
+
+\item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
+
+\item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 1 (solid)}
 }
 \value{
-Saves map as a png and journey details as CSV to output directory
+Saves journey details as comma separated value file to output directory. A map in .png and .html formats may also be saved)
 }
 \description{
-Calculates the journey time and details between a single origin and destination. Outputs (and saves) a map of
-the polyline between origin and destination, as well as a CSV file of journey details.
+Calculates the journey time and details between a single origin and destination. 
+A comma separated value file of journey details is saved in the specified output folder.
+A map of the journey can also be saved as a .png image and .html file.
 }
 \examples{
   pointToPoint(
@@ -66,7 +78,7 @@ the polyline between origin and destination, as well as a CSV file of journey de
     otpcon,
     originPoints,
     destinationPoints,
-    startdDateAndTime = "2018-08-18 12:00:00"
+    startDateAndTime = "2018-08-18 12:00:00"
   )
 }
 \author{

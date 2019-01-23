@@ -4,20 +4,28 @@
 \alias{importLocationData}
 \title{Imports Location Data}
 \usage{
-importLocationData(src)
+importLocationData(src, idcol = "name", loncol = "lon",
+  latcol = "lat", postcodecol = "postcode")
 }
 \arguments{
-\item{src}{.CSV file source}
+\item{src}{The source of the .CSV file}
+
+\item{idcol}{The title of the header of the column containing unique identifier names, default is "name"}
+
+\item{loncol}{The title of the header of the column containing the longitudinal values, default is "lon"}
+
+\item{latcol}{The title of the header of the column containing the latitudinal values, default is "lat"}
+
+\item{postcodecol}{The title of the header of the column containing the postcode values, default is "postcode"}
 }
 \value{
-R dataframe of origin or destination points
+R dataframe of location points
 }
 \description{
-Imports location data (origin or destination) from a comma separated file
+Imports location data from a comma separated file containing either latitude and longitude values, or postcode values
 }
 \examples{
-originPoints <- importLocationData('C:\\Users\\User\\Documents\\origins.csv')
-destinationPoints <- importLocationData('C:\\Users\\User\\Documents\\destinations.csv')
+originPoints <- importLocationData('C:\\Users\\User\\Documents\\origins.csv', idcol = "name", loncol = "lon", latcol = "lat")
 }
 \author{
 Michael Hodge

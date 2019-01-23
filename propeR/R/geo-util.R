@@ -12,7 +12,7 @@ postcodeToDecimalDegrees <- function(postcode) {
     jsonlite::fromJSON(paste0("http://api.getthedata.com/postcode/", postcode))
 }
 
-##' A backup simple postcode to latitude and longitude converter.
+##' A backup postcode to latitude and longitude converter.
 ##'
 ##' Generates a latitude and longitude (in decimal degrees) based on the postcode.
 ##'

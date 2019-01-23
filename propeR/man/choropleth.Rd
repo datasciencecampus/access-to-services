@@ -2,64 +2,80 @@
 % Please edit documentation in R/choropleth.R
 \name{choropleth}
 \alias{choropleth}
-\title{Calculates an isochrone map from a single origin}
+\title{Generates a series of choropleth maps using multiple origins to a single destination.}
 \usage{
-choropleth(output.dir, otpcon, originPoints, originPolygons, destinationPoints,
-  destinationPointsRow = 1, startDateAndTime = "2018-08-18 12:00:00",
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000, walkReluctance = 2,
-  walkSpeed = 1.5, bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, durationCutoff = 60, waitingCutoff = 10,
-  transferCutoff = 1, palColor = "Blues", palColorCat = c("#820e0e",
-  "#407746"), mapZoom = 12)
+choropleth(output.dir, otpcon, originPoints, originPolygons,
+  destinationPoints, destinationPointsRow = 1,
+  startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
+  maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
+  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
+  wheelchair = F, arriveBy = F, durationCutoff = 60,
+  waitingCutoff = 10, transferCutoff = 1,
+  mapPolygonColours = "Blues", mapPolygonCatColours = c("#820e0e",
+  "#407746"), mapZoom = "bb", mapPolygonLineWeight = 1,
+  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 0.6,
+  mapMarkerOpacity = 1, mapLegendOpacity = 0.5)
 }
 \arguments{
-\item{otpcon}{OTP router URL}
+\item{output.dir}{The directory for the output files}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPolygons}{The variable containing origin(s) polygon(s), see ?importGeojsonData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
-\item{destinationPoints}{The variable containing destination(s), see ?importLocationData}
+\item{originPolygons}{The variable containing origin(s) polygon(s), see ?importGeojsonData for details}
+
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
 \item{destinationPointsRow}{The row of destinationPoints to be used, defaults to 1}
 
-\item{startDateAndTime}{in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
-\item{modes}{defaults to 'TRANSIT, WALK'}
+\item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
-\item{maxWalkDistance}{in meters, defaults to 1000}
+\item{maxWalkDistance}{The maximum walking distance, in meters, defaults to 1000 m}
 
-\item{walkReluctance}{defaults to 2 (range 0 - 20)}
+\item{walkReluctance}{The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))}
 
-\item{walkSpeed}{in m/s, defaults to 1.4}
+\item{walkSpeed}{The walking soeed, in meters per second, defaults to 1.4 m/s}
 
-\item{bikeSpeed}{in m/s, defaults to 4.3}
+\item{bikeSpeed}{The cycling speed, in meters per second, defaults to 4.3 m/s}
 
-\item{minTransferTime}{in minutes, defaults to 1}
+\item{minTransferTime}{The maximum transfer time, in minutes, defaults to 0 mins (no time specified)}
 
-\item{maxTransfers}{defaults to 10}
+\item{maxTransfers}{The maximum number of transfers, defaults to 10}
 
-\item{wheelchair}{defaults to FALSE}
+\item{wheelchair}{If TRUE, uses on wheeelchair friendly stops, defaults to FALSE}
 
-\item{arriveBy}{defaults to FALSE}
+\item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{durationCutoff}{in minutes, defaults to 60}
+\item{durationCutoff}{For categorical maps, specify the duration time cutoff in minutes, defaults to 60 minutes}
 
-\item{waitingCutoff}{in minutes, defaults to 10}
+\item{waitingCutoff}{For categorical maps, specify the waiting time cutoff in minutes, defaults to 10 minutes}
 
-\item{transferCutoff}{defaults to 1}
+\item{transferCutoff}{For categorical maps, specify the number of transfers cutoff, defaults to 1}
 
-\item{palColor}{the color palette of the map, defaults to 'Blues'}
+\item{mapPolygonColours}{the color palette of the poylgon, defaults to 'Blue'}
 
-\item{palColorCat}{the color palette of the catergorical map, defaults to c("#820e0e", "#407746")}
+\item{mapPolygonCatColours}{the color palette of the polygon for catergorical maps, defaults to c("#820e0e", "#407746")}
 
-\item{mapZoom}{defaults to 12}
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
+
+\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 1 px}
+
+\item{mapPolygonLineOpacity}{Specifies the opacity of the polygon line, defaults to 1 (solid)}
+
+\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
+
+\item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
+
+\item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 }
 \value{
-Returns a number of maps (duration, wait time, transfers) to the output directory
+Returns a series of maps (duration, wait time, transfers) to the output directory
 }
 \description{
-.. content for \details{} ..
+Calculates a series of choropleth maps using multiple origins to a single destination.
 }
 \examples{
   choropleth(
