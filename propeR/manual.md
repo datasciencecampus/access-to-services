@@ -9,8 +9,8 @@
   	* [Background and Software Prerequisities](#background-and-software-prerequisites)
   	* [Creating a GTFS feed](#creating-a-gtfs-feed)
   	* [TransXChange to GTFS](#transxchange-to-gtfs)
-  		* [TransXChange2GTFS (C#)](transxchange2gtfs-(c#))
-  		* [transxchange2gtfs (TypeScript)](transxchange2gtfs-(typescript))
+  		* [TransXChange2GTFS (C#)](transxchange2gtfs)
+  		* [transxchange2gtfs (TypeScript)](transxchange2gtfs)
   	* [CIF to GTFS](#cif-to-gtfs)
   	* [Cleaning the GTFS Data](#cleaning-the-gtfs-data)
   	* [Sample GTFS Data](#sample-gtfs-data)  
@@ -88,7 +88,7 @@ UK bus data in [TransXChange](https://www.gov.uk/government/collections/transxch
       <WorkingDays>
 ```
 
-##### TransXChange2GTFS (C#)
+##### TransXChange2GTFS
 
 Initially, we used [TransXChange2GTFS](https://github.com/danbillingsley/TransXChange2GTFS) to convert the TransXChange files into GTFS format. TransXChange is a C# tool. Our method to convert the data was:
 
@@ -97,7 +97,7 @@ Initially, we used [TransXChange2GTFS](https://github.com/danbillingsley/TransXC
 3. The GTFS txt files will be created in the 'dir/output' folder.
 4. Compress the txt files to a ZIP folder with an appropriate name (e.g., 'bus_GTFS.zip').
 
-##### transxchange2gtfs (TypeScript)
+##### transxchange2gtfs
 
 The team, [planar network](https://planar.network/), who we initially used to convert the UK train data to GTFS, have created a TypeScript TransXChange to GTFS converter, [transxchange2gtfs](https://github.com/planarnetwork/transxchange2gtfs). Their GitHub page provides good detailed instructions to installing and converting the files. The method we used was:
 
