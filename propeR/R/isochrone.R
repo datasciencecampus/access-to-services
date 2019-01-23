@@ -21,7 +21,9 @@
 ##' @param maxTransfers The maximum number of transfers, defaults to 10
 ##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
-##' @param isochroneCutOffs Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)
+##' @param isochroneCutOffMax Provide the maximum cutoff time for the isochrone, defaults 90
+##' @param isochroneCutOffMin Provide the minimum cutoff time for the isochrone, defaults 10
+##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, defaults 10
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
@@ -31,7 +33,7 @@
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
-##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved)
+##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved
 ##' @author Michael Hodge
 ##' @examples
 ##'   isochrone(
@@ -60,7 +62,10 @@ isochrone <- function(output.dir,
                       wheelchair = F,
                       arriveBy = F,
                       # function specific args.
-                      isochroneCutOffs = c(30, 60, 90),
+                      isochroneCutOffMax = 90,
+                      isochroneCutOffMin = 10,
+                      isochroneCutOffStep = 10,
+                      isochroneCutOffs = seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep),
                       # leaflet map args
                       mapOutput = F,
                       geojsonOutput = F,
@@ -84,26 +89,18 @@ isochrone <- function(output.dir,
   #### SETUP VARIABLES ####
   #########################
   
-  origin_points_row_num <-
-    originPointsRow 
-  
-  destination_points_row_num <-
-    destinationPointsRow 
-  
+  origin_points_row_num <- originPointsRow 
+  from_origin <- originPoints[origin_points_row_num,]
   if (origin_points_row_num > nrow(originPoints)) {
-    message('Row is not in origin file, process aborted.\n')
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
-    break
+    stop('Row is not in origin file, process aborted.\n')
   }
   
-  from_origin <-
-    originPoints[origin_points_row_num,] 
+  destination_points_row_num <- destinationPointsRow 
   
-  start_time <-
-    format(as.POSIXct(startDateAndTime), "%I:%M %p") 
+  start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") 
   start_date <- as.Date(startDateAndTime) 
-  date_time_legend <-
-    format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") 
+  date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") 
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -128,60 +125,34 @@ isochrone <- function(output.dir,
     cutoff = isochroneCutOffs
   )
   
-  isochrone_polygons <-
-    rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = F) 
+  isochrone_polygons <- rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = F) 
+  destination_points_spdf <- destinationPoints 
+  sp::coordinates(destination_points_spdf) <- ~ lon + lat 
+  sp::proj4string(destination_points_spdf) <- sp::proj4string(isochrone_polygons) 
+    isochrone_polygons_split <- sp::split(isochrone_polygons, isochrone_polygons@data$time) 
   
-  destination_points_spdf <-
-    destinationPoints 
-  
-  sp::coordinates(destination_points_spdf) <-
-    ~ lon + lat 
-  
-  sp::proj4string(destination_points_spdf) <-
-    sp::proj4string(isochrone_polygons) 
-  
-  isochrone_polygons_split <-
-    sp::split(isochrone_polygons, isochrone_polygons@data$time) 
-  
-  time_df <-
-    data.frame(matrix(
-      ,
+  time_df <- data.frame(matrix(,
       ncol = length(isochroneCutOffs),
-      nrow = nrow(destination_points_spdf)
-    )) 
+      nrow = nrow(destination_points_spdf))) 
   
   for (i in 1:length(isochroneCutOffs)) {
-    time_df_tmp <-
-      sp::over(destination_points_spdf, isochrone_polygons_split[[i]])
+    time_df_tmp <- sp::over(destination_points_spdf, isochrone_polygons_split[[i]])
     time_df[, i] <- time_df_tmp[, 2]
   }
   
   for (i in 1:nrow(destination_points_spdf)) {
+    
     if (is.na(time_df[i, length(isochroneCutOffs)])) {
       time_df[i, length(isochroneCutOffs) + 1] = NA
     } else {
-      time_df[i, length(isochroneCutOffs) + 1] = min(time_df[i, 1:length(isochroneCutOffs)], na.rm =
-                                                       T)
+      time_df[i, length(isochroneCutOffs) + 1] = min(time_df[i, 1:length(isochroneCutOffs)], na.rm = T)
     }
   }
   
   names(time_df)[ncol(time_df)] <- "travel_time"
   destinationPoints$travel_time <- time_df$travel_time / 60
   
-  message(
-    "The number of destinations that are within the maximum travel time is ",
-    sum(!is.na(destinationPoints$travel_time)),
-    "/",
-    nrow(destinationPoints),
-    ", or ",
-    (sum(
-      !is.na(destinationPoints$travel_time)
-    ) / nrow(destinationPoints)) * 100,
-    "%\n"
-  )
-  
-  destination_points_non_na <-
-    subset(destinationPoints,!(is.na(destinationPoints["travel_time"])))
+  destination_points_non_na <- subset(destinationPoints,!(is.na(destinationPoints["travel_time"])))
   
   #########################
   #### OPTIONAL EXTRAS ####
@@ -189,7 +160,6 @@ isochrone <- function(output.dir,
   
   if (mapOutput == T) {
     message("Generating map, please wait.")
-    
     library(leaflet)
     m <- leaflet()
     m <- addScaleBar(m)
@@ -277,28 +247,20 @@ isochrone <- function(output.dir,
           icon = "hourglass-start",
           markerColor = "red",
           iconColor = "white",
-          library = "fa"
-        )
-      )
-    
+          library = "fa"))
   }
   
   ######################
   #### SAVE RESULTS ####
   ######################
   
-  message("Analysis complete, now saving outputs to ",
-          output.dir,
-          ", please wait.\n")
-  
-  stamp <-
-    format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+  message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
+  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
   
   write.csv(
     destinationPoints,
     file = paste0(output.dir, "/isochrone-", stamp, ".csv"),
-    row.names = F
-  )
+    row.names = F)
   
   if (geojsonOutput == T) {
     rgdal::writeOGR(
@@ -308,8 +270,7 @@ isochrone <- function(output.dir,
                    stamp,
                    ".geoJSON"),
       layer = "isochrone_polygons",
-      driver = "GeoJSON"
-    )
+      driver = "GeoJSON")
   }
   
   if (mapOutput == T) {
@@ -320,5 +281,6 @@ isochrone <- function(output.dir,
            recursive = T) 
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
   }
+  
   message("Thanks for using propeR.")
 }

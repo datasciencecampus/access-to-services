@@ -90,37 +90,23 @@ pointToPoint <- function(output.dir,
   #### SETUP VARIABLES ####
   #########################
   
-  origin_points_row_num <-
-    originPointsRow
-  
-  destination_points_row_num <-
-    destinationPointsRow
-  
+  origin_points_row_num <- originPointsRow
+  from_origin <- originPoints[origin_points_row_num,]
   if (origin_points_row_num > nrow(originPoints)) {
-    message("Row is not in origin file, process aborted.\n")
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T)
-    break #todo: need a better system to stop code as break shouldn't be used outside a loop
+    stop("Row is not in origin file, process aborted.\n")
   }
   
+  destination_points_row_num <- destinationPointsRow
+  to_destination <- destinationPoints[destination_points_row_num,]
   if (destination_points_row_num > nrow(destinationPoints)) {
-    message("Row is not in destination file, process aborted.\n")
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T)
-    break #todo: need a better system to stop code as break shouldn't be used outside a loop
+    stop("Row is not in destination file, process aborted.\n")
   }
   
-  from_origin <-
-    originPoints[origin_points_row_num,]
-  
-  to_destination <-
-    destinationPoints[destination_points_row_num,]
-  
-  start_time <-
-    format(as.POSIXct(startDateAndTime), "%I:%M %p")
-  
+  start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p")
   start_date <- as.Date(startDateAndTime)
-  
-  date_time_legend <-
-    format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M")
+  date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M")
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -146,42 +132,27 @@ pointToPoint <- function(output.dir,
   )
   
   if (!is.null(point_to_point$errorId)){
+    
     if (point_to_point$errorId == 'OK') {
-      point_to_point_table_overview <-
-        point_to_point$itineraries[1,]
-      
-      point_to_point_table_overview$origin <-
-        from_origin$name
-      
-      point_to_point_table_overview$destination <-
-        to_destination$name
-      
-      point_to_point_table_overview$distance <-
-        round((sum(
-          point_to_point$trip_details$distance
-        )) / 1000, digits = 2)
-      
-      point_to_point_table_overview <-
-        point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
-      
-      colnames(point_to_point_table_overview) <-
-        c(
-          "origin",
-          "destination",
-          "start_time",
-          "end_time",
-          "distance_km",
-          "duration_mins",
-          "walk_time_mins",
-          "transit_time_mins",
-          "waiting_time_mins",
-          "transfers"
-        )
-      
-      point_to_point_table <-
-        point_to_point$output_table
+      point_to_point_table_overview <- point_to_point$itineraries[1,]
+      point_to_point_table_overview$origin <- from_origin$name
+      point_to_point_table_overview$destination <- to_destination$name
+      point_to_point_table_overview$distance <- round((sum(point_to_point$trip_details$distance)) / 1000, digits = 2)
+      point_to_point_table_overview <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
+      colnames(point_to_point_table_overview) <- c(
+        "origin",
+        "destination",
+        "start_time",
+        "end_time",
+        "distance_km",
+        "duration_mins",
+        "walk_time_mins",
+        "transit_time_mins",
+        "waiting_time_mins",
+        "transfers")
+      point_to_point_table <- point_to_point$output_table
     } else {
-      message("No journey found, cannot provide any outputs!\n")
+      stop("No journey found, cannot provide any outputs!\n")
     }
     
     #########################
@@ -190,15 +161,9 @@ pointToPoint <- function(output.dir,
     
     if (mapOutput == T) {
       message("Generating map, please wait.\n")
-      
-      poly_lines <-
-        point_to_point$poly_lines
-      
-      poly_lines <-
-        sp::spTransform(poly_lines, sp::CRS("+init=epsg:4326"))
-      
-      popup_poly_lines <-
-        paste0(
+      poly_lines <- point_to_point$poly_lines
+      poly_lines <- sp::spTransform(poly_lines, sp::CRS("+init=epsg:4326"))
+      popup_poly_lines <- paste0(
           "<strong>Mode: </strong>",
           poly_lines$mode,
           "<br><strong>Route: </strong>",
@@ -210,12 +175,10 @@ pointToPoint <- function(output.dir,
           " mins",
           "<br><strong>Distance: </strong>",
           round(poly_lines$duration, digits = 2),
-          " meters"
-        )
+          " meters")
       
       m <- leaflet()
-      m <-
-        addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+      m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
       m <- addScaleBar(m)
       
       if (is.numeric(mapZoom)){
@@ -223,8 +186,7 @@ pointToPoint <- function(output.dir,
           m,
           lat = (from_origin$lat + to_destination$lat) / 2,
           lng = (from_origin$lon + to_destination$lon) / 2,
-          zoom = mapZoom
-        )
+          zoom = mapZoom)
       } else {
         m <- fitBounds(
           m,
@@ -234,8 +196,7 @@ pointToPoint <- function(output.dir,
           max(max(from_origin$lat),max(to_destination$lat),poly_lines@bbox[4]))
       }
       
-      m <-
-        addAwesomeMarkers(
+      m <- addAwesomeMarkers(
           m,
           data = from_origin,
           lat = ~ lat,
@@ -245,20 +206,15 @@ pointToPoint <- function(output.dir,
             icon = "hourglass-start",
             markerColor = "red",
             iconColor = "white",
-            library = "fa"
-          )
-        )
-      m <-
-        addPolylines(
+            library = "fa"))
+      m <- addPolylines(
           m,
           data = poly_lines,
           popup = popup_poly_lines,
           color = ~ pal_transport(poly_lines$mode),
           weight = mapPolylineWeight,
-          opacity = mapPolylineOpacity
-        )
-      m <-
-        addCircleMarkers(
+          opacity = mapPolylineOpacity)
+      m <- addCircleMarkers(
           m,
           data = point_to_point_table,
           lat = ~ from_lat,
@@ -266,26 +222,21 @@ pointToPoint <- function(output.dir,
           fillColor = ~ pal_transport(point_to_point_table$mode),
           stroke = F,
           fillOpacity = mapMarkerOpacity,
-          popup = ~ mode
-        )
-      m <-
-        addLegend(
+          popup = ~ mode)
+      m <- addLegend(
           m,
           pal = pal_transport,
           values = point_to_point_table$mode,
           opacity = mapLegendOpacity,
-          title = "Transport Mode"
-        )
+          title = "Transport Mode")
       m <- addLegend(
         m,
         pal = pal_time_date,
         opacity = mapLegendOpacity,
         values = date_time_legend,
         position = "bottomleft",
-        title = "Date and Time"
-      )
-      m <-
-        addAwesomeMarkers(
+        title = "Date and Time")
+      m <- addAwesomeMarkers(
           m,
           data = to_destination,
           lat = ~ lat,
@@ -295,33 +246,25 @@ pointToPoint <- function(output.dir,
             icon = "hourglass-end",
             markerColor = "blue",
             iconColor = "white",
-            library = "fa"
-          )
-        )
+            library = "fa"))
     }
     
     ######################
     #### SAVE RESULTS ####
     ######################
     
-    message("Analysis complete, now saving outputs to ",
-            output.dir,
-            ", please wait.\n")
-    
-    stamp <-
-      format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+    message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
+    stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
     
     write.csv(
       point_to_point_table_overview,
       file = paste0(output.dir, "/pointToPoint-", stamp, ".csv"),
-      row.names = F
-    )
+      row.names = F)
     
     write.csv(
       point_to_point_table,
       file = paste0(output.dir, "/pointToPoint-journey-legs", stamp, ".csv"),
-      row.names = F
-    )
+      row.names = F)
     
     if (mapOutput == T) {
       invisible(print(m))
@@ -329,14 +272,14 @@ pointToPoint <- function(output.dir,
       htmlwidgets::saveWidget(
         m,
         file = paste0(output.dir, "/pointToPoint-", stamp, ".html"),
-        selfcontained = T
-      ) 
+        selfcontained = T) 
       unlink(paste0(output.dir, "/pointToPoint-", stamp, "_files"), recursive = T)
       unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
     }
     
   } else {
-    message("No journey found, cannot provide any outputs!\n")
+    stop("No journey found, cannot provide any outputs!\n")
   }
+  
   message("Thanks for using propeR.")
 }

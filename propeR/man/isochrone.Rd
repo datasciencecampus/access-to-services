@@ -9,11 +9,14 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
   startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
   maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
   bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, isochroneCutOffs = c(30, 60, 90),
-  mapOutput = F, geojsonOutput = F, mapPolygonColours = "Blues",
-  mapZoom = "bb", mapPolygonLineWeight = 5,
-  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 0.6,
-  mapMarkerOpacity = 1, mapLegendOpacity = 0.5)
+  wheelchair = F, arriveBy = F, isochroneCutOffMax = 90,
+  isochroneCutOffMin = 10, isochroneCutOffStep = 10,
+  isochroneCutOffs = seq(isochroneCutOffMin, isochroneCutOffMax,
+  isochroneCutOffStep), mapOutput = F, geojsonOutput = F,
+  mapPolygonColours = "Blues", mapZoom = "bb",
+  mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
+  mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
+  mapLegendOpacity = 0.5)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -46,7 +49,11 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{isochroneCutOffs}{Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)}
+\item{isochroneCutOffMax}{Provide the maximum cutoff time for the isochrone, defaults 90}
+
+\item{isochroneCutOffMin}{Provide the minimum cutoff time for the isochrone, defaults 10}
+
+\item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, defaults 10}
 
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
@@ -67,7 +74,7 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 }
 \value{
-Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved)
+Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved
 }
 \description{
 Generates an isochrone polygon from a single origin and checks whether destinations

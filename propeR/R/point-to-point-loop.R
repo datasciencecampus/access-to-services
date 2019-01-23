@@ -42,7 +42,7 @@ pointToPointLoop <- function(output.dir,
                              destinationPoints,
                              destinationPointsRow = 1,
                              journeyLoop = 0,
-                             journeyReturn = T,
+                             journeyReturn = F,
                              # otpTime args
                              startDateAndTime = "2018-08-13 09:00:00",
                              modes = "WALK, TRANSIT",
@@ -62,11 +62,7 @@ pointToPointLoop <- function(output.dir,
   #### SETUP VARIABLES ####
   #########################
   
-  if (journeyReturn == T) {
-    multiplier <- 2
-  } else {
-    multiplier <- 1
-  }
+  if (journeyReturn == T) { multiplier <- 2 } else { multiplier <- 1 }
   
   if (journeyLoop == 0) {
     originPointsEnd <- nrow(originPoints)
@@ -74,52 +70,39 @@ pointToPointLoop <- function(output.dir,
   } else if (journeyLoop == 1) {
     originPointsEnd <- nrow(originPoints)
     destinationPointsEnd <- 1
-    
-    destination_points_row_num <-
-      destinationPointsRow
+    destination_points_row_num <-destinationPointsRow
     
     if (destination_points_row_num > nrow(destinationPoints)) {
-      message('Row is not in destination file')
       unlink(paste0(output.dir, "/tmp_folder"), recursive = T)
-      break
+      stop('Row is not in destination file')
     }
     
   } else if (journeyLoop == 2) {
     originPointsEnd <- 1
     destinationPointsEnd <- nrow(destinationPoints)
-    
-    origin_points_row_num <-
-      originPointsRow
+    origin_points_row_num <- originPointsRow
     
     if (origin_points_row_num > nrow(originPoints)) {
+      stop(paste0(output.dir, "/tmp_folder"), recursive = T)
       message('Row is not in origin file')
-      unlink(paste0(output.dir, "/tmp_folder"), recursive = T)
-      break
     }
     
   } else {
-    message('Parameter type for journeyLoop unknown')
-    break
+    stop('Parameter type for journeyLoop unknown')
   }
   
   num.run <- 0
   num.total <- (originPointsEnd * destinationPointsEnd) * multiplier
-  
-  start_time <-
-    format(as.POSIXct(startDateAndTime), "%I:%M %p") 
-  
+  start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") 
   start_date <- as.Date(startDateAndTime)
-  
-  message("Creating ",
-          num.total,
-          " point to point connections, please wait...")
-  
   time.taken <- vector()
-  
   calls.list <- c(0)
+  message("Creating ", num.total, " point to point connections, please wait...")
   
   for (j in 1:multiplier) {
+    
     for (k in 1:destinationPointsEnd) {
+      
       for (i in 1:originPointsEnd) {
         
         num.run <- num.run + 1
@@ -138,11 +121,11 @@ pointToPointLoop <- function(output.dir,
         }
         
         if (j == 1) {
-          from = from_origin
-          to = to_destination
+          from <- from_origin
+          to <- to_destination
         } else {
-          to = from_origin
-          from = to_destination
+          to <- from_origin
+          from <- to_destination
         }
         
         call <- paste0(from$name, to$name)
@@ -183,17 +166,15 @@ pointToPointLoop <- function(output.dir,
         )
         
         if (num.run == 1) {
+          
           if (!is.null(point_to_point$errorId)){
+            
             if (point_to_point$errorId == "OK") {
               
               point_to_point_table_overview <- point_to_point$itineraries
-              
               point_to_point_table_overview["origin"] <- from$name
-              point_to_point_table_overview["destination"] <-
-                to$name
-              point_to_point_table_overview["distance_km"] <-
-                round(sum(point_to_point$output_table$distance) / 1000,
-                      digits = 2)
+              point_to_point_table_overview["destination"] <- to$name
+              point_to_point_table_overview["distance_km"] <- round(sum(point_to_point$output_table$distance) / 1000, digits = 2)
             } else {
               point_to_point_table_overview <- data.frame(
                 "start" = NA,
@@ -205,9 +186,9 @@ pointToPointLoop <- function(output.dir,
                 "transfers" = NA,
                 "origin" = from$name,
                 "destination" = to$name,
-                "distance_km" = NA
-              )
+                "distance_km" = NA)
             }
+            
           } else {
             point_to_point_table_overview <- data.frame(
               "start" = NA,
@@ -219,22 +200,18 @@ pointToPointLoop <- function(output.dir,
               "transfers" = NA,
               "origin" = from$name,
               "destination" = to$name,
-              "distance_km" = NA
-            )
+              "distance_km" = NA)
           }
           
         } else {
+          
           if (!is.null(point_to_point$errorId)){
+            
             if (point_to_point$errorId == "OK") {
-              
               point_to_point_table_overview_tmp <- point_to_point$itineraries
-              
               point_to_point_table_overview_tmp["origin"] <- from$name
-              point_to_point_table_overview_tmp["destination"] <-
-                to$name
-              point_to_point_table_overview_tmp["distance_km"] <-
-                round(sum(point_to_point$output_table$distance) / 1000,
-                      digits = 2)
+              point_to_point_table_overview_tmp["destination"] <- to$name
+              point_to_point_table_overview_tmp["distance_km"] <- round(sum(point_to_point$output_table$distance) / 1000, digits = 2)
               
             } else {
               point_to_point_table_overview_tmp <- data.frame(
@@ -247,13 +224,11 @@ pointToPointLoop <- function(output.dir,
                 "transfers" = NA,
                 "origin" = from$name,
                 "destination" = to$name,
-                "distance_km" = NA
-              )
-              
+                "distance_km" = NA)
             }
             
-            point_to_point_table_overview = rbind(point_to_point_table_overview,
-                                                  point_to_point_table_overview_tmp)
+            point_to_point_table_overview = rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
+            
           } else {
             point_to_point_table_overview_tmp <- data.frame(
               "start" = NA,
@@ -265,17 +240,13 @@ pointToPointLoop <- function(output.dir,
               "transfers" = NA,
               "origin" = from$name,
               "destination" = to$name,
-              "distance_km" = NA
-            )
-            point_to_point_table_overview <-
-              rbind(point_to_point_table_overview,
-                    point_to_point_table_overview_tmp)
+              "distance_km" = NA)
             
+            point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
           }
         }
         
         end.time <- Sys.time()
-        
         time.taken[num.run] <- round(end.time - start.time, digits = 2)
         
         if (num.run < num.total) {
@@ -299,22 +270,16 @@ pointToPointLoop <- function(output.dir,
             num.total,
             " connections complete. Time taken ",
             sum(time.taken),
-            " seconds."
+            " seconds.\n"
           )
         }
       }
     }
   }
-  message("Analysis complete, now saving outputs to ",
-          output.dir,
-          ", please wait.\n")
   
-  stamp <-
-    format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
-  
-  point_to_point_table_overview <-
-    point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
-  
+  message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
+  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+  point_to_point_table_overview <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
   colnames(point_to_point_table_overview) <-
     c(
       "origin",
@@ -326,13 +291,12 @@ pointToPointLoop <- function(output.dir,
       "walk_time_mins",
       "transit_time_mins",
       "waiting_time_mins",
-      "transfers"
-    )
+      "transfers")
   
   write.csv(
     point_to_point_table_overview,
     file = paste0(output.dir, "/pointToPointLoop-", stamp, ".csv"),
-    row.names = F
-  )
+    row.names = F)
+  
   message("Thanks for using propeR.")
 }

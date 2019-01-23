@@ -6,7 +6,7 @@
 \usage{
 pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
   destinationPoints, destinationPointsRow = 1, journeyLoop = 0,
-  journeyReturn = T, startDateAndTime = "2018-08-13 09:00:00",
+  journeyReturn = F, startDateAndTime = "2018-08-13 09:00:00",
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,

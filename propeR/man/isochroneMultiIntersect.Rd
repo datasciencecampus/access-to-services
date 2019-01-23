@@ -9,9 +9,9 @@ isochroneMultiIntersect(output.dir, otpcon, originPoints,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = 60, mapOutput = FALSE,
-  geojsonOutput = TRUE, mapMarkerColours = "Greys",
-  mapPolygonColours = "#6BAED6", mapZoom = 12,
+  arriveBy = F, isochroneCutOffs = 60, mapOutput = F,
+  geojsonOutput = T, mapMarkerColours = "Greys",
+  mapPolygonColours = "#6BAED6", mapZoom = "bb",
   mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
   mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
   mapLegendOpacity = 0.5)
@@ -19,11 +19,11 @@ isochroneMultiIntersect(output.dir, otpcon, originPoints,
 \arguments{
 \item{output.dir}{The directory for the output files}
 
-\item{otpcon}{The OTP router URL}
+\item{otpcon}{The OTP router URL, see ?otpcon for details}
 
-\item{originPoints}{The variable containing origin(s), see ?importLocationData}
+\item{originPoints}{The variable containing origin(s), see ?importLocationData for details}
 
-\item{destinationPoints}{The variable containing destination(s) see ?importLocationData}
+\item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
 \item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 
@@ -49,13 +49,13 @@ isochroneMultiIntersect(output.dir, otpcon, originPoints,
 
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
-\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
+\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to TRUE}
 
 \item{mapMarkerColours}{the color palette of the markers, defaults to 'Greys'}
 
 \item{mapPolygonColours}{the color palette of the poygon, defaults to 'Blue'}
 
-\item{mapZoom}{The zoom level of the map, defaults to 12}
+\item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 
 \item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
 
@@ -68,11 +68,11 @@ isochroneMultiIntersect(output.dir, otpcon, originPoints,
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 }
 \value{
-Saves map as a Geojson of the intersection area to output directory (optional: a map in PNG and HTML formats)
+Saves intersecting polygon as a .GeoJSON to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved
 }
 \description{
-Calculates an polygon for the intersection between multiple origins and finds the intersection.
-Saves polygon as a GeoJSON file.
+Calculates a series of polygons between multiple origins and finds the intersection.
+Saves polygon as a .GeoJSON file. A map of the intersecting polygon can also be saved as a .png image and .html file.
 }
 \examples{
   isochroneMultiIntersect(

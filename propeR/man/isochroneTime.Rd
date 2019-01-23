@@ -12,7 +12,9 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, isochroneCutOffs = c(30, 60, 90), mapOutput = F,
+  arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
+  isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
+  isochroneCutOffMax, isochroneCutOffStep), mapOutput = F,
   mapPolygonColours = "Blues", mapZoom = "bb",
   mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
   mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
@@ -53,7 +55,11 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
-\item{isochroneCutOffs}{Provide a list of cutoffs in minutes, defaults to c(30, 60, 90)}
+\item{isochroneCutOffMax}{Provide the maximum cutoff time for the isochrone, defaults 90}
+
+\item{isochroneCutOffMin}{Provide the minimum cutoff time for the isochrone, defaults 10}
+
+\item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, defaults 10}
 
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
