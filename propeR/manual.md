@@ -20,7 +20,7 @@
 * [Running propeR packages](#running-proper-packages)
 	* [Data Prerequisites](#data-prerequisites)
 	* [propeR Functions](#proper-functions)
-  		* [otpConnect](#otpconnet)
+  		* [otpConnect](#otpconnect)
   		* [importLocationData and importGeojsonData](#importlocationdata-and-importgeojsondata)
   		* [pointToPoint](#pointtopoint)
   		* [pointToPointLoop](#pointtopointloop)
