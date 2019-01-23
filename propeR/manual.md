@@ -562,9 +562,9 @@ As the table shows, specific duration, waiting time and transfer cutoffs can be 
 
 <p align="center"><img align="center" src="meta/images/choropleth_duration_cat.png" width="600px"></p>
 
-## 4. FAQ
+## FAQ
 
-### 4.1. Common Errors
+### Common Errors
 
 Q: Why am I receiving the following error when running propeR?
 
