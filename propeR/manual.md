@@ -445,7 +445,7 @@ isochroneMulti(output.dir = PATH_TO_DIR,
               isochroneCutOffMax = 90,
               isochroneCutOffMin = 30,
               isochroneCutOffStep = 30,
-              mapOutput = F
+              mapOutput = F,
               geojsonOutput = F)
 ```
 
