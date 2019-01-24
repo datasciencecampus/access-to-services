@@ -139,6 +139,7 @@ isochroneMulti <- function(output.dir,
       if ("try-error" %in% class(t)) {
         originPoints_removed <- c(originPoints_removed, originPoints$name[num.run])
         originPoints_removed_list <- c(originPoints_removed_list, num.run)
+        end.time <- Sys.time()
         time.taken[num.run] <- round(end.time - start.time, digits = 2)
         message("Removed ", originPoints$name[num.run], " from analysis as no polygon could be generated from it.")
         next
@@ -185,6 +186,7 @@ isochroneMulti <- function(output.dir,
       if ("try-error" %in% class(t)) {
         originPoints_removed <- c(originPoints_removed, originPoints$name[num.run])
         originPoints_removed_list <- c(originPoints_removed_list, num.run)
+        end.time <- Sys.time()
         time.taken[num.run] <- round(end.time - start.time, digits = 2)
         message("Removed ", originPoints$name[num.run], " from analysis as no polygon could be generated from it.")
         next
