@@ -78,6 +78,8 @@ isochroneMulti <- function(output.dir,
   
   message("Now running the propeR isochroneMulti tool.\n")
   
+  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") 
+  
   if (mapOutput == T) {
     library(leaflet)
     palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
@@ -275,6 +277,44 @@ isochroneMulti <- function(output.dir,
         " seconds.\n"
       )
     }
+    
+    if ((num.run/100) %% 1 == 0) { # fail safe for large files
+      
+      message("Large dataset, failsafe, saving outputs to ", output.dir, ", please wait.")
+      
+      is.na(time_df) <- sapply(time_df, is.infinite)
+      
+      write.csv(
+        time_df,
+        file = paste0(output.dir, "/isochroneMulti-isochrone_multi_inc-", stamp, ".csv"),
+        row.names = T) 
+      
+      if (length(originPoints_removed > 0)) {
+        write.csv(
+          originPoints_removed,
+          file = paste0(output.dir, "/isochroneMulti-originPoints-removed-", stamp, ".csv"),
+          row.names = T) 
+      }
+      
+      if (geojsonOutput == T) {
+        rgdal::writeOGR(
+          isochrone_polygons,
+          dsn = paste0(output.dir,
+                       "/isochroneMulti",
+                       stamp,
+                       ".geoJSON"),
+          layer = "isochrone_polygons",
+          driver = "GeoJSON")
+      }
+      
+      if (mapOutput == T) {
+        invisible(print(m)) 
+        mapview::mapshot(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".png"))
+        htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".html")) 
+        unlink(paste0(output.dir, "/isochroneMulti-", stamp, "_files"), recursive = T) 
+        unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
+      }
+    }
   }
   
   options(warn = 0)
@@ -359,12 +399,11 @@ isochroneMulti <- function(output.dir,
   ######################
   #### SAVE RESULTS ####
   ######################
-  
-  is.na(time_df) <- sapply(time_df, is.infinite)
-  
+
   message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") 
-  
+
+  is.na(time_df) <- sapply(time_df, is.infinite)
+    
   write.csv(
     time_df,
     file = paste0(output.dir, "/isochroneMulti-isochrone_multi_inc-", stamp, ".csv"),

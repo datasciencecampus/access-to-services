@@ -58,6 +58,8 @@ pointToPointLoop <- function(output.dir,
   
   message("Now running the propeR pointToPointLoop tool.\n")
   
+  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+  
   #########################
   #### SETUP VARIABLES ####
   #########################
@@ -273,14 +275,40 @@ pointToPointLoop <- function(output.dir,
             " seconds.\n"
           )
         }
+        
+        if ((num.run/100) %% 1 == 0) { # fail safe for large files
+          
+          message("Large dataset, failsafe, saving outputs to ", output.dir, ", please wait.")
+          
+          point_to_point_table_overview_out <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
+          colnames(point_to_point_table_overview_out) <-
+            c(
+              "origin",
+              "destination",
+              "start_time",
+              "end_time",
+              "distance_km",
+              "duration_mins",
+              "walk_time_mins",
+              "transit_time_mins",
+              "waiting_time_mins",
+              "transfers")
+          
+          write.csv(
+            point_to_point_table_overview_out,
+            file = paste0(output.dir, "/pointToPointLoop-", stamp, ".csv"),
+            row.names = F)
+          
+          }
+        
       }
     }
   }
   
   message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
-  point_to_point_table_overview <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
-  colnames(point_to_point_table_overview) <-
+  
+  point_to_point_table_overview_out <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
+  colnames(point_to_point_table_overview_out) <-
     c(
       "origin",
       "destination",
@@ -294,7 +322,7 @@ pointToPointLoop <- function(output.dir,
       "transfers")
   
   write.csv(
-    point_to_point_table_overview,
+    point_to_point_table_overview_out,
     file = paste0(output.dir, "/pointToPointLoop-", stamp, ".csv"),
     row.names = F)
   
