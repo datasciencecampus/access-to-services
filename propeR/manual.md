@@ -113,7 +113,7 @@ Inside the zipped folder will be the following files: ttfis\*\*\*.alf, ttfis\*\*
 
 We used the sql tool [dtd2mysql](https://github.com/open-track/dtd2mysql) to convert the files into a SQL database, then into the GTFS format. The [dtd2mysql github](https://github.com/open-track/dtd2mysql) page gives a guide on how to convert the data. This method used here was:
 
-1. Create a sql database with an appropriate name (e.g., 'train_database'). Note, this is easiest done under the root username with no password
+1. Create a sql database with an appropriate name (e.g., 'train_database'). Note, this is easiest done under the root username with no password.
 2. Run the following in a new terminal/command line window within an appropriate directory:
 ```
 DATABASE_USERNAME=root DATABASE_NAME=train_database dtd2mysql --timetable /path/to/ttisxxx.ZIP
@@ -181,25 +181,25 @@ This will give you access to the the following functions:
 
 | Function | Description |
 |-----------------------|-----------------------------------------|
-| choropleth | Calculates the journey time from multiple origins to a single destination, and produces a [choropleth map](https://en.wikipedia.org/wiki/Choropleth_map). |
-| importLocationData | Used to generate a dataframe from a CSV file containing origin or destination information. |
-| importGeojsonData | Used to create a polygon file from a GeoJSON file containing origin information. |
-| postcodeToDecimalDegrees | Used in importLocationData() to convert postcodes to decimal degrees latitude and longitude via API calls (*needs internet access*). |
-| cleanGTFS | Used to clean GTFS ZIP folder before OTP graph building. |
-| isochrone | Generates a polygon [(isochrone)](https://en.wikipedia.org/wiki/Isochrone_map) around a single origin to calculate journey times to multiple destinations, can output a PNG map, HTML map, and .GeoJSON polygon file. |
-| isochroneTime | Same as isochrone(), but between a start and end time/date. Output can be an animated GIF image. |
-| isochroneMulti  | Same as isochrone(), but for multiple origins. A polygon is created for each origin. |
-| isochroneMultiIntersect | Similar to isochroneMulti(), but generates a polygon for the intersection between multiple polygons from multiple origins. Each origin can have its own journey parameters. |
-| isochroneMultiIntersectSensitivity | Same as isochroneMultiIntersect(), but applies a 30-minute window either side of start time. |
-| isochroneMultiIntersectTime() | Same as isochroneMultiIntersect(), but between a start and end time/date. |
-| otpChoropleth | A core function used to produce an API call to OTP to be used with choropleth(). |
-| otpConnect | A core function used to connect to OTP either locally or remotely (i.e. the URL of the generated and hosted OTP graph). |
-| otpIsochrone | A core function used to produce an API call to OTP to be used with the propeR isochrone functions. |
-| otpTripDistance | A core function used to produce an API call to OTP to find trip distance. |
-| otpTripTime | A core function used to produce an API call to OTP to find trip time. |
-| pointToPoint | Calculates the journey details between a single origin and destination, can output a PNG map and HTML map. |
-| pointToPointLoop | Calculates the journey details between multiple origins and destinations. |
-| pointToPointTime | Same as pointToPoint(), but between a start and end time/date. Output can be an animated GIF image. |
+| `choropleth()` | Calculates the journey time from multiple origins to a single destination, and produces a [choropleth map](https://en.wikipedia.org/wiki/Choropleth_map). |
+| `importLocationData()` | Used to generate a dataframe from a CSV file containing origin or destination information. |
+| `importGeojsonData()` | Used to create a polygon file from a GeoJSON file containing origin information. |
+| `postcodeToDecimalDegrees()` | Used in `importLocationData()` to convert postcodes to decimal degrees latitude and longitude via API calls (*needs internet access*). |
+| `cleanGTFS()` | Used to clean GTFS ZIP folder before OTP graph building. |
+| `isochrone()` | Generates a polygon [(isochrone)](https://en.wikipedia.org/wiki/Isochrone_map) around a single origin to calculate journey times to multiple destinations, can output a PNG map, HTML map, and .GeoJSON polygon file. |
+| `isochroneTime()` | Same as `isochrone()`, but between a start and end time/date. Output can be an animated GIF image. |
+| `isochroneMulti()`  | Same as `isochrone()`, but for multiple origins. A polygon is created for each origin. |
+| `isochroneMultiIntersect()` | Similar to `isochroneMulti()`, but generates a polygon for the intersection between multiple polygons from multiple origins. Each origin can have its own journey parameters. |
+| `isochroneMultiIntersectSensitivity()` | Same as `isochroneMultiIntersect()`, but applies a 30-minute window either side of start time. |
+| `isochroneMultiIntersectTime()` | Same as `isochroneMultiIntersect()`, but between a start and end time/date. |
+| `otpChoropleth()` | A core function used to produce an API call to OTP to be used with `choropleth()`. |
+| `otpConnect` | A core function used to connect to OTP either locally or remotely (i.e. the URL of the generated and hosted OTP graph). |
+| `otpIsochrone` | A core function used to produce an API call to OTP to be used with the propeR isochrone functions. |
+| `otpTripDistance` | A core function used to produce an API call to OTP to find trip distance. |
+| `otpTripTime` | A core function used to produce an API call to OTP to find trip time. |
+| `pointToPoint` | Calculates the journey details between a single origin and destination, can output a PNG map and HTML map. |
+| `pointToPointLoop` | Calculates the journey details between multiple origins and destinations. |
+| `pointToPointTime` | Same as `pointToPoint()`, but between a start and end time/date. Output can be an animated GIF image. |
 
 ### Data Prerequisites
 
@@ -252,7 +252,7 @@ For the sample data importLocationData on the sample origin CSV file ('origin.cs
 |----|----------|----------|-------|------|------|---------|
 | 5 | 33712 | W01001730 | Cardiff 008A | 51.52131 | -3.16326 | 51.52131,-3.16326  |
 | 1 | 34128 | W01001888 | Cardiff 010A | 51.51275 | -3.23468 | 51.51275,-3.23468 | 
-| 4 | 33303 | W01001755 | Cardiff | 025A | 51.50079 | -3.19173 | 51.50079,-3.19173 | 
+| 4 | 33303 | W01001755 | Cardiff 025A | 51.50079 | -3.19173 | 51.50079,-3.19173 | 
 | 2 | 33907 | W01001724 | Cardiff032C | 51.49211 | -3.17585 | 51.49211,-3.17585 | 
 | 3 | 34039 | W01001715 | Cardiff 035B | 51.48688 | -3.21213 | 51.48688,-3.21213 | 
 
@@ -264,7 +264,7 @@ And the sample destination CSV file ('destination.csv') will load the following 
 | 2 | Cardiff City Stadium | CF11 8AZ | 51.473246 | -3.211002 | 51.473246,-3.211002 | 
 
 
-*Note:* _the column lat\_lon is generated automatically by `importLocationData()` and does not need to be manually entered._
+**Note:** _the column lat\_lon is generated automatically by `importLocationData()` and does not need to be manually entered._
 
 #### pointToPoint
 
@@ -294,6 +294,8 @@ To output a PNG and interactive HTML leaflet map will as shown below, change the
 <p align="center"><img align="center" src="meta/images/pointToPoint.png" width="600px"></p>
 
 Map colours, zoom and other parameters can be specified by the user. See ?pointToPoint for details.
+
+**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
 
 #### pointToPointLoop
 
@@ -327,6 +329,8 @@ For the sample origin and destination locations, this following is produced:
 | Cardiff 032C | Principality Stadium | 12:00:58   | 12:27:17 | 3           | 26.32         | 13.28          | 13                | 0.03              | 0         |
 | Cardiff 035B | Principality Stadium | 12:13:01   | 12:55:17 | 6.06        | 42.27         | 10.27          | 13                | 19                | 1         |
 
+**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
+
 #### pointToPointTime
 
 This function works in the similar way to the [`pointToPoint()`](#pointtopoint) function, but instead of a single `startDateAndTime`, an `endDateAndTime` and `timeIncrease` (the incremental increase in time between `startDateAndTime` and `endDateAndTime` journeys should be analysed for) can be stated:
@@ -359,7 +363,9 @@ Again, changing `mapOutput` to `T` will save a GIF map to the output directory:
 
 <p align="center"><img align="center" src="meta/images/pointToPointTime.gif" width="600px"></p>
 
-*Note:* _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polyline created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
+**Note:** _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polyline created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
+
+**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
 
 #### isochrone
 
@@ -426,7 +432,7 @@ And the following GIF image if `mapOutput` is `T`:
 
 <p align="center"><img align="center" src="meta/images/isochroneTime.gif" width="600px"></p>
 
-*Note:* _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polygon created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
+**Note:** _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polygon created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
 
 #### 3.2.7. isochroneMulti
 
@@ -563,6 +569,10 @@ As the table shows, specific duration, waiting time and transfer cutoffs can be 
 <p align="center"><img align="center" src="meta/images/choropleth_duration_cat.png" width="600px"></p>
 
 ## FAQ
+
+Q: Do I need an OpenStreetMap (.osm) file to run propeR?
+
+A: Yes, whilst you can build the graph without an .osm file. You will need it to analyse the graph.
 
 ### Common Errors
 
