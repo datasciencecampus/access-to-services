@@ -266,7 +266,7 @@ isochrone <- function(output.dir,
     rgdal::writeOGR(
       isochrone_polygons,
       dsn = paste0(output.dir,
-                   "/isochrone",
+                   "/isochrone-",
                    stamp,
                    ".geoJSON"),
       layer = "isochrone_polygons",
@@ -275,9 +275,9 @@ isochrone <- function(output.dir,
   
   if (mapOutput == T) {
     invisible(print(m))
-    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) 
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) 
-    unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
+    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-map-", stamp, ".png")) 
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-map-", stamp, ".html")) 
+    unlink(paste0(output.dir, "/isochrone-map-", stamp, "_files"),
            recursive = T) 
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
   }

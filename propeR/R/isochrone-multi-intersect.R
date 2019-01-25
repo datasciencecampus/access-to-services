@@ -333,9 +333,9 @@ isochroneMultiIntersect <- function(output.dir,
   
   if (mapOutput == T) {
     invisible(print(m)) # plots map to Viewer
-    mapview::mapshot(m, file = paste0(output.dir, "/isochroneMultiIntersect-", stamp, ".png"))
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMultiIntersect-", stamp, ".html")) # Saves as an interactive HTML webpage
-    unlink(paste0(output.dir, "/isochroneMultiIntersect-", stamp, "_files"), recursive = T) # Deletes tmp_folder
+    mapview::mapshot(m, file = paste0(output.dir, "/isochroneMultiIntersect-map-", stamp, ".png"))
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMultiIntersect-map-", stamp, ".html")) # Saves as an interactive HTML webpage
+    unlink(paste0(output.dir, "/isochroneMultiIntersect-map-", stamp, "_files"), recursive = T) # Deletes tmp_folder
   }
   
   message("Thanks for using propeR.")

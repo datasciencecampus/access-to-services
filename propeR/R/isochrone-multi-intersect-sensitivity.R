@@ -283,10 +283,10 @@ isochroneMultiIntersectSensitivity <- function(output.dir,
     purrr::map(magick::image_read) %>% # reads each path file
     magick::image_join() %>% # joins image
     magick::image_animate(fps = 5) %>% # animates, can opt for number of loops
-    magick::image_write(paste0(output.dir, "/isochroneMultiIntersectSensitivity-", stamp, ".gif")) # write to current dir
+    magick::image_write(paste0(output.dir, "/isochroneMultiIntersectSensitivity-map-", stamp, ".gif")) # write to current dir
   
   m <-
-    magick::image_read(paste0(output.dir, "/isochroneMultiIntersectSensitivity-", stamp, ".gif")) %>%
+    magick::image_read(paste0(output.dir, "/isochroneMultiIntersectSensitivity-map-", stamp, ".gif")) %>%
     magick::image_scale("600")
   
   invisible(print(m)) # plots map to Viewer

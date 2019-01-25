@@ -26,6 +26,7 @@
 ##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, defaults 10
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
+##' @param histOutput Specifies whether you want to output a histogram, defaults to FALSE
 ##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
 ##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
@@ -65,9 +66,11 @@ isochroneMulti <- function(output.dir,
                            isochroneCutOffMin = 10,
                            isochroneCutOffStep = 10,
                            isochroneCutOffs = seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep),
-                           # leaflet map args
+                           # output args
                            mapOutput = F,
                            geojsonOutput = F,
+                           histOutput = F,
+                           # leaflet map args
                            mapPolygonColours = "Blues",
                            mapZoom = "bb",
                            mapPolygonLineWeight = 5,
@@ -406,6 +409,14 @@ isochroneMulti <- function(output.dir,
 
   is.na(time_df) <- sapply(time_df, is.infinite)
     
+  if (histOutput == T) {
+    
+    travel_times <- c()
+    for (i in 1:nrow(time_df)){
+      travel_times <- c(travel_times,as.numeric(time_df[i,1:ncol(time_df)]))
+    }
+  }
+  
   write.csv(
     time_df,
     file = paste0(output.dir, "/isochroneMulti-isochrone_multi_inc-", stamp, ".csv"),
@@ -431,11 +442,21 @@ isochroneMulti <- function(output.dir,
   
   if (mapOutput == T) {
     invisible(print(m)) 
-    mapview::mapshot(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".png"))
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".html")) 
-    unlink(paste0(output.dir, "/isochroneMulti-", stamp, "_files"), recursive = T) 
+    mapview::mapshot(m, file = paste0(output.dir, "/isochroneMulti-map-", stamp, ".png"))
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMulti-map-", stamp, ".html")) 
+    unlink(paste0(output.dir, "/isochroneMulti-map-", stamp, "_files"), recursive = T) 
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
   }
   
+  if (histOutput == T) {
+    png(paste0(output.dir, "/isochroneMulti-histogram-", stamp, ".png"))
+    hist(travel_times,
+         xlab = "Travel time (minutes)",
+         main = "",
+         col = "black",
+         border="white")
+    dev.off()
+  }
   message("Thanks for using propeR.")
+
 }
