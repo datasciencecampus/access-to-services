@@ -10,7 +10,7 @@ pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, preWaitTime = 15)
+  arriveBy = F, preWaitTime = 15, distThreshold = F, distMax = 20)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -50,6 +50,10 @@ pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{arriveBy}{Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE}
 
 \item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
+
+\item{distThreshold}{Specify whether points have to be within a certain distance of each other to calculate, useful for big datasets (default is FALSE)}
+
+\item{distMax}{Specify the maximum distance if distThreshold is TRUE (default is 20 km)}
 }
 \value{
 Saves journey details as comma separated value file to output directory
