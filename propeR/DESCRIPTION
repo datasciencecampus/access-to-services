@@ -31,7 +31,8 @@ Imports:
   rgdal,
   rgeos,
   htmlwidgets,
-  gepaf
+  gepaf,
+  geosphere
 Suggests:
   testthat,
   knitr, 

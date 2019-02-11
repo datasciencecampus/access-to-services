@@ -9,8 +9,8 @@
   	* [Background and Software Prerequisities](#background-and-software-prerequisites)
   	* [Creating a GTFS feed](#creating-a-gtfs-feed)
   	* [TransXChange to GTFS](#transxchange-to-gtfs)
-  		* [TransXChange2GTFS (C#)](transxchange2gtfs-(c#))
-  		* [transxchange2gtfs (TypeScript)](transxchange2gtfs-(typescript))
+  		* [TransXChange2GTFS by danbillingsley](transxchange2gtfs-by-danbillingsley)
+  		* [transxchange2gtfs by planar network](transxchange2gtfs-by-planar-network)
   	* [CIF to GTFS](#cif-to-gtfs)
   	* [Cleaning the GTFS Data](#cleaning-the-gtfs-data)
   	* [Sample GTFS Data](#sample-gtfs-data)  
@@ -20,7 +20,7 @@
 * [Running propeR packages](#running-proper-packages)
 	* [Data Prerequisites](#data-prerequisites)
 	* [propeR Functions](#proper-functions)
-  		* [otpConnect](#otpconnet)
+  		* [otpConnect](#otpconnect)
   		* [importLocationData and importGeojsonData](#importlocationdata-and-importgeojsondata)
   		* [pointToPoint](#pointtopoint)
   		* [pointToPointLoop](#pointtopointloop)
@@ -88,7 +88,7 @@ UK bus data in [TransXChange](https://www.gov.uk/government/collections/transxch
       <WorkingDays>
 ```
 
-##### TransXChange2GTFS (C#)
+##### TransXChange2GTFS by danbillingsley
 
 Initially, we used [TransXChange2GTFS](https://github.com/danbillingsley/TransXChange2GTFS) to convert the TransXChange files into GTFS format. TransXChange is a C# tool. Our method to convert the data was:
 
@@ -97,7 +97,7 @@ Initially, we used [TransXChange2GTFS](https://github.com/danbillingsley/TransXC
 3. The GTFS txt files will be created in the 'dir/output' folder.
 4. Compress the txt files to a ZIP folder with an appropriate name (e.g., 'bus_GTFS.zip').
 
-##### transxchange2gtfs (TypeScript)
+##### transxchange2gtfs by planar network
 
 The team, [planar network](https://planar.network/), who we initially used to convert the UK train data to GTFS, have created a TypeScript TransXChange to GTFS converter, [transxchange2gtfs](https://github.com/planarnetwork/transxchange2gtfs). Their GitHub page provides good detailed instructions to installing and converting the files. The method we used was:
 
@@ -113,7 +113,7 @@ Inside the zipped folder will be the following files: ttfis\*\*\*.alf, ttfis\*\*
 
 We used the sql tool [dtd2mysql](https://github.com/open-track/dtd2mysql) to convert the files into a SQL database, then into the GTFS format. The [dtd2mysql github](https://github.com/open-track/dtd2mysql) page gives a guide on how to convert the data. This method used here was:
 
-1. Create a sql database with an appropriate name (e.g., 'train_database'). Note, this is easiest done under the root username with no password
+1. Create a sql database with an appropriate name (e.g., 'train_database'). Note, this is easiest done under the root username with no password.
 2. Run the following in a new terminal/command line window within an appropriate directory:
 ```
 DATABASE_USERNAME=root DATABASE_NAME=train_database dtd2mysql --timetable /path/to/ttisxxx.ZIP
@@ -148,25 +148,25 @@ The Data Science Campus as created some cleaned GTFS data for buses around [Card
 
 [OpenTripPlanner (OTP)](http://www.opentripplanner.org/) is an open source multi-modal trip planner, which runs on Linux, Mac, Windows, or potentially any platform with a Java virtual machine. More details, including basic tutorials can be found [here](http://docs.opentripplanner.org/en/latest/). Guidance on how to setup the OpenTripPlanner locally can be found [here](https://github.com/opentripplanner/OpenTripPlanner/wiki). Here is the method that worked for us:
 
-1) Check you have the latest java SE runtime installed on your computer, preferrably the 64-bit version on a 64-bit computer. The reason for this is that the graph building process in step 7 uses a lot of memory. The 32-bit version of java might not allow a sufficient heap size to be allocated to graph and server building. For the GTFS sample data [here](add link), a 32-bit machine may suffice. 
-2) Create an 'otp' folder in a preferred root directory.
-3) Download the latest single stand-alone runnable .jar file of OpenTripPlanner [here](https://repo1.maven.org/maven2/org/opentripplanner/otp/). Choose the '-shaded.jar' file. Place this in the 'otp' folder.
-4) Create a 'graphs' folder in the 'otp' folder.
-5) Create a 'default' folder in the 'graphs' folder.
-6) Put the GTFS ZIP folder(s) in the 'default' folder along with the latest OpenStreetMap .osm data for your area, found [here](https://download.geofabrik.de/europe/great-britain/wales.html). If you're using the sample GTFS data, an .osm file for Cardiff can be found [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/osm).
-7) Build the graph by using the following command line/terminal command whilst in the 'otp' folder: 
+1. Check you have the latest java SE runtime installed on your computer, preferrably the 64-bit version on a 64-bit computer. The reason for this is that the graph building process in step 7 uses a lot of memory. The 32-bit version of java might not allow a sufficient heap size to be allocated to graph and server building. For the GTFS sample data [here](add link), a 32-bit machine may suffice. 
+2. Create an 'otp' folder in a preferred root directory.
+3. Download the latest single stand-alone runnable .jar file of OpenTripPlanner [here](https://repo1.maven.org/maven2/org/opentripplanner/otp/). Choose the '-shaded.jar' file. Place this in the 'otp' folder.
+4. Create a 'graphs' folder in the 'otp' folder.
+5. Create a 'default' folder in the 'graphs' folder.
+6. Put the GTFS ZIP folder(s) in the 'default' folder along with the latest OpenStreetMap .osm data for your area, found [here](https://download.geofabrik.de/europe/great-britain/wales.html). If you're using the sample GTFS data, an .osm file for Cardiff can be found [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/osm).
+7. Build the graph by using the following command line/terminal command whilst in the 'otp' folder: 
 
-```
-java -Xmx4G -jar otp-1.3.0-shaded.jar --build graphs/default
-```
+    ```
+    java -Xmx4G -jar otp-1.3.0-shaded.jar --build graphs/default
+    ```
   changing the shaded.jar file name and end folder name to be the appropriate names for your build. '-Xmx4G' specifies a maximum heap size of 4G memory, graph building may not work with less memory than this.
-8) Once the graph has been build you should have a 'Graphs.obj' file in the 'graphs/default' folder. Now initiate the server using the following command from the 'otp' folder: 
+8. Once the graph has been build you should have a 'Graphs.obj' file in the 'graphs/default' folder. Now initiate the server using the following command from the 'otp' folder: 
 
-```
-java -Xmx4G -jar otp-1.3.0-shaded.jar --graphs graphs --router default --server
-```
+    ```
+    java -Xmx4G -jar otp-1.3.0-shaded.jar --graphs graphs --router default --server
+    ```
 Again, checking the shaded.jar file and folder names are correct.
-9) If successful, the front-end of OTP should be accessible from your browser using [http://localhost:8080/](http://localhost:8080/).
+9. If successful, the front-end of OTP should be accessible from your browser using [http://localhost:8080/](http://localhost:8080/).
 
 ## Running propeR packages
 
@@ -181,25 +181,25 @@ This will give you access to the the following functions:
 
 | Function | Description |
 |-----------------------|-----------------------------------------|
-| choropleth | Calculates the journey time from multiple origins to a single destination, and produces a [choropleth map](https://en.wikipedia.org/wiki/Choropleth_map). |
-| importLocationData | Used to generate a dataframe from a CSV file containing origin or destination information. |
-| importGeojsonData | Used to create a polygon file from a GeoJSON file containing origin information. |
-| postcodeToDecimalDegrees | Used in importLocationData() to convert postcodes to decimal degrees latitude and longitude via API calls (*needs internet access*). |
-| cleanGTFS | Used to clean GTFS ZIP folder before OTP graph building. |
-| isochrone | Generates a polygon [(isochrone)](https://en.wikipedia.org/wiki/Isochrone_map) around a single origin to calculate journey times to multiple destinations, can output a PNG map, HTML map, and .GeoJSON polygon file. |
-| isochroneTime | Same as isochrone(), but between a start and end time/date. Output can be an animated GIF image. |
-| isochroneMulti  | Same as isochrone(), but for multiple origins. A polygon is created for each origin. |
-| isochroneMultiIntersect | Similar to isochroneMulti(), but generates a polygon for the intersection between multiple polygons from multiple origins. Each origin can have its own journey parameters. |
-| isochroneMultiIntersectSensitivity | Same as isochroneMultiIntersect(), but applies a 30-minute window either side of start time. |
-| isochroneMultiIntersectTime() | Same as isochroneMultiIntersect(), but between a start and end time/date. |
-| otpChoropleth | A core function used to produce an API call to OTP to be used with choropleth(). |
-| otpConnect | A core function used to connect to OTP either locally or remotely (i.e. the URL of the generated and hosted OTP graph). |
-| otpIsochrone | A core function used to produce an API call to OTP to be used with the propeR isochrone functions. |
-| otpTripDistance | A core function used to produce an API call to OTP to find trip distance. |
-| otpTripTime | A core function used to produce an API call to OTP to find trip time. |
-| pointToPoint | Calculates the journey details between a single origin and destination, can output a PNG map and HTML map. |
-| pointToPointLoop | Calculates the journey details between multiple origins and destinations. |
-| pointToPointTime | Same as pointToPoint(), but between a start and end time/date. Output can be an animated GIF image. |
+| `choropleth()` | Calculates the journey time from multiple origins to a single destination, and produces a [choropleth map](https://en.wikipedia.org/wiki/Choropleth_map). |
+| `importLocationData()` | Used to generate a dataframe from a CSV file containing origin or destination information. |
+| `importGeojsonData()` | Used to create a polygon file from a GeoJSON file containing origin information. |
+| `postcodeToDecimalDegrees()` | Used in `importLocationData()` to convert postcodes to decimal degrees latitude and longitude via API calls (*needs internet access*). |
+| `cleanGTFS()` | Used to clean GTFS ZIP folder before OTP graph building. |
+| `isochrone()` | Generates a polygon [(isochrone)](https://en.wikipedia.org/wiki/Isochrone_map) around a single origin to calculate journey times to multiple destinations, can output a PNG map, HTML map, and .GeoJSON polygon file. |
+| `isochroneTime()` | Same as `isochrone()`, but between a start and end time/date. Output can be an animated GIF image. |
+| `isochroneMulti()`  | Same as `isochrone()`, but for multiple origins. A polygon is created for each origin. |
+| `isochroneMultiIntersect()` | Similar to `isochroneMulti()`, but generates a polygon for the intersection between multiple polygons from multiple origins. Each origin can have its own journey parameters. |
+| `isochroneMultiIntersectSensitivity()` | Same as `isochroneMultiIntersect()`, but applies a 30-minute window either side of start time. |
+| `isochroneMultiIntersectTime()` | Same as `isochroneMultiIntersect()`, but between a start and end time/date. |
+| `otpChoropleth()` | A core function used to produce an API call to OTP to be used with `choropleth()`. |
+| `otpConnect` | A core function used to connect to OTP either locally or remotely (i.e. the URL of the generated and hosted OTP graph). |
+| `otpIsochrone` | A core function used to produce an API call to OTP to be used with the propeR isochrone functions. |
+| `otpTripDistance` | A core function used to produce an API call to OTP to find trip distance. |
+| `otpTripTime` | A core function used to produce an API call to OTP to find trip time. |
+| `pointToPoint` | Calculates the journey details between a single origin and destination, can output a PNG map and HTML map. |
+| `pointToPointLoop` | Calculates the journey details between multiple origins and destinations. |
+| `pointToPointTime` | Same as `pointToPoint()`, but between a start and end time/date. Output can be an animated GIF image. |
 
 ### Data Prerequisites
 
@@ -252,7 +252,7 @@ For the sample data importLocationData on the sample origin CSV file ('origin.cs
 |----|----------|----------|-------|------|------|---------|
 | 5 | 33712 | W01001730 | Cardiff 008A | 51.52131 | -3.16326 | 51.52131,-3.16326  |
 | 1 | 34128 | W01001888 | Cardiff 010A | 51.51275 | -3.23468 | 51.51275,-3.23468 | 
-| 4 | 33303 | W01001755 | Cardiff | 025A | 51.50079 | -3.19173 | 51.50079,-3.19173 | 
+| 4 | 33303 | W01001755 | Cardiff 025A | 51.50079 | -3.19173 | 51.50079,-3.19173 | 
 | 2 | 33907 | W01001724 | Cardiff032C | 51.49211 | -3.17585 | 51.49211,-3.17585 | 
 | 3 | 34039 | W01001715 | Cardiff 035B | 51.48688 | -3.21213 | 51.48688,-3.21213 | 
 
@@ -264,7 +264,7 @@ And the sample destination CSV file ('destination.csv') will load the following 
 | 2 | Cardiff City Stadium | CF11 8AZ | 51.473246 | -3.211002 | 51.473246,-3.211002 | 
 
 
-*Note:* _the column lat\_lon is generated automatically by `importLocationData()` and does not need to be manually entered._
+**Note:** _the column lat\_lon is generated automatically by `importLocationData()` and does not need to be manually entered._
 
 #### pointToPoint
 
@@ -294,6 +294,8 @@ To output a PNG and interactive HTML leaflet map will as shown below, change the
 <p align="center"><img align="center" src="meta/images/pointToPoint.png" width="600px"></p>
 
 Map colours, zoom and other parameters can be specified by the user. See ?pointToPoint for details.
+
+**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
 
 #### pointToPointLoop
 
@@ -327,6 +329,8 @@ For the sample origin and destination locations, this following is produced:
 | Cardiff 032C | Principality Stadium | 12:00:58   | 12:27:17 | 3           | 26.32         | 13.28          | 13                | 0.03              | 0         |
 | Cardiff 035B | Principality Stadium | 12:13:01   | 12:55:17 | 6.06        | 42.27         | 10.27          | 13                | 19                | 1         |
 
+**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
+
 #### pointToPointTime
 
 This function works in the similar way to the [`pointToPoint()`](#pointtopoint) function, but instead of a single `startDateAndTime`, an `endDateAndTime` and `timeIncrease` (the incremental increase in time between `startDateAndTime` and `endDateAndTime` journeys should be analysed for) can be stated:
@@ -359,7 +363,9 @@ Again, changing `mapOutput` to `T` will save a GIF map to the output directory:
 
 <p align="center"><img align="center" src="meta/images/pointToPointTime.gif" width="600px"></p>
 
-*Note:* _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polyline created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
+**Note:** _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polyline created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
+
+**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
 
 #### isochrone
 
@@ -426,7 +432,7 @@ And the following GIF image if `mapOutput` is `T`:
 
 <p align="center"><img align="center" src="meta/images/isochroneTime.gif" width="600px"></p>
 
-*Note:* _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polygon created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
+**Note:** _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polygon created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
 
 #### 3.2.7. isochroneMulti
 
@@ -445,7 +451,7 @@ isochroneMulti(output.dir = PATH_TO_DIR,
               isochroneCutOffMax = 90,
               isochroneCutOffMin = 30,
               isochroneCutOffStep = 30,
-              mapOutput = F
+              mapOutput = F,
               geojsonOutput = F)
 ```
 
@@ -511,7 +517,7 @@ Currently, the only output is an animated GIF file. This function is designed to
 
 <p align="center"><img align="center" src="meta/images/isochroneMultiIntersectSensitivity.gif" width="600px"></p>
 
-#### 3.2.10. isochroneMultiIntersectTime
+#### isochroneMultiIntersectTime
 
 Like [`isochroneMultiIntersectSensitivity()`](#isochronemultiintersectsensitivity) this is a visual function, which creates the isochrone intersections between a start and end date/time **only** for uniform parameters for each origin, i.e., the additional origin CSV columns in isochroneMultiIntersect are not considered. The output will be an animated GIF file in the output directory.
 
@@ -530,7 +536,7 @@ isochroneMultiIntersectTime(output.dir = PATH_TO_DIR,
 
 <p align="center"><img align="center" src="meta/images/isochroneMultiIntersectTime.gif" width="600px"></p>
 
-#### 3.2.11. choropleth
+#### choropleth
 
 This function uses the backbone of the `otpTripTime()` function to create a number of OTP API calls for multiple origins to a single destination. It then uses a .GeoJSON file to create polygons and colour them based on the journey details. As a result, the name of the origins between the CSV file and .GeoJSON file must match. Using the sample .GeoJSON file and origin CSV file, we can call this function using:
 
@@ -562,9 +568,13 @@ As the table shows, specific duration, waiting time and transfer cutoffs can be 
 
 <p align="center"><img align="center" src="meta/images/choropleth_duration_cat.png" width="600px"></p>
 
-## 4. FAQ
+## FAQ
 
-### 4.1. Common Errors
+Q: Do I need an OpenStreetMap (.osm) file to run propeR?
+
+A: Yes, whilst you can build the graph without an .osm file. You will need it to analyse the graph.
+
+### Common Errors
 
 Q: Why am I receiving the following error when running propeR?
 

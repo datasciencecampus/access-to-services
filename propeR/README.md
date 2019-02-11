@@ -51,10 +51,14 @@ library("propeR")
 ## Acknowledgments
 
 * [TransXChange2GTFS](https://github.com/danbillingsley/TransXChange2GTFS)
+* [transxchange2gtfs](https://github.com/planarnetwork/transxchange2gtfs)
 * [dtd2mysql](https://github.com/open-track/dtd2mysql)
 * [OpenTripPlanner](http://www.opentripplanner.org/)
-* functions otpConnect, otpTripTime, otpTripDistance, otpIsochrone are based on code from Marcus Young:
-https://github.com/marcusyoung/opentripplanner/blob/master/Rscripts/otp-api-fn.R 
+* functions `otpConnect()`, `otpTripTime()`, `otpTripDistance()`, `otpIsochrone()` are modified from Marcus Young's repo [here](https://github.com/marcusyoung/opentripplanner/blob/master/Rscripts/otp-api-fn.R)
+
+## Contributions and Bug Reports
+
+We welcome contributions and bug reports. Please do this on this repo and we will endeavour to review pull requests and fix bugs in a prompt manner.
 
 ## Licence
 

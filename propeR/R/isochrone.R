@@ -31,16 +31,26 @@
 ##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
-##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param originMarker Specifies if you want to output the origin markers to the map (default is True)
+##' @param originMarkerColor Specifies the colour of the origin marker if it is within a isochrone (default is 'red')
+##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 10)
+##' @param destinationMarkerOutOpacity Specifies the opacity of destination marker(s)if it is not within a isochrone (default is 1, solid)
+##' @param destinationMarkerInOpacity Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)
+##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
+##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
+##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 2)
+##' @param destinationMarkerInColor Specifies the colour of destination marker(s)if it is within a isochrone (default is 'white')
+##' @param destinationMarkerOutColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved
 ##' @author Michael Hodge
 ##' @examples
 ##'   isochrone(
 ##'     output.dir = 'C:\Users\User\Documents',
 ##'     otpcon,
-##'     originPoints,
-##'     destinationPoints,
+##'     originPoints = originPoints,
+##'     destinationPoints = destinationPoints,
 ##'     startDateAndTime = "2018-08-18 12:00:00"
 ##'   )
 ##' @export
@@ -71,11 +81,21 @@ isochrone <- function(output.dir,
                       geojsonOutput = F,
                       mapPolygonColours = "Blues",
                       mapZoom = "bb",
-                      mapPolygonLineWeight = 5,
+                      mapPolygonLineWeight = 0,
                       mapPolygonLineOpacity = 1,
                       mapPolygonFillOpacity = 0.6,
-                      mapMarkerOpacity = 1,
-                      mapLegendOpacity = 0.5) {
+                      originMarker = T,
+                      originMarkerColor = 'red',
+                      destinationMarkerSize = 10,
+                      destinationMarkerOutOpacity = 1,
+                      destinationMarkerInOpacity = 1,
+                      destinationMarkerStroke = T,
+                      destinationMarkerStrokeColor = 'black',
+                      destinationMarkerStrokeWeight = 2,
+                      destinationMarkerInColor = 'white',
+                      destinationMarkerOutColor = 'black',
+                      mapLegendOpacity = 0.5,
+                      mapDarkMode = F) {
   
   message("Now running the propeR isochrone tool.\n")
   
@@ -163,7 +183,12 @@ isochrone <- function(output.dir,
     library(leaflet)
     m <- leaflet()
     m <- addScaleBar(m)
-    m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    
+    if (mapDarkMode != T) {
+      m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    } else {
+      m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
+    }
     
     if (is.numeric(mapZoom)){
       m <- setView(
@@ -199,13 +224,13 @@ isochrone <- function(output.dir,
       lat = ~ lat,
       lng = ~ lon,
       popup = ~ name,
-      fillColor = "black",
-      stroke = T,
-      color = "black",
-      opacity = mapMarkerOpacity,
-      weight = 2,
-      fillOpacity = mapMarkerOpacity,
-      radius = 10
+      fillColor = destinationMarkerOutColor,
+      stroke = destinationMarkerStroke,
+      color = destinationMarkerStrokeColor,
+      opacity = destinationMarkerOutOpacity,
+      weight = destinationMarkerStrokeWeight,
+      fillOpacity = destinationMarkerOutOpacity,
+      radius = destinationMarkerSize
     )
     m <- addCircleMarkers(
       m,
@@ -213,13 +238,13 @@ isochrone <- function(output.dir,
       lat = ~ lat,
       lng = ~ lon,
       popup = ~ name,
-      fillColor = "white",
-      stroke = T,
-      color = "black",
-      opacity = mapMarkerOpacity,
-      weight = 2,
-      fillOpacity = mapMarkerOpacity,
-      radius = 10
+      fillColor = destinationMarkerInColor,
+      stroke = destinationMarkerStroke,
+      color = destinationMarkerStrokeColor,
+      opacity = destinationMarkerInOpacity,
+      weight = destinationMarkerStrokeWeight,
+      fillOpacity = destinationMarkerInOpacity,
+      radius = destinationMarkerSize
     )
     m <- addLegend(
       m,
@@ -236,18 +261,20 @@ isochrone <- function(output.dir,
       position = "bottomleft",
       title = "Date and Time"
     )
-    m <-
-      addAwesomeMarkers(
-        m,
-        data = from_origin,
-        lat = ~ lat,
-        lng = ~ lon,
-        popup = ~ name,
-        icon = makeAwesomeIcon(
-          icon = "hourglass-start",
-          markerColor = "red",
-          iconColor = "white",
-          library = "fa"))
+    if (originMarker == T){
+      m <-
+        addAwesomeMarkers(
+          m,
+          data = from_origin,
+          lat = ~ lat,
+          lng = ~ lon,
+          popup = ~ name,
+          icon = makeAwesomeIcon(
+            icon = "hourglass-start",
+            markerColor = originMarkerColor,
+            iconColor = "white",
+            library = "fa"))
+    }
   }
   
   ######################
@@ -266,7 +293,7 @@ isochrone <- function(output.dir,
     rgdal::writeOGR(
       isochrone_polygons,
       dsn = paste0(output.dir,
-                   "/isochrone",
+                   "/isochrone-",
                    stamp,
                    ".geoJSON"),
       layer = "isochrone_polygons",
@@ -275,9 +302,9 @@ isochrone <- function(output.dir,
   
   if (mapOutput == T) {
     invisible(print(m))
-    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", stamp, ".png")) 
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-", stamp, ".html")) 
-    unlink(paste0(output.dir, "/isochrone-", stamp, "_files"),
+    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-map-", stamp, ".png")) 
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-map-", stamp, ".html")) 
+    unlink(paste0(output.dir, "/isochrone-map-", stamp, "_files"),
            recursive = T) 
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
   }

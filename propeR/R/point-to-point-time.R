@@ -473,10 +473,10 @@ pointToPointTime <- function(output.dir,
       purrr::map(magick::image_read) %>%
       magick::image_join() %>%
       magick::image_animate(fps = 5) %>% 
-      magick::image_write(paste0(output.dir, "/pointToPointTime-", stamp, ".gif"))
+      magick::image_write(paste0(output.dir, "/pointToPointTime-map-", stamp, ".gif"))
     
     m <-
-      magick::image_read(paste0(output.dir, "/pointToPointTime-", stamp, ".gif")) %>%
+      magick::image_read(paste0(output.dir, "/pointToPointTime-map-", stamp, ".gif")) %>%
       magick::image_scale("600") 
   
     invisible(print(m)) 

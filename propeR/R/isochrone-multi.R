@@ -26,13 +26,22 @@
 ##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, defaults 10
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
+##' @param histOutput Specifies whether you want to output a histogram, defaults to FALSE
 ##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
 ##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
-##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param originMarker Specifies if you want to output the origin markers to the map (default is True)
+##' @param originMarkerColor Specifies the colour of the origin marker if it is within a isochrone (default is 'red')
+##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 10)
+##' @param destinationMarkerOpacity Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)
+##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
+##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
+##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 2)
+##' @param destinationMarkerColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
 ##' @author Michael Hodge
 ##' @examples
@@ -65,18 +74,30 @@ isochroneMulti <- function(output.dir,
                            isochroneCutOffMin = 10,
                            isochroneCutOffStep = 10,
                            isochroneCutOffs = seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep),
-                           # leaflet map args
+                           # output args
                            mapOutput = F,
                            geojsonOutput = F,
+                           histOutput = F,
+                           # leaflet map args
                            mapPolygonColours = "Blues",
                            mapZoom = "bb",
-                           mapPolygonLineWeight = 5,
+                           mapPolygonLineWeight = 0,
                            mapPolygonLineOpacity = 1,
                            mapPolygonFillOpacity = 0.6,
-                           mapMarkerOpacity = 1,
-                           mapLegendOpacity = 0.5) {
+                           originMarker = T,
+                           originMarkerColor = 'red',
+                           destinationMarkerSize = 10,
+                           destinationMarkerOpacity = 1,
+                           destinationMarkerStroke = T,
+                           destinationMarkerStrokeColor = 'black',
+                           destinationMarkerStrokeWeight = 2,
+                           destinationMarkerColor = 'black',
+                           mapLegendOpacity = 0.5,
+                           mapDarkMode = F) {
   
   message("Now running the propeR isochroneMulti tool.\n")
+  
+  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") 
   
   if (mapOutput == T) {
     library(leaflet)
@@ -137,6 +158,7 @@ isochroneMulti <- function(output.dir,
       if ("try-error" %in% class(t)) {
         originPoints_removed <- c(originPoints_removed, originPoints$name[num.run])
         originPoints_removed_list <- c(originPoints_removed_list, num.run)
+        end.time <- Sys.time()
         time.taken[num.run] <- round(end.time - start.time, digits = 2)
         message("Removed ", originPoints$name[num.run], " from analysis as no polygon could be generated from it.")
         next
@@ -183,6 +205,7 @@ isochroneMulti <- function(output.dir,
       if ("try-error" %in% class(t)) {
         originPoints_removed <- c(originPoints_removed, originPoints$name[num.run])
         originPoints_removed_list <- c(originPoints_removed_list, num.run)
+        end.time <- Sys.time()
         time.taken[num.run] <- round(end.time - start.time, digits = 2)
         message("Removed ", originPoints$name[num.run], " from analysis as no polygon could be generated from it.")
         next
@@ -275,6 +298,44 @@ isochroneMulti <- function(output.dir,
         " seconds.\n"
       )
     }
+    
+    if ((num.run/100) %% 1 == 0) { # fail safe for large files
+      
+      message("Large dataset, failsafe, saving outputs to ", output.dir, ", please wait.")
+      
+      is.na(time_df) <- sapply(time_df, is.infinite)
+      
+      write.csv(
+        time_df,
+        file = paste0(output.dir, "/isochroneMulti-isochrone_multi_inc-", stamp, ".csv"),
+        row.names = T) 
+      
+      if (length(originPoints_removed > 0)) {
+        write.csv(
+          originPoints_removed,
+          file = paste0(output.dir, "/isochroneMulti-originPoints-removed-", stamp, ".csv"),
+          row.names = T) 
+      }
+      
+      if (geojsonOutput == T) {
+        rgdal::writeOGR(
+          isochrone_polygons,
+          dsn = paste0(output.dir,
+                       "/isochroneMulti",
+                       stamp,
+                       ".geoJSON"),
+          layer = "isochrone_polygons",
+          driver = "GeoJSON")
+      }
+      
+      if (mapOutput == T) {
+        invisible(print(m)) 
+        mapview::mapshot(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".png"))
+        htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".html")) 
+        unlink(paste0(output.dir, "/isochroneMulti-", stamp, "_files"), recursive = T) 
+        unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
+      }
+    }
   }
   
   options(warn = 0)
@@ -296,7 +357,12 @@ isochroneMulti <- function(output.dir,
   if (mapOutput == T) {
     m <- leaflet()
     m <- addScaleBar(m)
-    m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    
+    if (mapDarkMode != T) {
+      m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    } else {
+      m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
+    }    
     
     if (is.numeric(mapZoom)){
       m <- setView(
@@ -330,40 +396,50 @@ isochroneMulti <- function(output.dir,
         data = destinationPoints,
         lat = ~ lat,
         lng = ~ lon,
-        fillColor = "white",
-        stroke = T,
-        color = "black",
-        opacity = mapMarkerOpacity,
-        weight = 2,
-        fillOpacity = mapMarkerOpacity,
-        radius = 10)
+        fillColor = destinationMarkerColor,
+        stroke = destinationMarkerStroke,
+        color = destinationMarkerStrokeColor,
+        opacity = destinationMarkerOpacity,
+        weight = destinationMarkerStrokeWeight,
+        fillOpacity = destinationMarkerOpacity,
+        radius = destinationMarkerSize)
     m <- addLegend(
       m,
       pal = palIsochrone,
       values = isochroneCutOffs,
       opacity = mapLegendOpacity,
       title = "Duration (minutes)")
-    m <- addAwesomeMarkers(
-        m,
-        data = originPoints,
-        lat = ~ lat,
-        lng = ~ lon,
-        popup = ~ name,
-        icon = makeAwesomeIcon(
-          icon = "hourglass-start",
-          markerColor = "red",
-          iconColor = "white",
-          library = "fa"))
+    if (originMarker == T){
+      m <-
+        addAwesomeMarkers(
+          m,
+          data = from_origin,
+          lat = ~ lat,
+          lng = ~ lon,
+          popup = ~ name,
+          icon = makeAwesomeIcon(
+            icon = "hourglass-start",
+            markerColor = originMarkerColor,
+            iconColor = "white",
+            library = "fa"))
+    }
   }
   
   ######################
   #### SAVE RESULTS ####
   ######################
-  
-  is.na(time_df) <- sapply(time_df, is.infinite)
-  
+
   message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") 
+
+  is.na(time_df) <- sapply(time_df, is.infinite)
+    
+  if (histOutput == T) {
+    
+    travel_times <- c()
+    for (i in 1:nrow(time_df)){
+      travel_times <- c(travel_times,as.numeric(time_df[i,1:ncol(time_df)]))
+    }
+  }
   
   write.csv(
     time_df,
@@ -390,11 +466,21 @@ isochroneMulti <- function(output.dir,
   
   if (mapOutput == T) {
     invisible(print(m)) 
-    mapview::mapshot(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".png"))
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".html")) 
-    unlink(paste0(output.dir, "/isochroneMulti-", stamp, "_files"), recursive = T) 
+    mapview::mapshot(m, file = paste0(output.dir, "/isochroneMulti-map-", stamp, ".png"))
+    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMulti-map-", stamp, ".html")) 
+    unlink(paste0(output.dir, "/isochroneMulti-map-", stamp, "_files"), recursive = T) 
     unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
   }
   
+  if (histOutput == T) {
+    png(paste0(output.dir, "/isochroneMulti-histogram-", stamp, ".png"))
+    hist(travel_times,
+         xlab = "Travel time (minutes)",
+         main = "",
+         col = "black",
+         border="white")
+    dev.off()
+  }
   message("Thanks for using propeR.")
+
 }

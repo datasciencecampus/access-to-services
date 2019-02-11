@@ -22,6 +22,8 @@
 ##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
 ##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins
+##' @param distThreshold Specify whether points have to be within a certain distance of each other to calculate, useful for big datasets (default is FALSE)
+##' @param distMax Specify the maximum distance if distThreshold is TRUE (default is 20 km)
 ##' @return Saves journey details as comma separated value file to output directory
 ##' @author Michael Hodge
 ##' @examples
@@ -54,9 +56,13 @@ pointToPointLoop <- function(output.dir,
                              maxTransfers = 5,
                              wheelchair = F,
                              arriveBy = F,
-                             preWaitTime = 15) {
+                             preWaitTime = 15,
+                             distThreshold = F,
+                             distMax = 20) {
   
   message("Now running the propeR pointToPointLoop tool.\n")
+  
+  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
   
   #########################
   #### SETUP VARIABLES ####
@@ -128,10 +134,19 @@ pointToPointLoop <- function(output.dir,
           from <- to_destination
         }
         
+        if (distThreshold == T) {
+          if (distm(c(from$lon,from$lat),c(to$lon,to$lat)) > distMax * 1000){
+            # message("Distance between points is too big!")
+            num.run <- num.run - 1
+            num.total <- num.total - 1
+            next
+          }
+        }
+        
         call <- paste0(from$name, to$name)
         
         if (call %in% calls.list) {
-          num.run <- num.run
+          num.run <- num.run - 1
           num.total <- num.total - 1
           message("Dropped a connection call as it has already been processed!")
           next
@@ -140,7 +155,7 @@ pointToPointLoop <- function(output.dir,
         }
         
         if (to$name == from$name) {
-          num.run <- num.run
+          num.run <- num.run - 1
           num.total <- num.total - 1
           message("Dropped a connection call as origin and destination were the same!")
           next
@@ -175,6 +190,7 @@ pointToPointLoop <- function(output.dir,
               point_to_point_table_overview["origin"] <- from$name
               point_to_point_table_overview["destination"] <- to$name
               point_to_point_table_overview["distance_km"] <- round(sum(point_to_point$output_table$distance) / 1000, digits = 2)
+              point_to_point_table_overview["journey_details"] <- jsonlite::toJSON(point_to_point$output_table)
             } else {
               point_to_point_table_overview <- data.frame(
                 "start" = NA,
@@ -186,7 +202,8 @@ pointToPointLoop <- function(output.dir,
                 "transfers" = NA,
                 "origin" = from$name,
                 "destination" = to$name,
-                "distance_km" = NA)
+                "distance_km" = NA,
+                "journey_details" = NA)
             }
             
           } else {
@@ -200,7 +217,8 @@ pointToPointLoop <- function(output.dir,
               "transfers" = NA,
               "origin" = from$name,
               "destination" = to$name,
-              "distance_km" = NA)
+              "distance_km" = NA,
+              "journey_details" = NA)
           }
           
         } else {
@@ -212,7 +230,7 @@ pointToPointLoop <- function(output.dir,
               point_to_point_table_overview_tmp["origin"] <- from$name
               point_to_point_table_overview_tmp["destination"] <- to$name
               point_to_point_table_overview_tmp["distance_km"] <- round(sum(point_to_point$output_table$distance) / 1000, digits = 2)
-              
+              point_to_point_table_overview_tmp["journey_details"] <- jsonlite::toJSON(point_to_point$output_table)
             } else {
               point_to_point_table_overview_tmp <- data.frame(
                 "start" = NA,
@@ -224,7 +242,16 @@ pointToPointLoop <- function(output.dir,
                 "transfers" = NA,
                 "origin" = from$name,
                 "destination" = to$name,
-                "distance_km" = NA)
+                "distance_km" = NA,
+                "journey_details" = NA)
+            }
+            
+            if (modes == "CAR") {
+              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "driveTime"
+              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "driveTime"
+            } else if (modes == "BICYCLE") {
+              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "cycleTime"
+              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "cycleTime"
             }
             
             point_to_point_table_overview = rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
@@ -240,7 +267,16 @@ pointToPointLoop <- function(output.dir,
               "transfers" = NA,
               "origin" = from$name,
               "destination" = to$name,
-              "distance_km" = NA)
+              "distance_km" = NA,
+              "journey_details" = NA)
+            
+            if (modes == "CAR") {
+              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "driveTime"
+              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "driveTime"
+            } else if (modes == "BICYCLE") {
+              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "cycleTime"
+              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "cycleTime"
+            }
             
             point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
           }
@@ -273,14 +309,47 @@ pointToPointLoop <- function(output.dir,
             " seconds.\n"
           )
         }
+        
+        if ((num.run/100) %% 1 == 0) { # fail safe for large files
+          
+          message("Large dataset, failsafe, saving outputs to ", output.dir, ", please wait.")
+          
+          point_to_point_table_overview_out <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7, 11)]
+          colnames(point_to_point_table_overview_out) <-
+            c(
+              "origin",
+              "destination",
+              "start_time",
+              "end_time",
+              "distance_km",
+              "duration_mins",
+              "walk_time_mins",
+              "transit_time_mins",
+              "waiting_time_mins",
+              "transfers",
+              "journey_details")
+          
+          if (modes == "CAR") {
+            colnames(point_to_point_table_overview_out)[which(names(point_to_point_table_overview_out) == "walk_time_mins")] <- "drive_time_mins"
+          } else if (modes == "BICYCLE") {
+            colnames(point_to_point_table_overview_out)[which(names(point_to_point_table_overview_out) == "walk_time_mins")] <- "cycle_time_mins"
+          }
+          
+          write.csv(
+            point_to_point_table_overview_out,
+            file = paste0(output.dir, "/pointToPointLoop-", stamp, ".csv"),
+            row.names = F)
+          
+          }
+        
       }
     }
   }
   
   message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
-  point_to_point_table_overview <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
-  colnames(point_to_point_table_overview) <-
+  
+  point_to_point_table_overview_out <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7, 11)]
+  colnames(point_to_point_table_overview_out) <-
     c(
       "origin",
       "destination",
@@ -291,10 +360,17 @@ pointToPointLoop <- function(output.dir,
       "walk_time_mins",
       "transit_time_mins",
       "waiting_time_mins",
-      "transfers")
+      "transfers",
+      "journey_details")
+  
+  if (modes == "CAR") {
+    colnames(point_to_point_table_overview_out)[which(names(point_to_point_table_overview_out) == "walk_time_mins")] <- "drive_time_mins"
+  } else if (modes == "BICYCLE") {
+    colnames(point_to_point_table_overview_out)[which(names(point_to_point_table_overview_out) == "walk_time_mins")] <- "cycle_time_mins"
+  }
   
   write.csv(
-    point_to_point_table_overview,
+    point_to_point_table_overview_out,
     file = paste0(output.dir, "/pointToPointLoop-", stamp, ".csv"),
     row.names = F)
   

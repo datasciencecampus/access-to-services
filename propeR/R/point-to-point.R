@@ -263,17 +263,17 @@ pointToPoint <- function(output.dir,
     
     write.csv(
       point_to_point_table,
-      file = paste0(output.dir, "/pointToPoint-journey-legs", stamp, ".csv"),
+      file = paste0(output.dir, "/pointToPoint-journey-legs-", stamp, ".csv"),
       row.names = F)
     
     if (mapOutput == T) {
       invisible(print(m))
-      mapview::mapshot(m, file = paste0(output.dir, "/pointToPoint-", stamp, ".png")) 
+      mapview::mapshot(m, file = paste0(output.dir, "/pointToPoint-map-", stamp, ".png")) 
       htmlwidgets::saveWidget(
         m,
-        file = paste0(output.dir, "/pointToPoint-", stamp, ".html"),
+        file = paste0(output.dir, "/pointToPoint-map-", stamp, ".html"),
         selfcontained = T) 
-      unlink(paste0(output.dir, "/pointToPoint-", stamp, "_files"), recursive = T)
+      unlink(paste0(output.dir, "/pointToPoint-map-", stamp, "_files"), recursive = T)
       unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
     }
     

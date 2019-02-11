@@ -34,8 +34,18 @@
 ##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
-##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param originMarker Specifies if you want to output the origin markers to the map (default is True)
+##' @param originMarkerColor Specifies the colour of the origin marker if it is within a isochrone (default is 'red')
+##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 10)
+##' @param destinationMarkerOutOpacity Specifies the opacity of destination marker(s)if it is not within a isochrone (default is 1, solid)
+##' @param destinationMarkerInOpacity Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)
+##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
+##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
+##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 2)
+##' @param destinationMarkerInColor Specifies the colour of destination marker(s)if it is within a isochrone (default is 'white')
+##' @param destinationMarkerOutColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 ##' @author Michael Hodge
 ##' @examples
@@ -77,11 +87,21 @@ isochroneTime <- function(output.dir,
                           mapOutput = F,
                           mapPolygonColours = "Blues",
                           mapZoom = "bb",
-                          mapPolygonLineWeight = 5,
+                          mapPolygonLineWeight = 0,
                           mapPolygonLineOpacity = 1,
                           mapPolygonFillOpacity = 0.6,
-                          mapMarkerOpacity = 1,
-                          mapLegendOpacity = 0.5) {
+                          originMarker = T,
+                          originMarkerColor = 'red',
+                          destinationMarkerSize = 10,
+                          destinationMarkerOutOpacity = 1,
+                          destinationMarkerInOpacity = 1,
+                          destinationMarkerStroke = T,
+                          destinationMarkerStrokeColor = 'black',
+                          destinationMarkerStrokeWeight = 2,
+                          destinationMarkerInColor = 'white',
+                          destinationMarkerOutColor = 'black',
+                          mapLegendOpacity = 0.5,
+                          mapDarkMode = F) {
   
   message("Now running the propeR isochroneTime tool.\n")
   
@@ -195,8 +215,13 @@ isochroneTime <- function(output.dir,
       
       m <- leaflet()
       m <- addScaleBar(m)
-      m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
-     
+      
+      if (mapDarkMode != T) {
+        m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+      } else {
+        m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
+      }     
+      
        if (is.numeric(mapZoom)){
         m <- setView(
           m,
@@ -229,25 +254,25 @@ isochroneTime <- function(output.dir,
         data = destinationPoints,
         lat = ~ lat,
         lng = ~ lon,
-        fillColor = "white",
-        stroke = T,
-        color = "black",
-        opacity = mapMarkerOpacity,
-        weight = 2,
-        fillOpacity = mapMarkerOpacity,
-        radius = 10)
+        fillColor = destinationMarkerOutColor,
+        stroke = destinationMarkerStroke,
+        color = destinationMarkerStrokeColor,
+        opacity = destinationMarkerOutOpacity,
+        weight = destinationMarkerStrokeWeight,
+        fillOpacity = destinationMarkerOutOpacity,
+        radius = destinationMarkerSize)
       m <- addCircleMarkers(
         m,
         data = destination_points_non_na,
         lat = ~ lat,
         lng = ~ lon,
-        fillColor = "black",
-        stroke = T,
-        color = "black",
-        opacity = mapMarkerOpacity,
-        weight = 2,
-        fillOpacity = mapMarkerOpacity,
-        radius = 10)
+        fillColor = destinationMarkerInColor,
+        stroke = destinationMarkerStroke,
+        color = destinationMarkerStrokeColor,
+        opacity = destinationMarkerInOpacity,
+        weight = destinationMarkerStrokeWeight,
+        fillOpacity = destinationMarkerInOpacity,
+        radius = destinationMarkerSize)
       m <- addLegend(
           m,
           pal = palIsochrone,
@@ -260,17 +285,20 @@ isochroneTime <- function(output.dir,
           values = date_time_legend,
           position = "bottomleft",
           title = "Date and Time")
-      m <- addAwesomeMarkers(
-          m,
-          data = from_origin,
-          lat = ~ lat,
-          lng = ~ lon,
-          popup = ~ name,
-          icon = makeAwesomeIcon(
-            icon = "hourglass-start",
-            markerColor = "red",
-            iconColor = "white",
-            library = "fa"))
+      if (originMarker == T){
+        m <-
+          addAwesomeMarkers(
+            m,
+            data = from_origin,
+            lat = ~ lat,
+            lng = ~ lon,
+            popup = ~ name,
+            icon = makeAwesomeIcon(
+              icon = "hourglass-start",
+              markerColor = originMarkerColor,
+              iconColor = "white",
+              library = "fa"))
+      }
       
       mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", stamp, ".png")) 
     }
@@ -325,10 +353,10 @@ isochroneTime <- function(output.dir,
       purrr::map(magick::image_read) %>%  # reads each path file
       magick::image_join() %>% # joins image
       magick::image_animate(fps = 5) %>%  # animates, can opt for number of loops
-      magick::image_write(paste0(output.dir, "/isochroneTime-", stamp, ".gif")) # write to current dir
+      magick::image_write(paste0(output.dir, "/isochroneTime-map-", stamp, ".gif")) # write to current dir
     
     m <-
-      magick::image_read(paste0(output.dir, "/isochroneTime-", stamp, ".gif")) %>%
+      magick::image_read(paste0(output.dir, "/isochroneTime-map-", stamp, ".gif")) %>%
       magick::image_scale("600") # Loads GIF into R
     
     invisible(print(m)) # plots map to Viewer
