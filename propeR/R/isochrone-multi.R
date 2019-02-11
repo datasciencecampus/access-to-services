@@ -32,8 +32,16 @@
 ##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
-##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
+##' @param originMarker Specifies if you want to output the origin markers to the map (default is True)
+##' @param originMarkerColor Specifies the colour of the origin marker if it is within a isochrone (default is 'red')
+##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 10)
+##' @param destinationMarkerOpacity Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)
+##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
+##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
+##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 2)
+##' @param destinationMarkerColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
 ##' @author Michael Hodge
 ##' @examples
@@ -73,11 +81,19 @@ isochroneMulti <- function(output.dir,
                            # leaflet map args
                            mapPolygonColours = "Blues",
                            mapZoom = "bb",
-                           mapPolygonLineWeight = 5,
+                           mapPolygonLineWeight = 0,
                            mapPolygonLineOpacity = 1,
                            mapPolygonFillOpacity = 0.6,
-                           mapMarkerOpacity = 1,
-                           mapLegendOpacity = 0.5) {
+                           originMarker = T,
+                           originMarkerColor = 'red',
+                           destinationMarkerSize = 10,
+                           destinationMarkerOpacity = 1,
+                           destinationMarkerStroke = T,
+                           destinationMarkerStrokeColor = 'black',
+                           destinationMarkerStrokeWeight = 2,
+                           destinationMarkerColor = 'black',
+                           mapLegendOpacity = 0.5,
+                           mapDarkMode = F) {
   
   message("Now running the propeR isochroneMulti tool.\n")
   
@@ -341,7 +357,12 @@ isochroneMulti <- function(output.dir,
   if (mapOutput == T) {
     m <- leaflet()
     m <- addScaleBar(m)
-    m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    
+    if (mapDarkMode != T) {
+      m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+    } else {
+      m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
+    }    
     
     if (is.numeric(mapZoom)){
       m <- setView(
@@ -375,30 +396,33 @@ isochroneMulti <- function(output.dir,
         data = destinationPoints,
         lat = ~ lat,
         lng = ~ lon,
-        fillColor = "white",
-        stroke = T,
-        color = "black",
-        opacity = mapMarkerOpacity,
-        weight = 2,
-        fillOpacity = mapMarkerOpacity,
-        radius = 10)
+        fillColor = destinationMarkerColor,
+        stroke = destinationMarkerStroke,
+        color = destinationMarkerStrokeColor,
+        opacity = destinationMarkerOpacity,
+        weight = destinationMarkerStrokeWeight,
+        fillOpacity = destinationMarkerOpacity,
+        radius = destinationMarkerSize)
     m <- addLegend(
       m,
       pal = palIsochrone,
       values = isochroneCutOffs,
       opacity = mapLegendOpacity,
       title = "Duration (minutes)")
-    m <- addAwesomeMarkers(
-        m,
-        data = originPoints,
-        lat = ~ lat,
-        lng = ~ lon,
-        popup = ~ name,
-        icon = makeAwesomeIcon(
-          icon = "hourglass-start",
-          markerColor = "red",
-          iconColor = "white",
-          library = "fa"))
+    if (originMarker == T){
+      m <-
+        addAwesomeMarkers(
+          m,
+          data = from_origin,
+          lat = ~ lat,
+          lng = ~ lon,
+          popup = ~ name,
+          icon = makeAwesomeIcon(
+            icon = "hourglass-start",
+            markerColor = originMarkerColor,
+            iconColor = "white",
+            library = "fa"))
+    }
   }
   
   ######################

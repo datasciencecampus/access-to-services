@@ -148,25 +148,25 @@ The Data Science Campus as created some cleaned GTFS data for buses around [Card
 
 [OpenTripPlanner (OTP)](http://www.opentripplanner.org/) is an open source multi-modal trip planner, which runs on Linux, Mac, Windows, or potentially any platform with a Java virtual machine. More details, including basic tutorials can be found [here](http://docs.opentripplanner.org/en/latest/). Guidance on how to setup the OpenTripPlanner locally can be found [here](https://github.com/opentripplanner/OpenTripPlanner/wiki). Here is the method that worked for us:
 
-1) Check you have the latest java SE runtime installed on your computer, preferrably the 64-bit version on a 64-bit computer. The reason for this is that the graph building process in step 7 uses a lot of memory. The 32-bit version of java might not allow a sufficient heap size to be allocated to graph and server building. For the GTFS sample data [here](add link), a 32-bit machine may suffice. 
-2) Create an 'otp' folder in a preferred root directory.
-3) Download the latest single stand-alone runnable .jar file of OpenTripPlanner [here](https://repo1.maven.org/maven2/org/opentripplanner/otp/). Choose the '-shaded.jar' file. Place this in the 'otp' folder.
-4) Create a 'graphs' folder in the 'otp' folder.
-5) Create a 'default' folder in the 'graphs' folder.
-6) Put the GTFS ZIP folder(s) in the 'default' folder along with the latest OpenStreetMap .osm data for your area, found [here](https://download.geofabrik.de/europe/great-britain/wales.html). If you're using the sample GTFS data, an .osm file for Cardiff can be found [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/osm).
-7) Build the graph by using the following command line/terminal command whilst in the 'otp' folder: 
+1. Check you have the latest java SE runtime installed on your computer, preferrably the 64-bit version on a 64-bit computer. The reason for this is that the graph building process in step 7 uses a lot of memory. The 32-bit version of java might not allow a sufficient heap size to be allocated to graph and server building. For the GTFS sample data [here](add link), a 32-bit machine may suffice. 
+2. Create an 'otp' folder in a preferred root directory.
+3. Download the latest single stand-alone runnable .jar file of OpenTripPlanner [here](https://repo1.maven.org/maven2/org/opentripplanner/otp/). Choose the '-shaded.jar' file. Place this in the 'otp' folder.
+4. Create a 'graphs' folder in the 'otp' folder.
+5. Create a 'default' folder in the 'graphs' folder.
+6. Put the GTFS ZIP folder(s) in the 'default' folder along with the latest OpenStreetMap .osm data for your area, found [here](https://download.geofabrik.de/europe/great-britain/wales.html). If you're using the sample GTFS data, an .osm file for Cardiff can be found [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/osm).
+7. Build the graph by using the following command line/terminal command whilst in the 'otp' folder: 
 
-```
-java -Xmx4G -jar otp-1.3.0-shaded.jar --build graphs/default
-```
+    ```
+    java -Xmx4G -jar otp-1.3.0-shaded.jar --build graphs/default
+    ```
   changing the shaded.jar file name and end folder name to be the appropriate names for your build. '-Xmx4G' specifies a maximum heap size of 4G memory, graph building may not work with less memory than this.
-8) Once the graph has been build you should have a 'Graphs.obj' file in the 'graphs/default' folder. Now initiate the server using the following command from the 'otp' folder: 
+8. Once the graph has been build you should have a 'Graphs.obj' file in the 'graphs/default' folder. Now initiate the server using the following command from the 'otp' folder: 
 
-```
-java -Xmx4G -jar otp-1.3.0-shaded.jar --graphs graphs --router default --server
-```
+    ```
+    java -Xmx4G -jar otp-1.3.0-shaded.jar --graphs graphs --router default --server
+    ```
 Again, checking the shaded.jar file and folder names are correct.
-9) If successful, the front-end of OTP should be accessible from your browser using [http://localhost:8080/](http://localhost:8080/).
+9. If successful, the front-end of OTP should be accessible from your browser using [http://localhost:8080/](http://localhost:8080/).
 
 ## Running propeR packages
 

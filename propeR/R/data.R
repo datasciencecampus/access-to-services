@@ -25,9 +25,6 @@ importLocationData <- function(src,
   colnames(data_points)[which(names(data_points) == latcol)] <- "lat"
   colnames(data_points)[which(names(data_points) == postcodecol)] <- "postcode"
   
-  names(data_points) <-
-    tolower(names(data_points)) # Convert column names to lower case
-  
   if ("lat" %in% colnames(data_points))
   {
     if (!("lon" %in% colnames(data_points))) {
@@ -93,9 +90,9 @@ importLocationData <- function(src,
     } else {
       stop(
         paste0(
-          "A postcode column with the name",
+          "A postcode column with the name ",
           postcodecol,
-          "cannot be found, please review the data and either provide a latitude and longitude
+          " cannot be found, please review the data and either provide a latitude and longitude
           column (best), or postcode, for each location.\n"
         )
       )
