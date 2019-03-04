@@ -24,6 +24,7 @@
   		* [importLocationData and importGeojsonData](#importlocationdata-and-importgeojsondata)
   		* [pointToPoint](#pointtopoint)
   		* [pointToPointLoop](#pointtopointloop)
+  		* [pointToPointNearest](#pointtopointnearest)
   		* [pointToPointTime](#pointtopointtime)
   		* [isochrone](#isochrone)
 	  	* [isochroneTime](#isochronetime)
@@ -199,6 +200,7 @@ This will give you access to the the following functions:
 | `otpTripTime` | A core function used to produce an API call to OTP to find trip time. |
 | `pointToPoint` | Calculates the journey details between a single origin and destination, can output a PNG map and HTML map. |
 | `pointToPointLoop` | Calculates the journey details between multiple origins and destinations. |
+| `pointToPointNearest` | Calculates the journey details between the nearest (k = 1) destination to each origin using a KNN approach. Can also calculate the second (k = 2), third (k = 3) naearest, and so forth. |
 | `pointToPointTime` | Same as `pointToPoint()`, but between a start and end time/date. Output can be an animated GIF image. |
 
 ### Data Prerequisites
@@ -293,6 +295,8 @@ To output a PNG and interactive HTML leaflet map will as shown below, change the
 
 <p align="center"><img align="center" src="meta/images/pointToPoint.png" width="600px"></p>
 
+A GeoJSON of the polyline can be saved using the parameter `geojsonOutput = T`. 
+
 Map colours, zoom and other parameters can be specified by the user. See ?pointToPoint for details.
 
 **Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
@@ -330,6 +334,24 @@ For the sample origin and destination locations, this following is produced:
 | Cardiff 035B | Principality Stadium | 12:13:01   | 12:55:17 | 6.06        | 42.27         | 10.27          | 13                | 19                | 1         |
 
 **Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
+
+#### pointToPointNearest
+
+This function is useful to analyse the travel details between the nearest *k* destination and origin. By default *k* is set to 1, denoted the geographically closest destination. However, the second, third etc nearest destination can be analysed by changing the parameter `nearestNum`. Like `pointToPointLoop` the parameter `journeyReturn` can be used to specify whether the return journey between origin and destination should be also calculated.
+
+```
+#R
+pointToPointNearest(output.dir = PATH_TO_DIR,
+              otpcon = otpcon,
+              originPoints = originPoints,
+              destinationPoints = destinationPoints,
+              journeyReturn = F,
+              startDateAndTime = '2018-08-18 12:00:00',
+              modes = 'WALK, TRANSIT',
+              nearestNum = 1,)
+```
+
+This function is useful in analysing whether the geographically closest destination (or service) is the fastest and most appropriate for an origin. 
 
 #### pointToPointTime
 
