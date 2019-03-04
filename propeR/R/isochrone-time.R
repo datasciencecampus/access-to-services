@@ -27,7 +27,8 @@
 ##' @param isochroneCutOffMax Provide the maximum cutoff time for the isochrone, defaults 90
 ##' @param isochroneCutOffMin Provide the minimum cutoff time for the isochrone, defaults 10
 ##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, defaults 10
-##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
+##' @param gifOutput Specifies whether you want to output a gif, defaults to FALSE
+##' @param mapOutput Specifies whether you want to output the maps, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
@@ -84,7 +85,9 @@ isochroneTime <- function(output.dir,
                           isochroneCutOffStep = 10,
                           isochroneCutOffs = seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep),
                           # leaflet map args
+                          gifOutput = F,
                           mapOutput = F,
+                          geojsonOutput = F,
                           mapPolygonColours = "Blues",
                           mapZoom = "bb",
                           mapPolygonLineWeight = 0,
@@ -105,7 +108,7 @@ isochroneTime <- function(output.dir,
   
   message("Now running the propeR isochroneTime tool.\n")
   
-  if (mapOutput == T) {
+  if (gifOutput == T  || mapOutput == T) {
     library(leaflet)
     pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL)
     palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
@@ -204,7 +207,7 @@ isochroneTime <- function(output.dir,
     #### OPTIONAL EXTRAS ####
     #########################
     
-    if (mapOutput == T) {
+    if (gifOutput == T || mapOutput == T) {
       
       if (num.run == 1) {
         lon.min <- min(min(from_origin$lon),min(destinationPoints$lon),isochrone_polygons@bbox[1])
@@ -301,6 +304,27 @@ isochroneTime <- function(output.dir,
       }
       
       mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", stamp, ".png")) 
+    }
+    
+    if (geojsonOutput == T) {
+      rgdal::writeOGR(
+        isochrone_polygons,
+        dsn = paste0(output.dir,
+                     "/isochrone-",
+                     stamp,
+                     "-",
+                     time_series[i],
+                     ".geoJSON"),
+        layer = "isochrone_polygons",
+        driver = "GeoJSON")
+    }
+    
+    if (mapOutput == T) {
+      invisible(print(m))
+      mapview::mapshot(m, file = paste0(output.dir, "/isochroneTime-map-", stamp, "-", time_series[i], ".png")) 
+      htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneTime-map-", stamp, "-", time_series[i], ".html")) 
+      unlink(paste0(output.dir, "/isochroneTime-map-", stamp, "-", time_series[i], "_files"),
+             recursive = T) 
     }
     
     end.time <- Sys.time()

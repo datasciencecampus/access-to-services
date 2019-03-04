@@ -14,13 +14,14 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
   arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
   isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
-  isochroneCutOffMax, isochroneCutOffStep), mapOutput = F,
-  mapPolygonColours = "Blues", mapZoom = "bb",
-  mapPolygonLineWeight = 0, mapPolygonLineOpacity = 1,
-  mapPolygonFillOpacity = 0.6, originMarker = T,
-  originMarkerColor = "red", destinationMarkerSize = 10,
-  destinationMarkerOutOpacity = 1, destinationMarkerInOpacity = 1,
-  destinationMarkerStroke = T, destinationMarkerStrokeColor = "black",
+  isochroneCutOffMax, isochroneCutOffStep), gifOutput = F,
+  mapOutput = F, geojsonOutput = F, mapPolygonColours = "Blues",
+  mapZoom = "bb", mapPolygonLineWeight = 0,
+  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 0.6,
+  originMarker = T, originMarkerColor = "red",
+  destinationMarkerSize = 10, destinationMarkerOutOpacity = 1,
+  destinationMarkerInOpacity = 1, destinationMarkerStroke = T,
+  destinationMarkerStrokeColor = "black",
   destinationMarkerStrokeWeight = 2,
   destinationMarkerInColor = "white",
   destinationMarkerOutColor = "black", mapLegendOpacity = 0.5,
@@ -67,7 +68,11 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, defaults 10}
 
-\item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
+\item{gifOutput}{Specifies whether you want to output a gif, defaults to FALSE}
+
+\item{mapOutput}{Specifies whether you want to output the maps, defaults to FALSE}
+
+\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 
 \item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
 
@@ -102,8 +107,6 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 
 \item{mapDarkMode}{Specifies if you want to use the dark leaflet map colour (default is FALSE)}
-
-\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 }
 \value{
 Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.

@@ -10,10 +10,10 @@ pointToPoint(output.dir, otpcon, originPoints, originPointsRow = 1,
   maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.4,
   bikeSpeed = 4.3, minTransferTime = 1, maxTransfers = 10,
   wheelchair = F, arriveBy = F, preWaitTime = 15, mapOutput = F,
-  mapPolylineColours = list(TRANSIT = "#000000", WALK = "#A14296", BUS =
-  "#48C1B1", RAIL = "#4D7BC5", CAR = "#E825D6", BICYCLE = "#4AA6C3"),
-  mapZoom = "bb", mapPolylineWeight = 5, mapPolylineOpacity = 1,
-  mapMarkerOpacity = 1, mapLegendOpacity = 1)
+  geojsonOutput = F, mapPolylineColours = list(TRANSIT = "#000000",
+  WALK = "#A14296", BUS = "#48C1B1", RAIL = "#4D7BC5", CAR = "#E825D6",
+  BICYCLE = "#4AA6C3"), mapZoom = "bb", mapPolylineWeight = 5,
+  mapPolylineOpacity = 1, mapMarkerOpacity = 1, mapLegendOpacity = 1)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -51,6 +51,8 @@ pointToPoint(output.dir, otpcon, originPoints, originPointsRow = 1,
 \item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
 
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
+
+\item{geojsonOutput}{Specifies whether you want to output the polylines as a geojson, defaults to FALSE}
 
 \item{mapPolylineColours}{A list defining the colours to assign to each mode of transport.}
 

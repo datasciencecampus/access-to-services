@@ -290,6 +290,7 @@ isochrone <- function(output.dir,
     row.names = F)
   
   if (geojsonOutput == T) {
+    isochrone_polygons@data$name <- from_origin$name
     rgdal::writeOGR(
       isochrone_polygons,
       dsn = paste0(output.dir,
