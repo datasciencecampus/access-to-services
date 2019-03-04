@@ -32,7 +32,8 @@ Imports:
   rgeos,
   htmlwidgets,
   gepaf,
-  geosphere
+  geosphere,
+  FNN
 Suggests:
   testthat,
   knitr, 

@@ -12,10 +12,14 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
   arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
   isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
   isochroneCutOffMax, isochroneCutOffStep), mapOutput = F,
-  geojsonOutput = F, mapPolygonColours = "Blues", mapZoom = "bb",
-  mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
-  mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
-  mapLegendOpacity = 0.5)
+  geojsonOutput = F, histOutput = F, mapPolygonColours = "Blues",
+  mapZoom = "bb", mapPolygonLineWeight = 0,
+  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 0.6,
+  originMarker = T, originMarkerColor = "red",
+  destinationMarkerSize = 10, destinationMarkerOpacity = 1,
+  destinationMarkerStroke = T, destinationMarkerStrokeColor = "black",
+  destinationMarkerStrokeWeight = 2, destinationMarkerColor = "black",
+  mapLegendOpacity = 0.5, mapDarkMode = F)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -58,6 +62,8 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 
+\item{histOutput}{Specifies whether you want to output a histogram, defaults to FALSE}
+
 \item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
 
 \item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
@@ -68,9 +74,25 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
 
-\item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
+\item{originMarker}{Specifies if you want to output the origin markers to the map (default is True)}
+
+\item{originMarkerColor}{Specifies the colour of the origin marker if it is within a isochrone (default is 'red')}
+
+\item{destinationMarkerSize}{Specifies the destination marker(s) size (default is 10)}
+
+\item{destinationMarkerOpacity}{Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)}
+
+\item{destinationMarkerStroke}{Specifies whether a destination marker(s) stroke is used (default is T)}
+
+\item{destinationMarkerStrokeColor}{Specifies the stroke color for the destination marker(s) (default is 'black')}
+
+\item{destinationMarkerStrokeWeight}{Specifies the marker stroke weight for the destination marker(s) (default is 2)}
+
+\item{destinationMarkerColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')}
 
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
+
+\item{mapDarkMode}{Specifies if you want to use the dark leaflet map colour (default is FALSE)}
 }
 \value{
 Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)

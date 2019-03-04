@@ -22,6 +22,7 @@
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
 ##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
+##' @param geojsonOutput Specifies whether you want to output the polylines as a geojson, defaults to FALSE
 ##' @param mapPolylineColours A list defining the colours to assign to each mode of transport.
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
 ##' @param mapPolylineWeight Specifies the weight of the polyline, defaults to 5 px
@@ -59,6 +60,7 @@ pointToPoint <- function(output.dir,
                          preWaitTime = 15,
                          # leaflet map args
                          mapOutput = F,
+                         geojsonOutput = F,
                          mapPolylineColours = list(
                            TRANSIT = "#000000",
                            WALK = "#A14296",
@@ -159,10 +161,14 @@ pointToPoint <- function(output.dir,
     #### OPTIONAL EXTRAS ####
     #########################
     
-    if (mapOutput == T) {
-      message("Generating map, please wait.\n")
+    if (mapOutput == T || geojsonOutput == T) {
       poly_lines <- point_to_point$poly_lines
       poly_lines <- sp::spTransform(poly_lines, sp::CRS("+init=epsg:4326"))
+    }
+    
+    if (mapOutput == T) {
+      message("Generating map, please wait.\n")
+
       popup_poly_lines <- paste0(
           "<strong>Mode: </strong>",
           poly_lines$mode,
@@ -275,6 +281,17 @@ pointToPoint <- function(output.dir,
         selfcontained = T) 
       unlink(paste0(output.dir, "/pointToPoint-map-", stamp, "_files"), recursive = T)
       unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
+    }
+    
+    if (geojsonOutput == T) {
+      rgdal::writeOGR(
+        poly_lines,
+        dsn = paste0(output.dir,
+                     "/pointToPoint-",
+                     stamp,
+                     ".geoJSON"),
+        layer = "poly_lines",
+        driver = "GeoJSON")
     }
     
   } else {

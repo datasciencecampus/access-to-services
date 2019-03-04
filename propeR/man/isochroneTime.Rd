@@ -14,11 +14,18 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
   arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
   isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
-  isochroneCutOffMax, isochroneCutOffStep), mapOutput = F,
-  mapPolygonColours = "Blues", mapZoom = "bb",
-  mapPolygonLineWeight = 5, mapPolygonLineOpacity = 1,
-  mapPolygonFillOpacity = 0.6, mapMarkerOpacity = 1,
-  mapLegendOpacity = 0.5)
+  isochroneCutOffMax, isochroneCutOffStep), gifOutput = F,
+  mapOutput = F, geojsonOutput = F, mapPolygonColours = "Blues",
+  mapZoom = "bb", mapPolygonLineWeight = 0,
+  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 0.6,
+  originMarker = T, originMarkerColor = "red",
+  destinationMarkerSize = 10, destinationMarkerOutOpacity = 1,
+  destinationMarkerInOpacity = 1, destinationMarkerStroke = T,
+  destinationMarkerStrokeColor = "black",
+  destinationMarkerStrokeWeight = 2,
+  destinationMarkerInColor = "white",
+  destinationMarkerOutColor = "black", mapLegendOpacity = 0.5,
+  mapDarkMode = F)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -61,7 +68,11 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, defaults 10}
 
-\item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
+\item{gifOutput}{Specifies whether you want to output a gif, defaults to FALSE}
+
+\item{mapOutput}{Specifies whether you want to output the maps, defaults to FALSE}
+
+\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 
 \item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
 
@@ -73,11 +84,29 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
 
-\item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
+\item{originMarker}{Specifies if you want to output the origin markers to the map (default is True)}
+
+\item{originMarkerColor}{Specifies the colour of the origin marker if it is within a isochrone (default is 'red')}
+
+\item{destinationMarkerSize}{Specifies the destination marker(s) size (default is 10)}
+
+\item{destinationMarkerOutOpacity}{Specifies the opacity of destination marker(s)if it is not within a isochrone (default is 1, solid)}
+
+\item{destinationMarkerInOpacity}{Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)}
+
+\item{destinationMarkerStroke}{Specifies whether a destination marker(s) stroke is used (default is T)}
+
+\item{destinationMarkerStrokeColor}{Specifies the stroke color for the destination marker(s) (default is 'black')}
+
+\item{destinationMarkerStrokeWeight}{Specifies the marker stroke weight for the destination marker(s) (default is 2)}
+
+\item{destinationMarkerInColor}{Specifies the colour of destination marker(s)if it is within a isochrone (default is 'white')}
+
+\item{destinationMarkerOutColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')}
 
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 
-\item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
+\item{mapDarkMode}{Specifies if you want to use the dark leaflet map colour (default is FALSE)}
 }
 \value{
 Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
