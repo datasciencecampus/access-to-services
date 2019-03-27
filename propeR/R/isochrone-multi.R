@@ -23,23 +23,23 @@
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
 ##' @param isochroneCutOffMax Provide the maximum cutoff time for the isochrone, defaults 90
 ##' @param isochroneCutOffMin Provide the minimum cutoff time for the isochrone, defaults 10
-##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, defaults 10
+##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, 0 denotes no step is required (returns isochroneCutOffMax only), defaults 10
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param histOutput Specifies whether you want to output a histogram, defaults to FALSE
-##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
-##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
+##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 1 px
+##' @param mapPolygonLineColor Specifies the color of the polygon, defaults to 'white'
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
-##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
+##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 1
 ##' @param originMarker Specifies if you want to output the origin markers to the map (default is True)
 ##' @param originMarkerColor Specifies the colour of the origin marker if it is within a isochrone (default is 'red')
-##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 10)
+##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 3)
 ##' @param destinationMarkerOpacity Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)
 ##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
 ##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
-##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 2)
-##' @param destinationMarkerColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')
+##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 1)
+##' @param destinationMarkerColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#00FFAE')
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
 ##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
@@ -79,31 +79,25 @@ isochroneMulti <- function(output.dir,
                            geojsonOutput = F,
                            histOutput = F,
                            # leaflet map args
-                           mapPolygonColours = "Blues",
                            mapZoom = "bb",
-                           mapPolygonLineWeight = 0,
+                           mapPolygonLineWeight = 1,
+                           mapPolygonLineColor = 'white',
                            mapPolygonLineOpacity = 1,
-                           mapPolygonFillOpacity = 0.6,
+                           mapPolygonFillOpacity = 1,
                            originMarker = T,
                            originMarkerColor = 'red',
-                           destinationMarkerSize = 10,
+                           destinationMarkerSize = 3,
                            destinationMarkerOpacity = 1,
                            destinationMarkerStroke = T,
                            destinationMarkerStrokeColor = 'black',
-                           destinationMarkerStrokeWeight = 2,
-                           destinationMarkerColor = 'black',
+                           destinationMarkerStrokeWeight = 1,
+                           destinationMarkerColor = '#00FFAE',
                            mapLegendOpacity = 0.5,
                            mapDarkMode = F) {
   
   message("Now running the propeR isochroneMulti tool.\n")
   
   stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S") 
-  
-  if (mapOutput == T) {
-    library(leaflet)
-    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
-  }
   
   #########################
   #### SETUP VARIABLES ####
@@ -123,6 +117,25 @@ isochroneMulti <- function(output.dir,
   time.taken <- vector()
   originPoints_removed <- c()
   originPoints_removed_list <- c()
+  
+  if (isochroneCutOffStep == 0){
+    isochroneCutOffs <- isochroneCutOffMax
+  } else {
+    isochroneCutOffs <- seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep)
+  }
+  
+  if (mapDarkMode == T){
+    mapPolygonColours <- c("#4365BC", "#5776C4", "#6C87CC", "#8098D4", "#95A9DB", "#AABAE3", "#BFCBEA", "#D4DCF1", "#E9EEF8")
+  } else {
+    mapPolygonColours <- c("#192448", "#1F2B58", "#243368", "#293B78", "#2E4288", "#334A98", "#3851A8", "#3D58B9", "#4863C3")
+  }
+  
+  if (mapOutput == T) {
+    library(leaflet)
+    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
+    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
+  }
+  
   message("Creating ", num.total, " isochrones, please wait...")
   
   for (i in num.start:num.end) {
@@ -160,7 +173,16 @@ isochroneMulti <- function(output.dir,
         originPoints_removed_list <- c(originPoints_removed_list, num.run)
         end.time <- Sys.time()
         time.taken[num.run] <- round(end.time - start.time, digits = 2)
-        message("Removed ", originPoints$name[num.run], " from analysis as no polygon could be generated from it.")
+        message(num.run,
+                "/",
+                num.total,
+                ": Isochrone failed for ",
+                originPoints$name[num.run],
+                ". Removed ",
+                originPoints$name[num.run],
+                " from analysis as no polygon could be generated from it. Time taken ",
+                round(sum(time.taken), digit = 2),
+                " seconds.")
         next
         
       } else {
@@ -172,20 +194,20 @@ isochroneMulti <- function(output.dir,
             nrow = 1)) 
         isochrone_polygons_split <- sp::split(isochrone_polygons, isochrone_polygons@data$time) 
         
-        for (n in 1:length(isochroneCutOffs)) {
-          
-          if ("try-error" %in% class(t)) {
-            time_df_tmp[n, ] <- NA
-            message("Some polygons could not be generated, A cutoff level may be too small for ", originPoints$name[num.run], ".")
-            next
-            
-          } else {
+        if (length(isochrone_polygons) != length(isochroneCutOffs)){
+          cutoff_error_message <- paste0(" (Note: A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons_tmp@data$time)/60), " minutes could not be produced for ", originPoints$name[num.run], ").")
+        } else {
+          cutoff_error_message <- '.'
+        }
+        
+        for (n in 1:length(isochrone_polygons)) {
+        
             time_df_tmp2 <- sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
             time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
             time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index),]
             time_df_tmp[n, ] <- time_df_tmp2[, 2]
             remove(time_df_tmp2)
-          }
+          
         }
         
         options(warn = -1)
@@ -207,7 +229,16 @@ isochroneMulti <- function(output.dir,
         originPoints_removed_list <- c(originPoints_removed_list, num.run)
         end.time <- Sys.time()
         time.taken[num.run] <- round(end.time - start.time, digits = 2)
-        message("Removed ", originPoints$name[num.run], " from analysis as no polygon could be generated from it.")
+        message(num.run,
+                "/",
+                num.total,
+                ": Isochrone failed for ",
+                originPoints$name[num.run],
+                ". Removed ", 
+                originPoints$name[num.run],
+                " from analysis as no polygon could be generated from it. Time taken ",
+                round(sum(time.taken), digit = 2),
+                " seconds")
         next
         
       } else {
@@ -225,20 +256,20 @@ isochroneMulti <- function(output.dir,
             ncol = nrow(destinationPoints),
             nrow = 1)) 
         isochrone_polygons_split <- sp::split(isochrone_polygons_tmp, isochrone_polygons_tmp@data$time) 
-        for (n in 1:length(isochroneCutOffs)) {
-          t <- try(time_df_tmp2 <- sp::over(destination_points_spdf, isochrone_polygons_split[[n]]))
-          
-          if ("try-error" %in% class(t)) {
-            time_df_tmp[n, ] <- NA
-            message("Some polygons could not be generated, A cutoff level may be too small for ", originPoints$name[num.run], ".")
-            next
-            
-          } else {
+        
+        if (length(isochrone_polygons_tmp) != length(isochroneCutOffs)){
+          cutoff_error_message <- paste0(" (Note: A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons_tmp@data$time)/60), " minutes could not be produced for ", originPoints$name[num.run], ").")
+        } else {
+          cutoff_error_message <- '.'
+        }
+        
+        for (n in 1:length(isochrone_polygons_tmp)) {
+
             time_df_tmp2 <- sp::over(destination_points_spdf, isochrone_polygons_split[[n]]) # Finds the polygon the destination point falls within
             time_df_tmp2$index <- as.numeric(row.names(time_df_tmp2))
             time_df_tmp2 <- time_df_tmp2[order(time_df_tmp2$index),]
             time_df_tmp[n, ] <- time_df_tmp2[, 2]
-          }
+          
         }
         
         for (n in 1:ncol(time_df_tmp)) {
@@ -277,25 +308,32 @@ isochroneMulti <- function(output.dir,
     if (i < nrow(originPoints)) {
       message(
         num.run,
-        " out of ",
+        "/",
         num.total,
-        " isochrones complete. Time taken ",
+        ": Isochrone complete for ",
+        originPoints$name[num.run],
+        ". Time taken ",
         round(sum(time.taken), digit = 2),
         " seconds. Estimated time left is approx. ",
         round((
           mean(time.taken) * num.total
         ) - sum(time.taken),
         digits = 2),
-        " seconds."
+        " seconds",
+        cutoff_error_message
       )
     } else {
       message(
         num.run,
-        " out of ",
+        "/",
         num.total,
-        " isochrones complete. Time taken ",
+        ": Isochrone complete for ",
+        originPoints$name[num.run],
+        ". Time taken ",
         sum(time.taken),
-        " seconds.\n"
+        " seconds",
+        cutoff_error_message,
+        "\n"
       )
     }
     
@@ -328,13 +366,6 @@ isochroneMulti <- function(output.dir,
           driver = "GeoJSON")
       }
       
-      if (mapOutput == T) {
-        invisible(print(m)) 
-        mapview::mapshot(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".png"))
-        htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneMulti-", stamp, ".html")) 
-        unlink(paste0(output.dir, "/isochroneMulti-", stamp, "_files"), recursive = T) 
-        unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
-      }
     }
   }
   
@@ -384,13 +415,12 @@ isochroneMulti <- function(output.dir,
         m,
         data = isochrone_polygons,
         stroke = T,
-        color = palIsochrone(rev(isochroneCutOffs)),
+        color = mapPolygonLineColor,
         opacity = mapPolygonLineOpacity,
         weight = mapPolygonLineWeight,
-        dashArray = 2,
         smoothFactor = 0.3,
         fillOpacity = mapPolygonFillOpacity,
-        fillColor = palIsochrone(rev(isochroneCutOffs)))
+        fillColor = palIsochrone(isochrone_polygons@data$time))
     m <- addCircleMarkers(
         m,
         data = destinationPoints,
@@ -408,12 +438,12 @@ isochroneMulti <- function(output.dir,
       pal = palIsochrone,
       values = isochroneCutOffs,
       opacity = mapLegendOpacity,
-      title = "Duration (minutes)")
+      title = "Duration (mins)")
     if (originMarker == T){
       m <-
         addAwesomeMarkers(
           m,
-          data = from_origin,
+          data = originPoints,
           lat = ~ lat,
           lng = ~ lon,
           popup = ~ name,
@@ -429,7 +459,15 @@ isochroneMulti <- function(output.dir,
   #### SAVE RESULTS ####
   ######################
 
-  message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
+  message("Analysis complete. Isochrones were generated for ",
+          length(originPoints_removed_list),
+          "/",
+          num.total,
+          " (",
+          round((length(originPoints_removed_list)/num.total)*100,2),
+          "%) origin points. Now saving outputs to ", 
+          output.dir,
+          ", please wait.\n")
 
   is.na(time_df) <- sapply(time_df, is.infinite)
     

@@ -23,24 +23,24 @@
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
 ##' @param isochroneCutOffMax Provide the maximum cutoff time for the isochrone, defaults 90
 ##' @param isochroneCutOffMin Provide the minimum cutoff time for the isochrone, defaults 10
-##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, defaults 10
+##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, 0 denotes no step is required (returns isochroneCutOffMax only), defaults 10
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
-##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
-##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 5 px
+##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 1 px
+##' @param mapPolygonLineColor Specifies the color of the polygon, defaults to 'white'
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
-##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 0.6
+##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 1
 ##' @param originMarker Specifies if you want to output the origin markers to the map (default is True)
 ##' @param originMarkerColor Specifies the colour of the origin marker if it is within a isochrone (default is 'red')
-##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 10)
+##' @param destinationMarkerSize Specifies the destination marker(s) size (default is 3)
 ##' @param destinationMarkerOutOpacity Specifies the opacity of destination marker(s)if it is not within a isochrone (default is 1, solid)
 ##' @param destinationMarkerInOpacity Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)
 ##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
 ##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
-##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 2)
-##' @param destinationMarkerInColor Specifies the colour of destination marker(s)if it is within a isochrone (default is 'white')
-##' @param destinationMarkerOutColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')
+##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 1)
+##' @param destinationMarkerInColor Specifies the colour of destination marker(s)if it is within a isochrone (default is '#00FFAE')
+##' @param destinationMarkerOutColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#FF00E0')
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
 ##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved
@@ -75,35 +75,28 @@ isochrone <- function(output.dir,
                       isochroneCutOffMax = 90,
                       isochroneCutOffMin = 10,
                       isochroneCutOffStep = 10,
-                      isochroneCutOffs = seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep),
                       # leaflet map args
                       mapOutput = F,
                       geojsonOutput = F,
-                      mapPolygonColours = "Blues",
                       mapZoom = "bb",
-                      mapPolygonLineWeight = 0,
+                      mapPolygonLineWeight = 1,
+                      mapPolygonLineColor = 'white',
                       mapPolygonLineOpacity = 1,
-                      mapPolygonFillOpacity = 0.6,
+                      mapPolygonFillOpacity = 1,
                       originMarker = T,
                       originMarkerColor = 'red',
-                      destinationMarkerSize = 10,
+                      destinationMarkerSize = 3,
                       destinationMarkerOutOpacity = 1,
                       destinationMarkerInOpacity = 1,
                       destinationMarkerStroke = T,
                       destinationMarkerStrokeColor = 'black',
-                      destinationMarkerStrokeWeight = 2,
-                      destinationMarkerInColor = 'white',
-                      destinationMarkerOutColor = 'black',
+                      destinationMarkerStrokeWeight = 1,
+                      destinationMarkerInColor = '#00FFAE',
+                      destinationMarkerOutColor = '#FF00E0',
                       mapLegendOpacity = 0.5,
                       mapDarkMode = F) {
   
   message("Now running the propeR isochrone tool.\n")
-  
-  if (mapOutput == T) {
-    library(leaflet)
-    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) 
-    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
-  }
   
   #########################
   #### SETUP VARIABLES ####
@@ -121,6 +114,25 @@ isochrone <- function(output.dir,
   start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") 
   start_date <- as.Date(startDateAndTime) 
   date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") 
+  
+  if (isochroneCutOffStep == 0){
+    isochroneCutOffs <- isochroneCutOffMax
+  } else {
+    isochroneCutOffs <- seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep)
+  }
+  
+  if (mapDarkMode == T){
+    mapPolygonColours <- c("#4365BC", "#5776C4", "#6C87CC", "#8098D4", "#95A9DB", "#AABAE3", "#BFCBEA", "#D4DCF1", "#E9EEF8")
+  } else {
+    mapPolygonColours <- c("#192448", "#1F2B58", "#243368", "#293B78", "#2E4288", "#334A98", "#3851A8", "#3D58B9", "#4863C3")
+  }
+  
+  if (mapOutput == T) {
+    library(leaflet)
+    pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL) 
+    palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
+  }
+  
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -149,13 +161,17 @@ isochrone <- function(output.dir,
   destination_points_spdf <- destinationPoints 
   sp::coordinates(destination_points_spdf) <- ~ lon + lat 
   sp::proj4string(destination_points_spdf) <- sp::proj4string(isochrone_polygons) 
-    isochrone_polygons_split <- sp::split(isochrone_polygons, isochrone_polygons@data$time) 
+  isochrone_polygons_split <- sp::split(isochrone_polygons, isochrone_polygons@data$time) 
   
   time_df <- data.frame(matrix(,
-      ncol = length(isochroneCutOffs),
-      nrow = nrow(destination_points_spdf))) 
+                               ncol = length(isochroneCutOffs),
+                               nrow = nrow(destination_points_spdf))) 
   
-  for (i in 1:length(isochroneCutOffs)) {
+  if (length(isochrone_polygons) != length(isochroneCutOffs)){
+    message("A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons@data$time)/60), " minutes could not be produced.")
+  }
+  
+  for (i in 1:length(isochrone_polygons)) {
     time_df_tmp <- sp::over(destination_points_spdf, isochrone_polygons_split[[i]])
     time_df[, i] <- time_df_tmp[, 2]
   }
@@ -210,13 +226,12 @@ isochrone <- function(output.dir,
       m,
       data = isochrone_polygons,
       stroke = T,
-      color = palIsochrone(rev(isochroneCutOffs)),
+      color = mapPolygonLineColor,
       opacity = mapPolygonLineOpacity,
       weight = mapPolygonLineWeight,
-      dashArray = 2,
       smoothFactor = 0.3,
       fillOpacity = mapPolygonFillOpacity,
-      fillColor = palIsochrone(rev(isochroneCutOffs))
+      fillColor = palIsochrone(isochrone_polygons@data$time)
     )
     m <- addCircleMarkers(
       m,
@@ -251,7 +266,7 @@ isochrone <- function(output.dir,
       pal = palIsochrone,
       values = isochroneCutOffs,
       opacity = mapLegendOpacity,
-      title = "Duration (minutes)"
+      title = "Duration (mins)"
     )
     m <- addLegend(
       m,

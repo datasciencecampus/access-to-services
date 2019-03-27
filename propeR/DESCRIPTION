@@ -33,7 +33,8 @@ Imports:
   htmlwidgets,
   gepaf,
   geosphere,
-  FNN
+  FNN,
+  RColorBrewer
 Suggests:
   testthat,
   knitr, 

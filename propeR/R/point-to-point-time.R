@@ -398,9 +398,11 @@ pointToPointTime <- function(output.dir,
     if (num.run < num.total) {
       message(
         num.run,
-        " out of ",
+        "/",
         num.total,
-        " connections complete. Time taken ",
+        ": Travel time calculation complete for time ",
+        time,
+        ". Time taken ",
         round(sum(time.taken), digit = 2),
         " seconds. Estimated time left is approx. ",
         round((
@@ -411,9 +413,11 @@ pointToPointTime <- function(output.dir,
     } else {
       message(
         num.run,
-        " out of ",
+        "/",
         num.total,
-        " connections complete. Time taken ",
+        ": Travel time calculation complete for time ",
+        time,
+        ". Time taken ",
         sum(time.taken),
         " seconds.\n")
     }

@@ -39,3 +39,5 @@ manual.html
 # emacs scratch
 *~
 *\#*
+#R
+download.R
