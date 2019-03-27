@@ -27,7 +27,7 @@ pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{journeyLoop}{Specifies the type of loop, only origins (1), only destinations (2), or both (0, default)}
 
-\item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is TRUE)}
+\item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is FALSE)}
 
 \item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 

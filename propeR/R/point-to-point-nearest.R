@@ -7,7 +7,7 @@
 ##' @param otpcon The OTP router URL, see ?otpcon for details
 ##' @param originPoints The variable containing origin(s), see ?importLocationData for details
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData for details
-##' @param journeyReturn Specifies whether the journey should be calculated as a return or not (default is TRUE)
+##' @param journeyReturn Specifies whether the journey should be calculated as a return or not (default is FALSE)
 ##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
 ##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
 ##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
@@ -66,9 +66,9 @@ pointToPointNearest <- function(output.dir,
   originPointsSpatial <- originPoints
   destinationPointsSpatial <- destinationPoints
   
-  coordinates(originPointsSpatial) <- c("lon","lat")
-  coordinates(destinationPointsSpatial) <- c("lon","lat")
-  g = FNN::get.knnx(coordinates(destinationPointsSpatial), coordinates(originPointsSpatial),k=nearestNum)
+  sp::coordinates(originPointsSpatial) <- c("lon","lat")
+  sp::coordinates(destinationPointsSpatial) <- c("lon","lat")
+  g = FNN::get.knnx(sp::coordinates(destinationPointsSpatial), sp::coordinates(originPointsSpatial), k = nearestNum)
   pair = g$nn.index
   
   num.run <- 0
@@ -234,9 +234,13 @@ pointToPointNearest <- function(output.dir,
         if (num.run < num.total) {
           message(
             num.run,
-            " out of ",
+            "/",
             num.total,
-            " connections complete. Time taken ",
+            ": Travel time calculation complete for ",
+            from$name,
+            " to ",
+            to$name,
+            ". Time taken ",
             round(sum(time.taken), digits = 2),
             " seconds. Estimated time left is approx. ",
             round((mean(
@@ -248,9 +252,13 @@ pointToPointNearest <- function(output.dir,
         } else {
           message(
             num.run,
-            " out of ",
+            "/",
             num.total,
-            " connections complete. Time taken ",
+            ": Travel time calculation complete for ",
+            from$name,
+            " to ",
+            to$name,
+            ". Time taken ",
             sum(time.taken),
             " seconds.\n"
           )

@@ -20,7 +20,7 @@ pointToPointNearest(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
-\item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is TRUE)}
+\item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is FALSE)}
 
 \item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
 

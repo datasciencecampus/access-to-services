@@ -16,15 +16,15 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
   isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
   isochroneCutOffMax, isochroneCutOffStep), gifOutput = F,
   mapOutput = F, geojsonOutput = F, mapPolygonColours = "Blues",
-  mapZoom = "bb", mapPolygonLineWeight = 0,
-  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 0.6,
-  originMarker = T, originMarkerColor = "red",
-  destinationMarkerSize = 10, destinationMarkerOutOpacity = 1,
-  destinationMarkerInOpacity = 1, destinationMarkerStroke = T,
-  destinationMarkerStrokeColor = "black",
-  destinationMarkerStrokeWeight = 2,
-  destinationMarkerInColor = "white",
-  destinationMarkerOutColor = "black", mapLegendOpacity = 0.5,
+  mapZoom = "bb", mapPolygonLineWeight = 1,
+  mapPolygonLineColor = "white", mapPolygonLineOpacity = 1,
+  mapPolygonFillOpacity = 1, originMarker = T,
+  originMarkerColor = "red", destinationMarkerSize = 3,
+  destinationMarkerOutOpacity = 1, destinationMarkerInOpacity = 1,
+  destinationMarkerStroke = T, destinationMarkerStrokeColor = "black",
+  destinationMarkerStrokeWeight = 1,
+  destinationMarkerInColor = "#00FFAE",
+  destinationMarkerOutColor = "#FF00E0", mapLegendOpacity = 0.5,
   mapDarkMode = F)
 }
 \arguments{
@@ -78,17 +78,19 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 
-\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
+\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 1 px}
+
+\item{mapPolygonLineColor}{Specifies the color of the polygon, defaults to 'white'}
 
 \item{mapPolygonLineOpacity}{Specifies the opacity of the polygon line, defaults to 1 (solid)}
 
-\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
+\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 1}
 
 \item{originMarker}{Specifies if you want to output the origin markers to the map (default is True)}
 
 \item{originMarkerColor}{Specifies the colour of the origin marker if it is within a isochrone (default is 'red')}
 
-\item{destinationMarkerSize}{Specifies the destination marker(s) size (default is 10)}
+\item{destinationMarkerSize}{Specifies the destination marker(s) size (default is 3)}
 
 \item{destinationMarkerOutOpacity}{Specifies the opacity of destination marker(s)if it is not within a isochrone (default is 1, solid)}
 
@@ -98,11 +100,11 @@ isochroneTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{destinationMarkerStrokeColor}{Specifies the stroke color for the destination marker(s) (default is 'black')}
 
-\item{destinationMarkerStrokeWeight}{Specifies the marker stroke weight for the destination marker(s) (default is 2)}
+\item{destinationMarkerStrokeWeight}{Specifies the marker stroke weight for the destination marker(s) (default is 1)}
 
-\item{destinationMarkerInColor}{Specifies the colour of destination marker(s)if it is within a isochrone (default is 'white')}
+\item{destinationMarkerInColor}{Specifies the colour of destination marker(s)if it is within a isochrone (default is '#00FFAE')}
 
-\item{destinationMarkerOutColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')}
+\item{destinationMarkerOutColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#FF00E0')}
 
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 

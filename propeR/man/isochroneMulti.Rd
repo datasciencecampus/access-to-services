@@ -12,14 +12,15 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
   arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
   isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
   isochroneCutOffMax, isochroneCutOffStep), mapOutput = F,
-  geojsonOutput = F, histOutput = F, mapPolygonColours = "Blues",
-  mapZoom = "bb", mapPolygonLineWeight = 0,
-  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 0.6,
+  geojsonOutput = F, histOutput = F, mapZoom = "bb",
+  mapPolygonLineWeight = 1, mapPolygonLineColor = "white",
+  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 1,
   originMarker = T, originMarkerColor = "red",
-  destinationMarkerSize = 10, destinationMarkerOpacity = 1,
+  destinationMarkerSize = 3, destinationMarkerOpacity = 1,
   destinationMarkerStroke = T, destinationMarkerStrokeColor = "black",
-  destinationMarkerStrokeWeight = 2, destinationMarkerColor = "black",
-  mapLegendOpacity = 0.5, mapDarkMode = F)
+  destinationMarkerStrokeWeight = 1,
+  destinationMarkerColor = "#00FFAE", mapLegendOpacity = 0.5,
+  mapDarkMode = F)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -56,7 +57,7 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{isochroneCutOffMin}{Provide the minimum cutoff time for the isochrone, defaults 10}
 
-\item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, defaults 10}
+\item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, 0 denotes no step is required (returns isochroneCutOffMax only), defaults 10}
 
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
@@ -64,21 +65,21 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{histOutput}{Specifies whether you want to output a histogram, defaults to FALSE}
 
-\item{mapPolygonColours}{The color palette of the map, defaults to 'Blues'}
-
 \item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 
-\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 5 px}
+\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 1 px}
+
+\item{mapPolygonLineColor}{Specifies the color of the polygon, defaults to 'white'}
 
 \item{mapPolygonLineOpacity}{Specifies the opacity of the polygon line, defaults to 1 (solid)}
 
-\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 0.6}
+\item{mapPolygonFillOpacity}{Specifies the opacity of the polygon fill, defaults to 1}
 
 \item{originMarker}{Specifies if you want to output the origin markers to the map (default is True)}
 
 \item{originMarkerColor}{Specifies the colour of the origin marker if it is within a isochrone (default is 'red')}
 
-\item{destinationMarkerSize}{Specifies the destination marker(s) size (default is 10)}
+\item{destinationMarkerSize}{Specifies the destination marker(s) size (default is 3)}
 
 \item{destinationMarkerOpacity}{Specifies the opacity of destination marker(s)if it is within a isochrone (default is 1, solid)}
 
@@ -86,9 +87,9 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{destinationMarkerStrokeColor}{Specifies the stroke color for the destination marker(s) (default is 'black')}
 
-\item{destinationMarkerStrokeWeight}{Specifies the marker stroke weight for the destination marker(s) (default is 2)}
+\item{destinationMarkerStrokeWeight}{Specifies the marker stroke weight for the destination marker(s) (default is 1)}
 
-\item{destinationMarkerColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'black')}
+\item{destinationMarkerColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#00FFAE')}
 
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
 
