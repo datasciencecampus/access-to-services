@@ -12,12 +12,13 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
   arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
   isochroneCutOffStep = 10, isochroneCutOffs = seq(isochroneCutOffMin,
   isochroneCutOffMax, isochroneCutOffStep), mapOutput = F,
-  geojsonOutput = F, histOutput = F, mapZoom = "bb",
-  mapPolygonLineWeight = 1, mapPolygonLineColor = "white",
-  mapPolygonLineOpacity = 1, mapPolygonFillOpacity = 1,
-  originMarker = T, originMarkerColor = "red",
-  destinationMarkerSize = 3, destinationMarkerOpacity = 1,
-  destinationMarkerStroke = T, destinationMarkerStrokeColor = "black",
+  geojsonOutput = F, histOutput = F, failSafeSave = 100,
+  mapZoom = "bb", mapPolygonLineWeight = 1,
+  mapPolygonLineColor = "white", mapPolygonLineOpacity = 1,
+  mapPolygonFillOpacity = 1, originMarker = T,
+  originMarkerColor = "red", destinationMarkerSize = 3,
+  destinationMarkerOpacity = 1, destinationMarkerStroke = T,
+  destinationMarkerStrokeColor = "black",
   destinationMarkerStrokeWeight = 1,
   destinationMarkerColor = "#00FFAE", mapLegendOpacity = 0.5,
   mapDarkMode = F)
@@ -64,6 +65,8 @@ isochroneMulti(output.dir, otpcon, originPoints, destinationPoints,
 \item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 
 \item{histOutput}{Specifies whether you want to output a histogram, defaults to FALSE}
+
+\item{failSafeSave}{Specify the failsafe save number for large datasets, default is 100}
 
 \item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 

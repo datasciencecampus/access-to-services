@@ -42,6 +42,7 @@
 ##' @param destinationMarkerColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#00FFAE')
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
 ##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
+##' @param failSafeSave Specify the failsafe save number for large datasets, default is 100
 ##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
 ##' @author Michael Hodge
 ##' @examples
@@ -78,6 +79,7 @@ isochroneMulti <- function(output.dir,
                            mapOutput = F,
                            geojsonOutput = F,
                            histOutput = F,
+                           failSafeSave = 100,
                            # leaflet map args
                            mapZoom = "bb",
                            mapPolygonLineWeight = 1,
@@ -337,7 +339,7 @@ isochroneMulti <- function(output.dir,
       )
     }
     
-    if ((num.run/100) %% 1 == 0) { # fail safe for large files
+    if ((num.run+1/failSafeSave) %% 1 == 0) { # fail safe for large files
       
       message("Large dataset, failsafe, saving outputs to ", output.dir, ", please wait.")
       
@@ -363,7 +365,8 @@ isochroneMulti <- function(output.dir,
                        stamp,
                        ".geoJSON"),
           layer = "isochrone_polygons",
-          driver = "GeoJSON")
+          driver = "GeoJSON",
+          overwrite_layer = TRUE)
       }
       
     }
@@ -460,11 +463,11 @@ isochroneMulti <- function(output.dir,
   ######################
 
   message("Analysis complete. Isochrones were generated for ",
-          length(originPoints_removed_list),
+          num.total-length(originPoints_removed_list),
           "/",
           num.total,
           " (",
-          round((length(originPoints_removed_list)/num.total)*100,2),
+          round(((num.total0length(originPoints_removed_list))/num.total)*100,2),
           "%) origin points. Now saving outputs to ", 
           output.dir,
           ", please wait.\n")
@@ -499,7 +502,8 @@ isochroneMulti <- function(output.dir,
                    stamp,
                    ".geoJSON"),
       layer = "isochrone_polygons",
-      driver = "GeoJSON")
+      driver = "GeoJSON",
+      overwrite_layer = TRUE)
   }
   
   if (mapOutput == T) {
