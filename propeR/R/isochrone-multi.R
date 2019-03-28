@@ -197,7 +197,7 @@ isochroneMulti <- function(output.dir,
         isochrone_polygons_split <- sp::split(isochrone_polygons, isochrone_polygons@data$time) 
         
         if (length(isochrone_polygons) != length(isochroneCutOffs)){
-          cutoff_error_message <- paste0(" (Note: A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons_tmp@data$time)/60), " minutes could not be produced for ", originPoints$name[num.run], ").")
+          cutoff_error_message <- paste0(" (Note: A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons@data$time)/60), " minutes could not be produced for ", originPoints$name[num.run], ").")
         } else {
           cutoff_error_message <- '.'
         }
