@@ -467,7 +467,7 @@ isochroneMulti <- function(output.dir,
           "/",
           num.total,
           " (",
-          round(((num.total0length(originPoints_removed_list))/num.total)*100,2),
+          round(((num.total-length(originPoints_removed_list))/num.total)*100,2),
           "%) origin points. Now saving outputs to ", 
           output.dir,
           ", please wait.\n")
