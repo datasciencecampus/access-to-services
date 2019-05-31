@@ -145,8 +145,10 @@ otpTripDistance <- function(otpcon,
 ##'   )
 ##' @export
 otpTripTime <- function(otpcon,
-                        from,
-                        to,
+                        from_name,
+                        from_lat_lon,
+                        to_name,
+                        to_lat_lon,
                         modes = 'WALK,TRANSIT',
                         detail = TRUE,
                         date,
@@ -168,8 +170,8 @@ otpTripTime <- function(otpcon,
   routerUrl <- paste0(otpcon, '/plan')
   
   params <- list(
-    fromPlace = from,
-    toPlace = to,
+    fromPlace = from_lat_lon,
+    toPlace = to_lat_lon,
     mode = modes,
     date = date,
     time = time,
@@ -225,6 +227,7 @@ otpTripTime <- function(otpcon,
             select = c(
               'start',
               'end',
+              'walkDistance',
               'duration',
               'walkTime',
               'transitTime',
@@ -233,47 +236,65 @@ otpTripTime <- function(otpcon,
             )
           )
         
-        # convert seconds into minutes where applicable
-        ret.df[, 3:6] <- round(ret.df[, 3:6] / 60, digits = 2)
+        ret.df$distance_km <- round(sum(df$legs[[1]]$distance) / 1000, digits = 2)
         
+        # round walking distance
+        ret.df[, 3] <- round(ret.df[, 3] / 1000, digits = 2)
+        
+        # convert seconds into minutes where applicable
+        ret.df[, 4:7] <- round(ret.df[, 4:7] / 60, digits = 2)
+        
+        # add in name of origin and destination
+        ret.df$origin <- from_name
+        ret.df$destination <- to_name
+        
+        ret.df <- ret.df[, c(10, 11, 1, 2, 9, 4, 3, 5, 6, 7, 8)]
+        
+        colnames(ret.df) <- c(
+          "origin",
+          "destination",
+          "start_time",
+          "end_time",
+          "distance_km",
+          "duration_mins",
+          "walk_distance_km",
+          "walk_time_mins",
+          "transit_time_mins",
+          "waiting_time_mins",
+          "transfers")
+    
         # rename walkTime column as appropriate - this a mistake in OTP
         if (modes == "CAR") {
-          names(ret.df)[names(ret.df) == 'walkTime'] <- 'driveTime'
+          names(ret.df)[names(ret.df) == 'walk_time_mins'] <- 'drive_time_mins'
         } else if (modes == "BICYCLE") {
-          names(ret.df)[names(ret.df) == 'walkTime'] <- 'cycleTime'
+          names(ret.df)[names(ret.df) == 'walk_time_mins'] <- 'cycle_time_mins'
         }
         
         # If legs are null then use the input data to build the dataframe
         if (is.null(df$legs)) {
-          df2 <- data.frame(matrix(ncol = 12, nrow = 1))
+          df2 <- data.frame(matrix(ncol = 13, nrow = 1))
           df2_col_names <- c(
-            "startTime",
-            "endTime",
-            "distance",
-            "name",
+            "origin",
+            "destination",
+            "start_time",
+            "end_time",
+            "distance_km",
             "from_lat",
             "from_lon",
             "to_lat",
             "to_lon",
             "mode",
-            "agencyName",
-            "routeShortName",
-            "duration"
+            "agency_name",
+            "route_name",
+            "duration_mins"
           )
           
           colnames(df2) <- df2_col_names
           
-          df2$startTime <- df$start
-          df2$endTime <- df$end
-          df2$name <- 'Journey'
-          df2$from_lat <- gsub(",.*$", "", from)
-          df2$from_lon <- sub('.*,\\s*', '', from)
-          df2$to_lat <- gsub(",.*$", "", to)
-          df2$to_lon <- sub('.*,\\s*', '', to)
-          df2$mode <- mode
-          df2$agencyName <- mode
-          df2$routeShortName <- mode
-          df2$duration <- df$duration
+          df2$origin <- from_name
+          df2$destination <- to_name
+          df2$start_time <- df$start
+          df2$end_time <- df$end
           df2$distance <- round(distm(
             c(
               as.numeric(df2$from_lon),
@@ -283,6 +304,15 @@ otpTripTime <- function(otpcon,
               as.numeric(df2$to_lat)),
             fun = distHaversine
           ) / 1000, digits = 2)
+          df2$from_lat <- gsub(",.*$", "", from)
+          df2$from_lon <- sub('.*,\\s*', '', from)
+          df2$to_lat <- gsub(",.*$", "", to)
+          df2$to_lon <- sub('.*,\\s*', '', to)
+          df2$mode <- mode
+          df2$agencyName <- mode
+          df2$routeShortName <- mode
+          df2$duration <- df$duration
+
         } else {
           df2 <- df$legs[[1]]
           
@@ -299,29 +329,42 @@ otpTripTime <- function(otpcon,
         #Constructs dataframe of lats and longs from origin to destination
         output_table_nrow <- nrow(df2)
         output_table_col_names <- c(
-          "startTime",
-          "endTime",
-          "distance",
-          "name",
+          "from",
+          "to",
+          "start_time",
+          "end_time",
+          "distance_km",
           "from_lat",
           "from_lon",
           "to_lat",
           "to_lon",
           "mode",
-          "agencyName",
-          "routeShortName",
-          "duration"
+          "agency_name",
+          "route_name",
+          "duration_mins"
         )
         
         output_table <-
-          data.frame(matrix(ncol = 12, nrow = output_table_nrow))
+          data.frame(matrix(ncol = 13, nrow = output_table_nrow))
         colnames(output_table) <- output_table_col_names
         
         for (i in 1:output_table_nrow) {
-          output_table$startTime[i] <- df2$startTime[i]
-          output_table$endTime[i] <- df2$endTime[i]
-          output_table$distance[i] <- df2$distance[i]
-          output_table$name[i] <- df2$from$name[i]
+          
+          if (i == 1){
+            output_table$from[i] <- paste0(from_name, " (origin)")
+          } else {
+            output_table$from[i] <- df2$from$name[i]
+          }
+          
+          if (i == output_table_nrow){
+            output_table$to[i] <- paste0(to_name, " (destination)")
+          } else {
+            output_table$to[i] <- df2$from$name[i+1]
+          }
+          
+          output_table$start_time[i] <- df2$startTime[i]
+          output_table$end_time[i] <- df2$endTime[i]
+          output_table$distance_km[i] <- df2$distance[i] / 1000
           output_table$from_lat[i] <- df2$from$lat[i]
           output_table$from_lon[i] <- df2$from$lon[i]
           output_table$to_lat[i] <- df2$to$lat[i]
@@ -330,19 +373,24 @@ otpTripTime <- function(otpcon,
           if (df2$mode[i] == 'CAR' ||
               df2$mode[i] == 'WALK' ||
               df2$mode[i] == 'BICYCLE' || df2$mode[i] == 'BICYCLE,WALK') {
-            output_table$agencyName[i] <- df2$mode[i]
-            output_table$routeShortName[i] <- df2$mode[i]
+            output_table$agency_name[i] <- df2$mode[i]
+            output_table$route_name[i] <- df2$mode[i]
           } else {
-            output_table$agencyName[i] <- df2$agencyName[i]
-            output_table$routeShortName[i] <- df2$routeShortName[i]
+            output_table$agency_name[i] <- df2$agencyName[i]
+            output_table$route_name[i] <- df2$routeShortName[i]
           }
-          output_table$duration[i] <- df2$duration[i]
+          output_table$duration_mins[i] <- df2$duration[i]
         }
         
-        output_table$name <-
+        output_table$from <-
           sub('[.]',
               '_',
-              make.names(output_table$name, unique = TRUE)) # Makes sure there are no duplicates in names
+              make.names(output_table$from, unique = TRUE)) # Makes sure there are no duplicates in names
+        
+        output_table$to <-
+          sub('[.]',
+              '_',
+              make.names(output_table$to, unique = TRUE)) # Makes sure there are no duplicates in names
         
         for (i in 1:length(asjson[["plan"]][["itineraries"]][["legs"]][[1]][["legGeometry"]][["points"]])) {
           if (i == 1) {

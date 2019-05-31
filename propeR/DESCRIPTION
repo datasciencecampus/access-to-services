@@ -34,7 +34,8 @@ Imports:
   gepaf,
   geosphere,
   FNN,
-  RColorBrewer
+  RColorBrewer,
+  progress
 Suggests:
   testthat,
   knitr, 

@@ -99,8 +99,8 @@ importLocationData <- function(src,
     }
   }
   
-  data_points <-
-    data_points[order(data_points$name),] # Sort by name
+  # data_points <-
+  #   data_points[order(data_points$name),] # Sort by name
   data_points <-
     as.data.frame(data_points) # Converts to dataframes and create lat, lon field needed by otp
   data_points$lat_lon <-

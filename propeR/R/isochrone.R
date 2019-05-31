@@ -11,7 +11,7 @@
 ##' @param originPoints The variable containing origin(s), see ?importLocationData for details
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData for details
-##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time
 ##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
 ##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
 ##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
@@ -27,7 +27,7 @@
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
-##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 1 px
+##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 0 px
 ##' @param mapPolygonLineColor Specifies the color of the polygon, defaults to 'white'
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 1
@@ -61,7 +61,7 @@ isochrone <- function(output.dir,
                       destinationPoints,
                       destinationPointsRow = 1,
                       # otpIsochrone args
-                      startDateAndTime = "2018-08-18 12:00:00",
+                      startDateAndTime = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                       modes = "WALK, TRANSIT",
                       maxWalkDistance = 1000,
                       walkReluctance = 2,
@@ -79,7 +79,7 @@ isochrone <- function(output.dir,
                       mapOutput = F,
                       geojsonOutput = F,
                       mapZoom = "bb",
-                      mapPolygonLineWeight = 1,
+                      mapPolygonLineWeight = 0,
                       mapPolygonLineColor = 'white',
                       mapPolygonLineOpacity = 1,
                       mapPolygonFillOpacity = 1,
@@ -96,8 +96,6 @@ isochrone <- function(output.dir,
                       mapLegendOpacity = 0.5,
                       mapDarkMode = F) {
   
-  message("Now running the propeR isochrone tool.\n")
-  
   #########################
   #### SETUP VARIABLES ####
   #########################
@@ -105,8 +103,11 @@ isochrone <- function(output.dir,
   origin_points_row_num <- originPointsRow 
   from_origin <- originPoints[origin_points_row_num,]
   if (origin_points_row_num > nrow(originPoints)) {
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
     stop('Row is not in origin file, process aborted.\n')
+  }
+  
+  if (isochroneCutOffMin < 5) {
+    stop('Minimum cutoff time needs to be above 5 minutes.\n')
   }
   
   destination_points_row_num <- destinationPointsRow 
@@ -114,6 +115,12 @@ isochrone <- function(output.dir,
   start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") 
   start_date <- as.Date(startDateAndTime) 
   date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") 
+  
+  file_name <- paste0(from_origin$name,"_",gsub("[[:punct:][:blank:]]+", "_", startDateAndTime))
+  
+  unlink(paste0(output.dir, "/isochrone-", file_name) , recursive = T) 
+  dir.create(paste0(output.dir, "/isochrone-", file_name)) 
+  dir.create(paste0(output.dir, "/isochrone-", file_name, "/csv")) 
   
   if (isochroneCutOffStep == 0){
     isochroneCutOffs <- isochroneCutOffMax
@@ -133,6 +140,24 @@ isochrone <- function(output.dir,
     palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
   }
   
+  if (mapOutput == T){
+    dir.create(paste0(output.dir, "/isochrone-", file_name, "/map"))
+  }
+  
+  if (geojsonOutput == T){
+    dir.create(paste0(output.dir, "/isochrone-", file_name, "/geojson"))
+  }
+  
+  warning_list <- c()
+  
+  cat("Now running the propeR isochrone tool.\n")
+  cat("Parameters chosen:\n")
+  cat("From: ", from_origin$name, " (", from_origin$lat_lon, ")\n", sep = "")
+  cat("Date and Time: ", startDateAndTime, "\n", sep = "")
+  cat("Min Duration (mins): ", isochroneCutOffMin, "\n", sep = "")
+  cat("Max Duration (mins): ", isochroneCutOffMax, "\n", sep = "")
+  cat("Isochrone Step (mins): ", isochroneCutOffStep, "\n", sep = "")
+  cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "]\n\n", sep = "")
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -157,6 +182,7 @@ isochrone <- function(output.dir,
     cutoff = isochroneCutOffs
   )
   
+  
   isochrone_polygons <- rgdal::readOGR(isochrone$response, "OGRGeoJSON", verbose = F) 
   destination_points_spdf <- destinationPoints 
   sp::coordinates(destination_points_spdf) <- ~ lon + lat 
@@ -168,7 +194,7 @@ isochrone <- function(output.dir,
                                nrow = nrow(destination_points_spdf))) 
   
   if (length(isochrone_polygons) != length(isochroneCutOffs)){
-    message("A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons@data$time)/60), " minutes could not be produced.")
+    warning_list <- c(warning_list, paste0("A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons@data$time)/60), " minutes could not be produced."))
   }
   
   for (i in 1:length(isochrone_polygons)) {
@@ -195,7 +221,6 @@ isochrone <- function(output.dir,
   #########################
   
   if (mapOutput == T) {
-    message("Generating map, please wait.")
     library(leaflet)
     m <- leaflet()
     m <- addScaleBar(m)
@@ -296,34 +321,45 @@ isochrone <- function(output.dir,
   #### SAVE RESULTS ####
   ######################
   
-  message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
-  
+  cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
+  cat("Journey details:\n", sep = "")
+  cat("Destinations possible: ", nrow(destinationPoints[!is.na(destinationPoints$travel_time),]),"/",nrow(destinationPoints),"\n", sep = "")
+  cat("Mean Duration (mins): ", round(mean(destinationPoints$travel_time, na.rm=TRUE),2), " [+/-", round(sd(destinationPoints$travel_time, na.rm=TRUE),2), "]\n", sep = "")
+
   write.csv(
     destinationPoints,
-    file = paste0(output.dir, "/isochrone-", stamp, ".csv"),
+    file = paste0(output.dir, "/isochrone-", file_name, "/csv/isochrone-", file_name, ".csv"),
     row.names = F)
   
-  if (geojsonOutput == T) {
-    isochrone_polygons@data$name <- from_origin$name
-    rgdal::writeOGR(
-      isochrone_polygons,
-      dsn = paste0(output.dir,
-                   "/isochrone-",
-                   stamp,
-                   ".geoJSON"),
-      layer = "isochrone_polygons",
-      driver = "GeoJSON")
+  if (length(warning_list) > 0){
+    write.csv(
+      warning_list,
+      file = paste0(output.dir, "/isochrone-", file_name, "/csv/warning-list.csv"),
+      row.names = F)
   }
   
   if (mapOutput == T) {
     invisible(print(m))
-    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-map-", stamp, ".png")) 
-    htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochrone-map-", stamp, ".html")) 
-    unlink(paste0(output.dir, "/isochrone-map-", stamp, "_files"),
-           recursive = T) 
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
+    mapview::mapshot(m, file = paste0(output.dir, "/isochrone-", file_name, "/map/isochrone-map-", file_name, ".png")) 
+    htmlwidgets::saveWidget(
+      m,
+      file = paste0(output.dir, "/isochrone-", file_name, "/map/isochrone-map-", file_name, ".html"),
+      selfcontained = T) 
+    unlink(paste0(output.dir, "/isochrone-", file_name, "/map/isochrone-map-", file_name, "_files"), recursive = T)
   }
   
-  message("Thanks for using propeR.")
+  if (geojsonOutput == T) {
+    rgdal::writeOGR(
+      isochrone_polygons,
+      dsn = paste0(output.dir,
+                   "/isochrone-", 
+                   file_name,
+                   "/geojson/isochrone-",
+                   file_name,
+                   ".geoJSON"),
+      layer = "poly_lines",
+      driver = "GeoJSON")
+  }
+  
+  cat("Outputs saved. Thanks for using propeR.\n")
 }

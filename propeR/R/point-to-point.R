@@ -10,7 +10,7 @@
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData for details
 ##' @param destinationPointsRow The row of destinationPoints to be used, defaults to 1
-##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time
 ##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
 ##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
 ##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
@@ -21,6 +21,11 @@
 ##' @param wheelchair If TRUE, uses on wheeelchair friendly stops, defaults to FALSE
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
 ##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins
+##' @param estimateCost Specify whether to estimate costs of journey or not (default is False)
+##' @param busTicketPrice Specifiy the cost of a bus journey (default is 3 GPB)
+##' @param busTicketPriceMax Specifiy the maximum cost of a bus journey (default is 12 GPB)
+##' @param trainTicketPriceKm Specifiy the cost of a train journey per km (default is 0.12 GPB per km)
+##' @param trainTicketPriceMin Specifiy the minimum cost of a train journey (default is 3 GBP)
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output the polylines as a geojson, defaults to FALSE
 ##' @param mapPolylineColours A list defining the colours to assign to each mode of transport.
@@ -47,7 +52,7 @@ pointToPoint <- function(output.dir,
                          destinationPoints,
                          destinationPointsRow = 1,
                          # otpTime args
-                         startDateAndTime = "2018-08-18 12:00:00",
+                         startDateAndTime = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                          modes = "WALK, TRANSIT",
                          maxWalkDistance = 1000,
                          walkReluctance = 2,
@@ -58,6 +63,11 @@ pointToPoint <- function(output.dir,
                          wheelchair = F,
                          arriveBy = F,
                          preWaitTime = 15,
+                         estimateCost = F,
+                         busTicketPrice = 3,
+                         busTicketPriceMax = 12,
+                         trainTicketPriceKm = 0.12,
+                         trainTicketPriceMin = 3,
                          # leaflet map args
                          mapOutput = F,
                          geojsonOutput = F,
@@ -75,9 +85,34 @@ pointToPoint <- function(output.dir,
                          mapMarkerOpacity = 1,
                          mapLegendOpacity = 1) {
   
-  message("Now running the propeR pointToPoint tool.\n")
+  #########################
+  #### SETUP VARIABLES ####
+  #########################
+  
+  origin_points_row_num <- originPointsRow
+  from_origin <- originPoints[origin_points_row_num,]
+  if (origin_points_row_num > nrow(originPoints)) {
+    stop("Row is not in origin file, process aborted.\n")
+  }
+  
+  destination_points_row_num <- destinationPointsRow
+  to_destination <- destinationPoints[destination_points_row_num,]
+  if (destination_points_row_num > nrow(destinationPoints)) {
+    stop("Row is not in destination file, process aborted.\n")
+  }
+  
+  start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p")
+  start_date <- as.Date(startDateAndTime)
+  date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M")
+  
+  file_name <- paste0(from_origin$name,"_",to_destination$name,"_",gsub("[[:punct:][:blank:]]+", "_", startDateAndTime))
+  
+  unlink(paste0(output.dir, "/pointToPoint-", file_name) , recursive = T) 
+  dir.create(paste0(output.dir, "/pointToPoint-", file_name)) 
+  dir.create(paste0(output.dir, "/pointToPoint-", file_name, "/csv")) 
   
   if (mapOutput == T) {
+    dir.create(paste0(output.dir, "/pointToPoint-", file_name, "/map")) 
     library(leaflet)
     pal_transport <-
       leaflet::colorFactor(
@@ -88,27 +123,16 @@ pointToPoint <- function(output.dir,
     pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL)
   }
   
-  #########################
-  #### SETUP VARIABLES ####
-  #########################
-  
-  origin_points_row_num <- originPointsRow
-  from_origin <- originPoints[origin_points_row_num,]
-  if (origin_points_row_num > nrow(originPoints)) {
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = T)
-    stop("Row is not in origin file, process aborted.\n")
+  if (geojsonOutput == T){
+    dir.create(paste0(output.dir, "/pointToPoint-", file_name, "/geojson"))
   }
   
-  destination_points_row_num <- destinationPointsRow
-  to_destination <- destinationPoints[destination_points_row_num,]
-  if (destination_points_row_num > nrow(destinationPoints)) {
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = T)
-    stop("Row is not in destination file, process aborted.\n")
-  }
-  
-  start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p")
-  start_date <- as.Date(startDateAndTime)
-  date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M")
+  cat("Now running the propeR pointToPoint tool.\n")
+  cat("Parameters chosen:\n", sep="")
+  cat("From: ", from_origin$name, " (", from_origin$lat_lon, ")\n", sep="")
+  cat("To: ", to_destination$name, " (", to_destination$lat_lon, ")\n", sep="")
+  cat("Date and Time: ", startDateAndTime, sep="")
+  cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "]\n\n", sep="")
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -117,8 +141,10 @@ pointToPoint <- function(output.dir,
   point_to_point <- propeR::otpTripTime(
     otpcon,
     detail = T,
-    from = from_origin$lat_lon,
-    to =   to_destination$lat_lon,
+    from_name = from_origin$name,
+    from_lat_lon = from_origin$lat_lon,
+    to_name = to_destination$name,
+    to_lat_lon =   to_destination$lat_lon,
     modes = modes,
     date = start_date,
     time = start_time,
@@ -136,25 +162,45 @@ pointToPoint <- function(output.dir,
   if (!is.null(point_to_point$errorId)){
     
     if (point_to_point$errorId == 'OK') {
+      
+      if (estimateCost == T){
+        
+        cost <- 0
+        busCost <- 0
+        trainCost <- 0
+        
+        for (n in 1:nrow(point_to_point$output_table)){
+          if (point_to_point$output_table[n,]$mode == 'BUS'){
+            busCost <- busCost + busTicketPrice
+          } else if (point_to_point$output_table[n,]$mode == 'RAIL'){
+            trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance / 1000)
+            if (trainCost_tmp < trainTicketPriceMin){
+              trainCost_tmp <- trainTicketPriceMin
+            }
+            trainCost <- trainCost + trainCost_tmp
+          }
+        }
+        
+        if (busCost > busTicketPriceMax){
+          busCost <- busTicketPriceMax
+        }
+        cost <- busCost + trainCost  
+        
+      } else {
+        cost <- NA
+      }
+      
       point_to_point_table_overview <- point_to_point$itineraries[1,]
-      point_to_point_table_overview$origin <- from_origin$name
-      point_to_point_table_overview$destination <- to_destination$name
-      point_to_point_table_overview$distance <- round((sum(point_to_point$trip_details$distance)) / 1000, digits = 2)
-      point_to_point_table_overview <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7)]
-      colnames(point_to_point_table_overview) <- c(
-        "origin",
-        "destination",
-        "start_time",
-        "end_time",
-        "distance_km",
-        "duration_mins",
-        "walk_time_mins",
-        "transit_time_mins",
-        "waiting_time_mins",
-        "transfers")
+      point_to_point_table_overview["cost"] <- round(cost, digits = 2)
+      point_to_point_table_overview["no_of_buses"] <- nrow(point_to_point$output_table[point_to_point$output_table$mode == 'BUS',])
+      point_to_point_table_overview["no_of_trains"] <- nrow(point_to_point$output_table[point_to_point$output_table$mode == 'RAIL',])
+      point_to_point_table_overview["journey_details"] <- jsonlite::toJSON(point_to_point$output_table)
+      
       point_to_point_table <- point_to_point$output_table
+
     } else {
-      stop("No journey found, cannot provide any outputs!\n")
+      unlink(paste0(output.dir, "/pointToPoint-", file_name) , recursive = T) 
+      stop("No journey found with given parameters!\n")
     }
     
     #########################
@@ -167,8 +213,8 @@ pointToPoint <- function(output.dir,
     }
     
     if (mapOutput == T) {
-      message("Generating map, please wait.\n")
-
+      cat("Generating map, please wait.\n")
+        
       popup_poly_lines <- paste0(
           "<strong>Mode: </strong>",
           poly_lines$mode,
@@ -228,7 +274,7 @@ pointToPoint <- function(output.dir,
           fillColor = ~ pal_transport(point_to_point_table$mode),
           stroke = F,
           fillOpacity = mapMarkerOpacity,
-          popup = ~ mode)
+          popup = ~ from)
       m <- addLegend(
           m,
           pal = pal_transport,
@@ -259,44 +305,55 @@ pointToPoint <- function(output.dir,
     #### SAVE RESULTS ####
     ######################
     
-    message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-    stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+    cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
+    cat("Journey details:\n", sep = "")
+    cat("Duration (mins): ", point_to_point_table_overview$duration_mins, " (Walk time: ", point_to_point_table_overview$walk_time_mins, ", Transit time: ", point_to_point_table_overview$transit_time_mins, ", Waiting time: ", point_to_point_table_overview$waiting_time_mins, ")\n", sep = "")
+    cat("Distance (km): ", point_to_point_table_overview$distance_km, "\n", sep = "")
+    cat("Transfers: ", point_to_point_table_overview$transfers, " (Buses: ", point_to_point_table_overview$no_of_buses, ", Trains: ", point_to_point_table_overview$no_of_trains, ")\n\n", sep = "")
+
+    if (modes == "CAR") {
+      colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walk_time_mins")] <- "drive_time_mins"
+    } else if (modes == "BICYCLE") {
+      colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walk_time_mins")] <- "cycle_time_mins"
+    }
     
     write.csv(
       point_to_point_table_overview,
-      file = paste0(output.dir, "/pointToPoint-", stamp, ".csv"),
+      file = paste0(output.dir, "/pointToPoint-", file_name, "/csv/pointToPoint-", file_name, ".csv"),
       row.names = F)
     
     write.csv(
       point_to_point_table,
-      file = paste0(output.dir, "/pointToPoint-journey-legs-", stamp, ".csv"),
+      file = paste0(output.dir, "/pointToPoint-", file_name, "/csv/pointToPoint-journey-legs-", file_name, ".csv"),
       row.names = F)
     
     if (mapOutput == T) {
       invisible(print(m))
-      mapview::mapshot(m, file = paste0(output.dir, "/pointToPoint-map-", stamp, ".png")) 
+      mapview::mapshot(m, file = paste0(output.dir, "/pointToPoint-", file_name, "/map/pointToPoint-map-", file_name, ".png")) 
       htmlwidgets::saveWidget(
         m,
-        file = paste0(output.dir, "/pointToPoint-map-", stamp, ".html"),
+        file = paste0(output.dir, "/pointToPoint-", file_name, "/map/pointToPoint-map-", file_name, ".html"),
         selfcontained = T) 
-      unlink(paste0(output.dir, "/pointToPoint-map-", stamp, "_files"), recursive = T)
-      unlink(paste0(output.dir, "/tmp_folder"), recursive = T) 
+      unlink(paste0(output.dir, "/pointToPoint-", file_name, "/map/pointToPoint-map-", file_name, "_files"), recursive = T)
     }
     
     if (geojsonOutput == T) {
       rgdal::writeOGR(
         poly_lines,
         dsn = paste0(output.dir,
-                     "/pointToPoint-",
-                     stamp,
+                     "/pointToPoint-", 
+                     file_name,
+                     "/geojson/pointToPoint-",
+                     file_name,
                      ".geoJSON"),
         layer = "poly_lines",
         driver = "GeoJSON")
     }
     
   } else {
-    stop("No journey found, cannot provide any outputs!\n")
+    unlink(paste0(output.dir, "/pointToPoint-", file_name) , recursive = T) 
+    stop("No journey found with given parameters!\n")
   }
   
-  message("Thanks for using propeR.")
+  cat("Outputs saved. Thanks for using propeR.\n")
 }
