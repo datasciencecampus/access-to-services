@@ -24,6 +24,7 @@
 ##' @param isochroneCutOffMax Provide the maximum cutoff time for the isochrone, defaults 90
 ##' @param isochroneCutOffMin Provide the minimum cutoff time for the isochrone, defaults 10
 ##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, 0 denotes no step is required (returns isochroneCutOffMax only), defaults 10
+##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
@@ -38,8 +39,8 @@
 ##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
 ##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
 ##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 1)
-##' @param destinationMarkerColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#00FFAE')
-##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param destinationMarkerColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'white')
+##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 1
 ##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @param failSafeSave Specify the failsafe save number for large datasets, default is 100
 ##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
@@ -73,6 +74,7 @@ isochroneMulti <- function(output.dir,
                            isochroneCutOffMax = 90,
                            isochroneCutOffMin = 10,
                            isochroneCutOffStep = 10,
+                           infoPrint = T,
                            # output args
                            mapOutput = F,
                            geojsonOutput = F,
@@ -90,8 +92,8 @@ isochroneMulti <- function(output.dir,
                            destinationMarkerStroke = T,
                            destinationMarkerStrokeColor = 'black',
                            destinationMarkerStrokeWeight = 1,
-                           destinationMarkerColor = '#00FFAE',
-                           mapLegendOpacity = 0.5,
+                           destinationMarkerColor = 'white',
+                           mapLegendOpacity = 1,
                            mapDarkMode = F) {
   
   #########################
@@ -121,11 +123,7 @@ isochroneMulti <- function(output.dir,
     isochroneCutOffs <- seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep)
   }
   
-  if (mapDarkMode == T){
-    mapPolygonColours <- c("#4365BC", "#5776C4", "#6C87CC", "#8098D4", "#95A9DB", "#AABAE3", "#BFCBEA", "#D4DCF1", "#E9EEF8")
-  } else {
-    mapPolygonColours <- c("#192448", "#1F2B58", "#243368", "#293B78", "#2E4288", "#334A98", "#3851A8", "#3D58B9", "#4863C3")
-  }
+  mapPolygonColours <- c("#4365BC", "#5776C4", "#6C87CC", "#8098D4", "#95A9DB", "#AABAE3", "#BFCBEA", "#D4DCF1", "#E9EEF8")
   
   if (mapOutput == T) {
     library(leaflet)
@@ -143,13 +141,15 @@ isochroneMulti <- function(output.dir,
   
   warning_list <- c()
   
-  cat("Now running the propeR isochrone tool.\n")
-  cat("Parameters chosen:\n")
-  cat("Date and Time: ", startDateAndTime, "\n", sep = "")
-  cat("Min Duration (mins): ", isochroneCutOffMin, "\n", sep = "")
-  cat("Max Duration (mins): ", isochroneCutOffMax, "\n", sep = "")
-  cat("Isochrone Step (mins): ", isochroneCutOffStep, "\n", sep = "")
-  cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "]\n\n", sep = "")
+  if (infoPrint == T) {
+    cat("Now running the propeR isochrone tool.\n")
+    cat("Parameters chosen:\n")
+    cat("Date and Time: ", startDateAndTime, "\n", sep = "")
+    cat("Min Duration (mins): ", isochroneCutOffMin, "\n", sep = "")
+    cat("Max Duration (mins): ", isochroneCutOffMax, "\n", sep = "")
+    cat("Isochrone Step (mins): ", isochroneCutOffStep, "\n", sep = "")
+    cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "]\n\n", sep = "")
+  }
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -162,11 +162,15 @@ isochroneMulti <- function(output.dir,
   time.taken <- vector()
   originPoints_removed <- c()
   originPoints_removed_list <- c()
-  message("Creating ", num.total, " isochrones, please wait...")
+  if (infoPrint == T) {
+    message("Creating ", num.total, " isochrones, please wait...")
+  }
   
-  pb <- progress_bar$new(
-    format = "  Isochrone calculation complete for call :what [:bar] :percent eta: :eta",
-    total = num.total, clear = FALSE, width= 100)
+  if (infoPrint == T) {
+    pb <- progress::progress_bar$new(
+      format = "  Isochrone calculation complete for call :what [:bar] :percent eta: :eta",
+      total = num.total, clear = FALSE, width= 100)
+  }
   
   for (i in num.start:num.end) {
     num.run <- num.run + 1
@@ -303,7 +307,9 @@ isochroneMulti <- function(output.dir,
     
     isochrone_polygons@plotOrder <- tmp_seq
     
-    pb$tick(tokens = list(what = num.run))
+    if (infoPrint == T) {
+      pb$tick(tokens = list(what = num.run))
+    }
     
     if ((num.run/failSafeSave) %% 1 == 0) { # fail safe for large files
       is.na(time_df) <- sapply(time_df, is.infinite)
@@ -359,7 +365,7 @@ isochroneMulti <- function(output.dir,
     m <- addScaleBar(m)
     
     if (mapDarkMode != T) {
-      m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+      m <- addProviderTiles(m, providers$CartoDB.Positron)
     } else {
       m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
     }    
@@ -427,13 +433,16 @@ isochroneMulti <- function(output.dir,
   ######################
   #### SAVE RESULTS ####
   ######################
-
-  cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
-  cat("Journey details:\n", sep = "")
-  cat("Isochrones generated: ", num.total-length(originPoints_removed_list),"/",num.total,"\n", sep = "")
   
   is.na(time_df) <- sapply(time_df, is.infinite)
-    
+
+  if (infoPrint == T) {
+    cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
+    cat("Journey details:\n", sep = "")
+    cat("Isochrones generated: ", num.total-length(originPoints_removed_list),"/",num.total,"\n", sep = "")
+    cat("Destinations possible: ", ncol(time_df) - sum(colSums(is.na(time_df)) == nrow(time_df)),"/",ncol(time_df),"\n", sep = "")
+  }
+  
   write.csv(
     time_df,
     file = paste0(output.dir, "/isochroneMulti-", file_name, "/csv/isochroneMulti-isochrone_multi_inc-", file_name, ".csv"),
@@ -468,5 +477,7 @@ isochroneMulti <- function(output.dir,
     unlink(paste0(output.dir, "/isochroneMulti-", file_name, "/map/isochroneMulti-", file_name, "_files"), recursive = T) 
   }
   
-  cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T) {
+    cat("Outputs saved. Thanks for using propeR.\n")
+  }
 }

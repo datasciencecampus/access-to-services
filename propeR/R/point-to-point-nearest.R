@@ -25,6 +25,7 @@
 ##' @param busTicketPriceMax Specifiy the maximum cost of a bus journey (default is 12 GPB)
 ##' @param trainTicketPriceKm Specifiy the cost of a train journey per km (default is 0.12 GPB per km)
 ##' @param trainTicketPriceMin Specifiy the minimum cost of a train journey (default is 3 GBP)
+##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @author Michael Hodge
 ##' @examples
 ##'   pointToPointNearest(
@@ -59,7 +60,8 @@ pointToPointNearest <- function(output.dir,
                              busTicketPrice = 3,
                              busTicketPriceMax = 12,
                              trainTicketPriceKm = 0.12,
-                             trainTicketPriceMin = 3) {
+                             trainTicketPriceMin = 3,
+                             infoPrint = T) {
   
   #########################
   #### SETUP VARIABLES ####
@@ -83,11 +85,13 @@ pointToPointNearest <- function(output.dir,
   dir.create(paste0(output.dir, "/pointToPointNearest-", file_name)) 
   dir.create(paste0(output.dir, "/pointToPointNearest-", file_name, "/csv")) 
 
-  cat("Now running the propeR pointToPointNearest tool.\n", sep="")
-  cat("Parameters chosen:\n", sep="")
-  cat("KNN nearest number: ", nearestNum, " (", num.total, " calls)\n", sep="")
-  cat("Return Journey: ", journeyReturn, "\n", sep="")
-  cat("Date and Time: ", startDateAndTime, "\n", sep="")
+  if (infoPrint == T) {
+    cat("Now running the propeR pointToPointNearest tool.\n", sep="")
+    cat("Parameters chosen:\n", sep="")
+    cat("KNN nearest number: ", nearestNum, " (", num.total, " calls)\n", sep="")
+    cat("Return Journey: ", journeyReturn, "\n", sep="")
+    cat("Date and Time: ", startDateAndTime, "\n", sep="")
+  }
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -99,7 +103,9 @@ pointToPointNearest <- function(output.dir,
   start_date <- as.Date(startDateAndTime)
   time.taken <- vector()
   calls.list <- c(0)
-  cat("Creating ", num.total, " point to point connections, please wait...\n")
+  if (infoPrint == T) {
+    cat("Creating ", num.total, " point to point connections, please wait...\n")
+  }
   
   make_blank_df <- function(from_origin, to_destination, time_twenty_four) {
     df <- data.frame(
@@ -121,9 +127,11 @@ pointToPointNearest <- function(output.dir,
     df
   }
   
-  pb <- progress_bar$new(
-    format = "  Travel time calculation complete for call :what [:bar] :percent eta: :eta",
-    total = num.total, clear = FALSE, width= 100)
+  if (infoPrint == T) {
+    pb <- progress::progress_bar$new(
+      format = "  Travel time calculation complete for call :what [:bar] :percent eta: :eta",
+      total = num.total, clear = FALSE, width= 100)
+  }
   
   for (j in 1:multiplier) {
     
@@ -263,8 +271,9 @@ pointToPointNearest <- function(output.dir,
             point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
           }
         }
-        
-        pb$tick(tokens = list(what = num.run))
+        if (infoPrint == T) {
+          pb$tick(tokens = list(what = num.run))
+        }
       
         if ((num.run/100) %% 1 == 0) { # fail safe for large files
           
@@ -286,9 +295,11 @@ pointToPointNearest <- function(output.dir,
       }
     }
   
-  cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
-  cat("Journey details:\n", sep = "")
-  cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
+  if (infoPrint == T) {
+    cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
+    cat("Journey details:\n", sep = "")
+    cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
+  }
   
   if (modes == "CAR") {
     colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walk_time_mins")] <- "drive_time_mins"
@@ -300,6 +311,7 @@ pointToPointNearest <- function(output.dir,
     point_to_point_table_overview,
     file = paste0(output.dir, "/pointToPointNearest-", file_name, "/csv/pointToPointNearest-", file_name, ".csv"),
     row.names = F)
-  
-  cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T) {
+    cat("Outputs saved. Thanks for using propeR.\n")
+  }
 }

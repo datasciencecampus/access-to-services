@@ -26,14 +26,18 @@
 ##' @param busTicketPriceMax Specifiy the maximum cost of a bus journey (default is 12 GPB)
 ##' @param trainTicketPriceKm Specifiy the cost of a train journey per km (default is 0.12 GPB per km)
 ##' @param trainTicketPriceMin Specifiy the minimum cost of a train journey (default is 3 GBP)
+##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output the polylines as a geojson, defaults to FALSE
 ##' @param mapPolylineColours A list defining the colours to assign to each mode of transport.
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
 ##' @param mapPolylineWeight Specifies the weight of the polyline, defaults to 5 px
 ##' @param mapPolylineOpacity Specifies the opacity of the polyline, defaults to 1 (solid)
+##' @param mapMarkerStrokeColor Specifies the outline color of the marker, defaults to black
+##' @param mapMarkerStrokeWeight Specifies the stroke weight of the marker, defaults to 1 (solid)
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 1 (solid)
+##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats may also be saved)
 ##' @author Michael Hodge
 ##' @examples
@@ -68,6 +72,7 @@ pointToPoint <- function(output.dir,
                          busTicketPriceMax = 12,
                          trainTicketPriceKm = 0.12,
                          trainTicketPriceMin = 3,
+                         infoPrint = T,
                          # leaflet map args
                          mapOutput = F,
                          geojsonOutput = F,
@@ -82,8 +87,11 @@ pointToPoint <- function(output.dir,
                          mapZoom = "bb",
                          mapPolylineWeight = 5,
                          mapPolylineOpacity = 1,
+                         mapMarkerStrokeColor = 'black',
+                         mapMarkerStrokeWeight = 1,
                          mapMarkerOpacity = 1,
-                         mapLegendOpacity = 1) {
+                         mapLegendOpacity = 1,
+                         mapDarkMode = F) {
   
   #########################
   #### SETUP VARIABLES ####
@@ -121,18 +129,23 @@ pointToPoint <- function(output.dir,
         reverse = F
       )
     pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL)
+    if (mapDarkMode == T){
+      mapMarkerStrokeColor = 'white'
+    }
   }
   
   if (geojsonOutput == T){
     dir.create(paste0(output.dir, "/pointToPoint-", file_name, "/geojson"))
   }
   
-  cat("Now running the propeR pointToPoint tool.\n")
-  cat("Parameters chosen:\n", sep="")
-  cat("From: ", from_origin$name, " (", from_origin$lat_lon, ")\n", sep="")
-  cat("To: ", to_destination$name, " (", to_destination$lat_lon, ")\n", sep="")
-  cat("Date and Time: ", startDateAndTime, sep="")
-  cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "]\n\n", sep="")
+  if (infoPrint == T){
+    cat("Now running the propeR pointToPoint tool.\n")
+    cat("Parameters chosen:\n", sep="")
+    cat("From: ", from_origin$name, " (", from_origin$lat_lon, ")\n", sep="")
+    cat("To: ", to_destination$name, " (", to_destination$lat_lon, ")\n", sep="")
+    cat("Date and Time: ", startDateAndTime, "\n", sep="")
+    cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "]\n\n", sep="")
+  }
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -213,7 +226,9 @@ pointToPoint <- function(output.dir,
     }
     
     if (mapOutput == T) {
-      cat("Generating map, please wait.\n")
+      if (infoPrint == T){
+        cat("Generating map, please wait.\n")
+      }
         
       popup_poly_lines <- paste0(
           "<strong>Mode: </strong>",
@@ -226,11 +241,15 @@ pointToPoint <- function(output.dir,
           round(poly_lines$duration / 60, digits = 2),
           " mins",
           "<br><strong>Distance: </strong>",
-          round(poly_lines$duration, digits = 2),
-          " meters")
+          round(poly_lines$distance / 1000, digits = 2),
+          " km")
       
       m <- leaflet()
-      m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+      if (mapDarkMode == T) {
+        m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
+      } else {
+        m <- addProviderTiles(m, providers$CartoDB.Positron)
+      }
       m <- addScaleBar(m)
       
       if (is.numeric(mapZoom)){
@@ -272,7 +291,9 @@ pointToPoint <- function(output.dir,
           lat = ~ from_lat,
           lng = ~ from_lon,
           fillColor = ~ pal_transport(point_to_point_table$mode),
-          stroke = F,
+          stroke = T,
+          color = mapMarkerStrokeColor,
+          weight = mapMarkerStrokeWeight,
           fillOpacity = mapMarkerOpacity,
           popup = ~ from)
       m <- addLegend(
@@ -305,12 +326,14 @@ pointToPoint <- function(output.dir,
     #### SAVE RESULTS ####
     ######################
     
-    cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
-    cat("Journey details:\n", sep = "")
-    cat("Duration (mins): ", point_to_point_table_overview$duration_mins, " (Walk time: ", point_to_point_table_overview$walk_time_mins, ", Transit time: ", point_to_point_table_overview$transit_time_mins, ", Waiting time: ", point_to_point_table_overview$waiting_time_mins, ")\n", sep = "")
-    cat("Distance (km): ", point_to_point_table_overview$distance_km, "\n", sep = "")
-    cat("Transfers: ", point_to_point_table_overview$transfers, " (Buses: ", point_to_point_table_overview$no_of_buses, ", Trains: ", point_to_point_table_overview$no_of_trains, ")\n\n", sep = "")
-
+    if (infoPrint == T){
+      cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
+      cat("Journey details:\n", sep = "")
+      cat("Duration (mins): ", point_to_point_table_overview$duration_mins, " (Walk time: ", point_to_point_table_overview$walk_time_mins, ", Transit time: ", point_to_point_table_overview$transit_time_mins, ", Waiting time: ", point_to_point_table_overview$waiting_time_mins, ")\n", sep = "")
+      cat("Distance (km): ", point_to_point_table_overview$distance_km, "\n", sep = "")
+      cat("Transfers: ", point_to_point_table_overview$transfers, " (Buses: ", point_to_point_table_overview$no_of_buses, ", Trains: ", point_to_point_table_overview$no_of_trains, ")\n\n", sep = "")
+    }
+    
     if (modes == "CAR") {
       colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walk_time_mins")] <- "drive_time_mins"
     } else if (modes == "BICYCLE") {
@@ -355,5 +378,7 @@ pointToPoint <- function(output.dir,
     stop("No journey found with given parameters!\n")
   }
   
-  cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T){
+    cat("Outputs saved. Thanks for using propeR.\n")
+  }
 }

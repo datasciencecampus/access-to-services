@@ -29,6 +29,7 @@
 ##' @param busTicketPriceMax Specifiy the maximum cost of a bus journey (default is 12 GPB)
 ##' @param trainTicketPriceKm Specifiy the cost of a train journey per km (default is 0.12 GPB per km)
 ##' @param trainTicketPriceMin Specifiy the minimum cost of a train journey (default is 3 GBP)
+##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @param mapOutput Specifies whether you want to output a map, defaults to FALSE
 ##' @param gifOutput Specifies whether you want to output an animated gif map, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output the polylines as a geojson, defaults to FALSE
@@ -36,8 +37,11 @@
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
 ##' @param mapPolylineWeight Specifies the weight of the polyline, defaults to 5 px
 ##' @param mapPolylineOpacity Specifies the opacity of the polyline, defaults to 1 (solid)
+##' @param mapMarkerStrokeColor Specifies the outline color of the marker, defaults to black
+##' @param mapMarkerStrokeWeight Specifies the stroke weight of the marker, defaults to 1 (solid)
 ##' @param mapMarkerOpacity Specifies the opacity of the marker, defaults to 1 (solid)
 ##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 1 (solid)
+##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 ##' @author Michael Hodge
 ##' @examples
@@ -76,6 +80,7 @@ pointToPointTime <- function(output.dir,
                              busTicketPriceMax = 12,
                              trainTicketPriceKm = 0.12,
                              trainTicketPriceMin = 3,
+                             infoPrint = T,
                              # leaflet map args
                              mapOutput = F,
                              gifOutput = F,
@@ -91,8 +96,11 @@ pointToPointTime <- function(output.dir,
                              mapZoom = "bb",
                              mapPolylineWeight = 5,
                              mapPolylineOpacity = 1,
+                             mapMarkerStrokeColor = 'black',
+                             mapMarkerStrokeWeight = 1,
                              mapMarkerOpacity = 1,
-                             mapLegendOpacity = 1) {
+                             mapLegendOpacity = 1,
+                             mapDarkMode = F) {
   
   #########################
   #### SETUP VARIABLES ####
@@ -126,6 +134,9 @@ pointToPointTime <- function(output.dir,
       levels = as.factor(names(mapPolylineColours)),
       reverse = F)
     pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL)
+    if (mapDarkMode == T){
+      mapMarkerStrokeColor = 'white'
+    }
   }
   
   if (mapOutput == T){
@@ -140,14 +151,16 @@ pointToPointTime <- function(output.dir,
     dir.create(paste0(output.dir, "/pointToPointTime-", file_name, "/geojson"))
   }
   
-  cat("Now running the propeR pointToPointTime tool.\n", sep="")
-  cat("Parameters chosen:\n", sep="")
-  cat("From: ", from_origin$name, " (", from_origin$lat_lon, ")\n", sep="")
-  cat("To: ", to_destination$name, " (", to_destination$lat_lon, ")\n", sep="")
-  cat("Date and Time: ", startDateAndTime, " (start) to ", endDateAndTime, " (end)\n", sep="")
-  cat("Intervals (mins): ", timeIncrease, "\n", sep="")
-  cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "] GIF [", gifOutput, "]\n\n", sep="")
-  
+  if (infoPrint == T){
+    cat("Now running the propeR pointToPointTime tool.\n", sep="")
+    cat("Parameters chosen:\n", sep="")
+    cat("From: ", from_origin$name, " (", from_origin$lat_lon, ")\n", sep="")
+    cat("To: ", to_destination$name, " (", to_destination$lat_lon, ")\n", sep="")
+    cat("Date and Time: ", startDateAndTime, " (start) to ", endDateAndTime, " (end)\n", sep="")
+    cat("Intervals (mins): ", timeIncrease, "\n", sep="")
+    cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "] GIF [", gifOutput, "]\n\n", sep="")
+  }
+    
   ###########################
   #### CALL OTP FUNCTION ####
   ###########################
@@ -157,7 +170,9 @@ pointToPointTime <- function(output.dir,
   num.run <- 0
   num.total <- num.end
   time.taken <- vector()
-  cat("Creating ", num.total, " point to point connections, please wait...\n", sep="")
+  if (infoPrint == T){
+    cat("Creating ", num.total, " point to point connections, please wait...\n", sep="")
+  }
   
   make_blank_df <- function(from_origin, to_destination, time_twenty_four) {
     df <- data.frame(
@@ -179,9 +194,11 @@ pointToPointTime <- function(output.dir,
     df
   }
   
-  pb <- progress_bar$new(
-    format = "  Travel time calculation complete for time :what [:bar] :percent eta: :eta",
-    total = num.total, clear = FALSE, width= 100)
+  if (infoPrint == T){
+    pb <- progress::progress_bar$new(
+      format = "  Travel time calculation complete for time :what [:bar] :percent eta: :eta",
+      total = num.total, clear = FALSE, width= 100)
+  }
   
   for (i in num.start:num.end) {
     
@@ -239,7 +256,11 @@ pointToPointTime <- function(output.dir,
         }
         
         m <- leaflet()
-        m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+        if (mapDarkMode == T) {
+          m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
+        } else {
+          m <- addProviderTiles(m, providers$CartoDB.Positron)
+        }        
         m <- addScaleBar(m)
         
         if (is.numeric(mapZoom)){
@@ -280,7 +301,9 @@ pointToPointTime <- function(output.dir,
             lat = ~ from_lat,
             lng = ~ from_lon,
             fillColor = ~ pal_transport(point_to_point_table$mode),
-            stroke = F,
+            stroke = T,
+            color = mapMarkerStrokeColor,
+            weight = mapMarkerStrokeWeight,
             fillOpacity = mapMarkerOpacity,
             popup = ~ mode)
         m <- addLegend(
@@ -317,7 +340,11 @@ pointToPointTime <- function(output.dir,
         }
         
         m <- leaflet()
-        m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+        if (mapDarkMode == T) {
+          m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
+        } else {
+          m <- addProviderTiles(m, providers$CartoDB.Positron)
+        }            
         m <- addScaleBar(m)
         
         if (is.numeric(mapZoom)){
@@ -486,7 +513,9 @@ pointToPointTime <- function(output.dir,
         point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
       }
     }
-    pb$tick(tokens = list(what = time))
+    if (infoPrint == T){
+      pb$tick(tokens = list(what = time))
+    }
     
   }
   
@@ -494,13 +523,14 @@ pointToPointTime <- function(output.dir,
   #### SAVE RESULTS ####
   ######################
   
-  cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
-  cat("Journey details:\n", sep = "")
-  cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
-  cat("Mean Duration (mins): ", round(mean(point_to_point_table_overview$duration_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$duration_mins, na.rm=TRUE),2), "] ", " (Walk time: ", round(mean(point_to_point_table_overview$walk_time_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$walk_time_mins, na.rm=TRUE),2), "] ", ", Transit time: ", round(mean(point_to_point_table_overview$transit_time_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$transit_time_mins, na.rm=TRUE),2), "] ", ", Waiting time: ", round(mean(point_to_point_table_overview$waiting_time_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$waiting_time_mins, na.rm=TRUE),2), "])\n", sep = "")
-  cat("Mean Distance (km): ", round(mean(point_to_point_table_overview$distance_km, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$distance_km, na.rm=TRUE),2), "]\n", sep = "")
-  cat("Median Transfers: ", median(point_to_point_table_overview$transfers, na.rm=TRUE), " (Buses: ", median(point_to_point_table_overview$no_of_buses, na.rm=TRUE), ", Trains: ", median(point_to_point_table_overview$no_of_trains, na.rm=TRUE), ")\n\n", sep = "")
-  
+  if (infoPrint == T){
+    cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
+    cat("Journey details:\n", sep = "")
+    cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
+    cat("Mean Duration (mins): ", round(mean(point_to_point_table_overview$duration_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$duration_mins, na.rm=TRUE),2), "] ", " (Walk time: ", round(mean(point_to_point_table_overview$walk_time_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$walk_time_mins, na.rm=TRUE),2), "] ", ", Transit time: ", round(mean(point_to_point_table_overview$transit_time_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$transit_time_mins, na.rm=TRUE),2), "] ", ", Waiting time: ", round(mean(point_to_point_table_overview$waiting_time_mins, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$waiting_time_mins, na.rm=TRUE),2), "])\n", sep = "")
+    cat("Mean Distance (km): ", round(mean(point_to_point_table_overview$distance_km, na.rm=TRUE),2), " [+/-", round(sd(point_to_point_table_overview$distance_km, na.rm=TRUE),2), "]\n", sep = "")
+    cat("Median Transfers: ", median(point_to_point_table_overview$transfers, na.rm=TRUE), " (Buses: ", median(point_to_point_table_overview$no_of_buses, na.rm=TRUE), ", Trains: ", median(point_to_point_table_overview$no_of_trains, na.rm=TRUE), ")\n\n", sep = "")
+  }
 
   for (i in 1:nrow(point_to_point_table_overview)) {
     
@@ -543,10 +573,11 @@ pointToPointTime <- function(output.dir,
     
     m <-
       magick::image_read(paste0(output.dir, "/pointToPointTime-", file_name, "/gif/", "/pointToPointTime-gif-", file_name, ".gif")) %>%
-      magick::image_scale("600") 
+      magick::image_scale("800") 
   
     invisible(print(m)) 
   }
-  
-  cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T){
+    cat("Outputs saved. Thanks for using propeR.\n")
+  }
 }

@@ -27,6 +27,8 @@
 ##' @param busTicketPriceMax Specifiy the maximum cost of a bus journey (default is 12 GPB)
 ##' @param trainTicketPriceKm Specifiy the cost of a train journey per km (default is 0.12 GPB per km)
 ##' @param trainTicketPriceMin Specifiy the minimum cost of a train journey (default is 3 GBP)
+##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
+##' @param failSafeSave Specify the failsafe save number for large datasets, default is 100
 ##' @return Saves journey details as comma separated value file to output directory
 ##' @author Michael Hodge
 ##' @examples
@@ -66,7 +68,9 @@ pointToPointLoop <- function(output.dir,
                              busTicketPrice = 3,
                              busTicketPriceMax = 12,
                              trainTicketPriceKm = 0.12,
-                             trainTicketPriceMin = 3) {
+                             trainTicketPriceMin = 3,
+                             infoPrint = T,
+                             failSafeSave = 100) {
   
   #########################
   #### SETUP VARIABLES ####
@@ -110,19 +114,21 @@ pointToPointLoop <- function(output.dir,
   dir.create(paste0(output.dir, "/pointToPointLoop-", file_name)) 
   dir.create(paste0(output.dir, "/pointToPointLoop-", file_name, "/csv")) 
   
-  cat("Now running the propeR pointToPointLoop tool.\n", sep="")
-  cat("Parameters chosen:\n", sep="")
-  if (journeyLoop == 0) {
-    cat("Loop Type: Origin and destination (", num.total, " calls)\n", sep="")
-  } else if (journeyLoop == 1) {
-    cat("Loop Type: Origin only (", num.total, " calls)\n", sep="")
-  } else if (journeyLoop == 2) {
-    cat("Loop Type: Destination only (", num.total, " calls)\n", sep="")
-  } else if (journeyLoop == 3) {
-    cat("Loop Type: Origin and Destination are fixed (", num.total, " calls)\n", sep="")
+  if (infoPrint == T) {
+    cat("Now running the propeR pointToPointLoop tool.\n", sep="")
+    cat("Parameters chosen:\n", sep="")
+    if (journeyLoop == 0) {
+      cat("Loop Type: Origin and destination (", num.total, " calls)\n", sep="")
+    } else if (journeyLoop == 1) {
+      cat("Loop Type: Origin only (", num.total, " calls)\n", sep="")
+    } else if (journeyLoop == 2) {
+      cat("Loop Type: Destination only (", num.total, " calls)\n", sep="")
+    } else if (journeyLoop == 3) {
+      cat("Loop Type: Origin and Destination are fixed (", num.total, " calls)\n", sep="")
+    }
+    cat("Return Journey: ", journeyReturn, "\n", sep="")
+    cat("Date and Time: ", startDateAndTime, "\n", sep="")
   }
-  cat("Return Journey: ", journeyReturn, "\n", sep="")
-  cat("Date and Time: ", startDateAndTime, "\n", sep="")
   
   ###########################
   #### CALL OTP FUNCTION ####
@@ -133,7 +139,9 @@ pointToPointLoop <- function(output.dir,
   start_date <- as.Date(startDateAndTime)
   time.taken <- vector()
   calls.list <- c(0)
-  cat("Creating ", num.total, " point to point connections, please wait...\n")
+  if (infoPrint == T) {
+    cat("Creating ", num.total, " point to point connections, please wait...\n")
+  }
   
   make_blank_df <- function(from, to, time_twenty_four) {
     df <- data.frame(
@@ -155,9 +163,11 @@ pointToPointLoop <- function(output.dir,
     df
   }
   
-  pb <- progress_bar$new(
-    format = "  Travel time calculation complete for call :what [:bar] :percent eta: :eta",
-    total = num.total, clear = FALSE, width= 100)
+  if (infoPrint == T) {
+    pb <- progress::progress_bar$new(
+      format = "  Travel time calculation complete for call :what [:bar] :percent eta: :eta",
+      total = num.total, clear = FALSE, width= 100)
+  }
   
   for (j in 1:multiplier) {
     
@@ -306,9 +316,12 @@ pointToPointLoop <- function(output.dir,
             point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
           }
         }
-        pb$tick(tokens = list(what = num.run))
         
-        if ((num.run/100) %% 1 == 0) { # fail safe for large files
+        if (infoPrint == T) {
+          pb$tick(tokens = list(what = num.run))
+        }
+        
+        if ((num.run/failSafeSave) %% 1 == 0) { # fail safe for large files
           
           point_to_point_table_overview_out <- point_to_point_table_overview
           
@@ -329,9 +342,11 @@ pointToPointLoop <- function(output.dir,
     }
   }
   
-  cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
-  cat("Journey details:\n", sep = "")
-  cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
+  if (infoPrint == T) {
+    cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
+    cat("Journey details:\n", sep = "")
+    cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
+  }
   
   if (modes == "CAR") {
     colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walk_time_mins")] <- "drive_time_mins"
@@ -344,5 +359,7 @@ pointToPointLoop <- function(output.dir,
     file = paste0(output.dir, "/pointToPointLoop-", file_name, "/csv/pointToPointLoop-", file_name, ".csv"),
     row.names = F) 
   
-  cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T) {
+    cat("Outputs saved. Thanks for using propeR.\n")
+  }
 }
