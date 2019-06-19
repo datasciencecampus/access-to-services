@@ -25,6 +25,8 @@ importLocationData <- function(src,
   colnames(data_points)[which(names(data_points) == latcol)] <- "lat"
   colnames(data_points)[which(names(data_points) == postcodecol)] <- "postcode"
   
+  data_points$name <- as.character(data_points$name)
+  
   if ("lat" %in% colnames(data_points))
   {
     if (!("lon" %in% colnames(data_points))) {

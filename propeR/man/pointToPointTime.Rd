@@ -5,18 +5,24 @@
 \title{Calculates the journey between for a single origin and destination between a
 start and end time and date.}
 \usage{
-pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
-  destinationPoints, destinationPointsRow = 1,
-  startDateAndTime = "2018-08-18 12:00:00",
-  endDateAndTime = "2018-08-18 15:00:00", timeIncrease = 60,
+pointToPointTime(output.dir, otpcon = otpcon,
+  originPoints = originPoints, originPointsRow = 1,
+  destinationPoints = destinationPoints, destinationPointsRow = 1,
+  startDateAndTime = format(Sys.time(), "\%Y-\%m-\%d \%H:\%M:\%S"),
+  endDateAndTime = format(Sys.time() + 1 * 60 * 60,
+  "\%Y-\%m-\%d \%H:\%M:\%S"), timeIncrease = 30,
   modes = "WALK, TRANSIT", maxWalkDistance = 1000,
   walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
   minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, preWaitTime = 15, mapOutput = F,
+  arriveBy = F, preWaitTime = 15, estimateCost = F,
+  busTicketPrice = 3, busTicketPriceMax = 12,
+  trainTicketPriceKm = 0.12, trainTicketPriceMin = 3, infoPrint = T,
+  mapOutput = F, gifOutput = F, geojsonOutput = F,
   mapPolylineColours = list(TRANSIT = "#000000", WALK = "#A14296", BUS =
   "#48C1B1", RAIL = "#4D7BC5", CAR = "#8D4084", BICYCLE = "#4AA6C3"),
   mapZoom = "bb", mapPolylineWeight = 5, mapPolylineOpacity = 1,
-  mapMarkerOpacity = 1, mapLegendOpacity = 1)
+  mapMarkerStrokeColor = "black", mapMarkerStrokeWeight = 1,
+  mapMarkerOpacity = 1, mapLegendOpacity = 1, mapDarkMode = F)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -31,11 +37,11 @@ pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{destinationPointsRow}{The row of destinationPoints to be used, defaults to 1}
 
-\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time}
 
-\item{endDateAndTime}{The end time and date, in 'YYYY-MM-DD HH:MM:SS' format}
+\item{endDateAndTime}{The end time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is an hour after the currrent date and time}
 
-\item{timeIncrease}{The time increase in minutes, default 60}
+\item{timeIncrease}{The time increase in minutes, default 30}
 
 \item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
@@ -57,7 +63,23 @@ pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
 
+\item{estimateCost}{Specify whether to estimate costs of journey or not (default is False)}
+
+\item{busTicketPrice}{Specifiy the cost of a bus journey (default is 3 GPB)}
+
+\item{busTicketPriceMax}{Specifiy the maximum cost of a bus journey (default is 12 GPB)}
+
+\item{trainTicketPriceKm}{Specifiy the cost of a train journey per km (default is 0.12 GPB per km)}
+
+\item{trainTicketPriceMin}{Specifiy the minimum cost of a train journey (default is 3 GBP)}
+
+\item{infoPrint}{Specifies whether you want some information printed to the console or not, default is TRUE}
+
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
+
+\item{gifOutput}{Specifies whether you want to output an animated gif map, defaults to FALSE}
+
+\item{geojsonOutput}{Specifies whether you want to output the polylines as a geojson, defaults to FALSE}
 
 \item{mapPolylineColours}{A list defining the colours to assign to each mode of transport.}
 
@@ -67,9 +89,15 @@ pointToPointTime(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{mapPolylineOpacity}{Specifies the opacity of the polyline, defaults to 1 (solid)}
 
+\item{mapMarkerStrokeColor}{Specifies the outline color of the marker, defaults to black}
+
+\item{mapMarkerStrokeWeight}{Specifies the stroke weight of the marker, defaults to 1 (solid)}
+
 \item{mapMarkerOpacity}{Specifies the opacity of the marker, defaults to 1 (solid)}
 
 \item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 1 (solid)}
+
+\item{mapDarkMode}{Specifies if you want to use the dark leaflet map colour (default is FALSE)}
 }
 \value{
 Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.

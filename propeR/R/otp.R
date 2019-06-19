@@ -209,8 +209,10 @@ otpTripTime <- function(otpcon,
     journey_start_time <- df$startTime
     journey_start_time <-
       as.POSIXct(journey_start_time / 1000, origin = "1970-01-01")
-    if (as.numeric(difftime(journey_start_time, required_start_time, units =
-                            "mins")) < as.integer(preWaitTime)) {
+    pre_waiting_time <- as.numeric(difftime(journey_start_time, required_start_time, units =
+                                              "mins"))
+    
+    if (pre_waiting_time < as.integer(preWaitTime)) {
       # check if need to return detailed response
       if (detail == TRUE) {
         # need to convert times from epoch format
@@ -248,7 +250,9 @@ otpTripTime <- function(otpcon,
         ret.df$origin <- from_name
         ret.df$destination <- to_name
         
-        ret.df <- ret.df[, c(10, 11, 1, 2, 9, 4, 3, 5, 6, 7, 8)]
+        ret.df$pre_waiting_time_mins <- round(pre_waiting_time, digits = 2)
+        
+        ret.df <- ret.df[, c(10, 11, 1, 2, 9, 4, 3, 5, 6, 7, 12, 8)]
         
         colnames(ret.df) <- c(
           "origin",
@@ -261,6 +265,7 @@ otpTripTime <- function(otpcon,
           "walk_time_mins",
           "transit_time_mins",
           "waiting_time_mins",
+          "pre_waiting_time_mins",
           "transfers")
     
         # rename walkTime column as appropriate - this a mistake in OTP
@@ -513,8 +518,8 @@ otpTripTime <- function(otpcon,
     } else {
       # there is no reasonable journey in a reasonable time
       response <-
-        list("errorId" = asjson$error$id,
-             "errorMessage" = asjson$error$msg)
+        list("errorId" = 200,
+             "errorMessage" = 'Outside preWaitTime')
       return (response)
     }
   } else {
@@ -757,4 +762,96 @@ otpIsochrone <- function(otpcon,
   }
   
   return (list(status = status, response = text))
+}
+
+##' Returns is journey is possible from OTP
+##'
+##' Returns if journey is possible.
+##'
+##' @param otpcon OTP router URL
+##' @param from 'lat, lon' decimal degrees
+##' @param to 'lat, lon' decimal degrees
+##' @param modes defaults to 'TRANSIT, WALK'
+##' @param date 'YYYY-MM-DD' format
+##' @param time 12 hour format
+##' @param maxWalkDistance in meters, defaults to 800
+##' @param walkReluctance defaults to 2 (range 0 - 20)
+##' @param arriveBy defaults to FALSE
+##' @param transferPenalty defaults to 0
+##' @param minTransferTime in minutes, defaults to 1
+##' @param walkSpeed in m/s, defaults to 1.4
+##' @param bikeSpeed in m/s, defaults to 4.3
+##' @param maxTransfers defaults to 10
+##' @param wheelchair defaults to FALSE
+##' @param preWaitTime in minutes, defaults to 60
+##' @return A list comprising status and duration (in minutes) of detail is FALSE, or list comprising status, and itineraries, trip details
+##' and polylines dataframes
+##' @author Michael Hodge
+##' @examples
+##'   result <- otpJourneyChecker(
+##'     otpcon,
+##'     from = "51.5128,-3.2347",
+##'     to = "51.4779, -3.1830",
+##'     modes = "WALK, TRANSIT",
+##'     date = "2018-10-01",
+##'     time = "08:00am"
+##'   )
+##' @export
+otpJourneyChecker <- function(otpcon,
+                        from_name,
+                        from_lat_lon,
+                        to_name,
+                        to_lat_lon,
+                        modes = 'WALK',
+                        date,
+                        time,
+                        maxWalkDistance = 800,
+                        walkReluctance = 2,
+                        arriveBy = 'false',
+                        # todo: this should be a boolean
+                        transferPenalty = 0,
+                        minTransferTime = 1,
+                        walkSpeed = 1.4,
+                        bikeSpeed = 4.3,
+                        maxTransfers = 10,
+                        wheelchair = FALSE) {
+  # convert modes string to uppercase - expected by OTP
+  modes <- toupper(modes)
+  
+  routerUrl <- paste0(otpcon, '/plan')
+  
+  params <- list(
+    fromPlace = from_lat_lon,
+    toPlace = to_lat_lon,
+    mode = modes,
+    date = date,
+    time = time,
+    maxWalkDistance = maxWalkDistance,
+    walkReluctance = walkReluctance,
+    arriveBy = arriveBy,
+    transferPenalty = transferPenalty,
+    minTransferTime = (minTransferTime * 60),
+    walkSpeed = walkSpeed,
+    bikeSpeed = bikeSpeed,
+    maxTransfers = maxTransfers,
+    wheelchair = wheelchair
+  )
+  
+  # Use GET from the httr package to make API call and place in req - returns json by default. Not using numItineraries due to odd OTP behaviour - if request only 1 itinerary don't necessarily get the top/best itinerary, sometimes a suboptimal itinerary is returned. OTP will return default number of itineraries depending on mode. This function returns the first of those itineraries.
+  req <- httr::GET(routerUrl, query = params)
+  
+  # convert response content into text
+  text <- httr::content(req, as = "text", encoding = "UTF-8")
+  
+  # parse text to json
+  asjson <- jsonlite::fromJSON(text)
+  
+  # Check for errors - if no error object, continue to process content
+  if (is.null(asjson$error$id)) {
+      response <- 1
+      return (response)
+    } else {
+      response <- 0
+      return (response)
+  }
 }

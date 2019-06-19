@@ -143,23 +143,63 @@ pointToPointLoop <- function(output.dir,
     cat("Creating ", num.total, " point to point connections, please wait...\n")
   }
   
-  make_blank_df <- function(from, to, time_twenty_four) {
-    df <- data.frame(
-      "origin" = from$name,
-      "destination" = to$name,
-      "start_time" = NA,
-      "end_time" = NA,
-      "distance_km" = NA,
-      "duration_mins" = NA,
-      "walk_distance_km" = NA,
-      "walk_time_mins" = NA,
-      "transit_time_mins" = NA,
-      "waiting_time_mins" = NA,
-      "transfers" = NA,
-      "cost" = NA,
-      "no_of_buses" = NA,
-      "no_of_trains" = NA,
-      "journey_details" = NA)
+  make_blank_df <- function(from, to, modes) {
+    
+    if (modes == "CAR") {
+      df <- data.frame(
+        "origin" = from$name,
+        "destination" = to$name,
+        "start_time" = NA,
+        "end_time" = NA,
+        "distance_km" = NA,
+        "duration_mins" = NA,
+        "walk_distance_km" = NA,
+        "drive_time_mins" = NA,
+        "transit_time_mins" = NA,
+        "waiting_time_mins" = NA,
+        "pre_waiting_time_mins" = NA,
+        "transfers" = NA,
+        "cost" = NA,
+        "no_of_buses" = NA,
+        "no_of_trains" = NA,
+        "journey_details" = NA)
+    } else if (modes == "BICYCLE") {
+      df <- data.frame(
+        "origin" = from$name,
+        "destination" = to$name,
+        "start_time" = NA,
+        "end_time" = NA,
+        "distance_km" = NA,
+        "duration_mins" = NA,
+        "walk_distance_km" = NA,
+        "cycle_time_mins" = NA,
+        "transit_time_mins" = NA,
+        "waiting_time_mins" = NA,
+        "pre_waiting_time_mins" = NA,
+        "transfers" = NA,
+        "cost" = NA,
+        "no_of_buses" = NA,
+        "no_of_trains" = NA,
+        "journey_details" = NA)
+    } else {
+      df <- data.frame(
+        "origin" = from$name,
+        "destination" = to$name,
+        "start_time" = NA,
+        "end_time" = NA,
+        "distance_km" = NA,
+        "duration_mins" = NA,
+        "walk_distance_km" = NA,
+        "walk_time_mins" = NA,
+        "transit_time_mins" = NA,
+        "waiting_time_mins" = NA,
+        "pre_waiting_time_mins" = NA,
+        "transfers" = NA,
+        "cost" = NA,
+        "no_of_buses" = NA,
+        "no_of_trains" = NA,
+        "journey_details" = NA)
+    }
     df
   }
   
@@ -236,7 +276,7 @@ pointToPointLoop <- function(output.dir,
                   if (point_to_point$output_table[n,]$mode == 'BUS'){
                     busCost <- busCost + busTicketPrice
                   } else if (point_to_point$output_table[n,]$mode == 'RAIL'){
-                    trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance / 1000)
+                    trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance)
                     if (trainCost_tmp < trainTicketPriceMin){
                       trainCost_tmp <- trainTicketPriceMin
                     }
@@ -260,11 +300,11 @@ pointToPointLoop <- function(output.dir,
               point_to_point_table_overview["journey_details"] <- jsonlite::toJSON(point_to_point$output_table)
               
             } else {
-              point_to_point_table_overview <- make_blank_df(from, to, time_twenty_four)
+              point_to_point_table_overview <- make_blank_df(from, to, modes)
             }
             
           } else {
-            point_to_point_table_overview <- make_blank_df(from, to, time_twenty_four)
+            point_to_point_table_overview <- make_blank_df(from, to, modes)
           }
           
         } else {
@@ -283,7 +323,7 @@ pointToPointLoop <- function(output.dir,
                   if (point_to_point$output_table[n,]$mode == 'BUS'){
                     busCost <- busCost + busTicketPrice
                   } else if (point_to_point$output_table[n,]$mode == 'RAIL'){
-                    trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance / 1000)
+                    trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance)
                     if (trainCost_tmp < trainTicketPriceMin){
                       trainCost_tmp <- trainTicketPriceMin
                     }
@@ -306,12 +346,12 @@ pointToPointLoop <- function(output.dir,
               point_to_point_table_overview_tmp["no_of_trains"] <- nrow(point_to_point$output_table[point_to_point$output_table$mode == 'RAIL',])
               point_to_point_table_overview_tmp["journey_details"] <- jsonlite::toJSON(point_to_point$output_table)
             } else {
-              point_to_point_table_overview_tmp <- make_blank_df(from, to, time_twenty_four)
+              point_to_point_table_overview_tmp <- make_blank_df(from, to, modes)
             }
             
             point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
           } else {
-            point_to_point_table_overview_tmp <- make_blank_df(from, to, time_twenty_four)
+            point_to_point_table_overview_tmp <- make_blank_df(from, to, modes)
             
             point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
           }

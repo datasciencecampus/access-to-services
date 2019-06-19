@@ -186,6 +186,7 @@ pointToPointTime <- function(output.dir,
       "walk_time_mins" = NA,
       "transit_time_mins" = NA,
       "waiting_time_mins" = NA,
+      "pre_waiting_time" = NA,
       "transfers" = NA,
       "cost" = NA,
       "no_of_buses" = NA,
@@ -433,7 +434,7 @@ pointToPointTime <- function(output.dir,
               if (point_to_point$output_table[n,]$mode == 'BUS'){
                 busCost <- busCost + busTicketPrice
               } else if (point_to_point$output_table[n,]$mode == 'RAIL'){
-                trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance / 1000)
+                trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance)
                 if (trainCost_tmp < trainTicketPriceMin){
                   trainCost_tmp <- trainTicketPriceMin
                 }

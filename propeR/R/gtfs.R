@@ -87,6 +87,36 @@ cleanGTFS <- function(gtfs.dir,
   message("the length of stop_times.txt after cleaning was: ",
           nrow(stop_times))
   
+  message("the number of stops with coords 0,0 are: ",
+          nrow(stops[stops$stop_lat == 0,]))
+  
+  if (nrow(stops[stops$stop_lat == 0,]) > 0){
+    unzip(zipfile = system.file("extdata", "stops_light.zip", package = "propeR"), exdir = tmp.dir)
+    
+    stops_light <- read.csv(paste0(tmp.dir,'/stops_light.csv'),
+                            sep = ",",
+                            as.is = TRUE)
+  
+    for (i in 1:nrow(stops)){
+      if (stops$stop_lat[i] == 0){
+        
+        idx <- which(stops$stop_id[i] == stops_light$ATCOCode)
+        if (length(idx) == 0){
+          if (length(which(stops$stop_code[i] == stops_light$NaptanCode)) == 1){
+            idx <- which(stops$stop_code[i] == stops_light$NaptanCode)
+          }
+        }
+        if (length(idx) == 0){
+          idx <- which(substring(stops$stop_id[i],2) == stops_light$ATCOCode)
+        }  
+        
+        stops$stop_lon[i] <- stops_light$Longitude[idx]
+        stops$stop_lat[i] <- stops_light$Latitude[idx]
+        
+        cat('Stop ', stops$stop_id[i], ' is now at: ', stops$stop_lon[i], ', ', stops$stop_lat[i],'\n')
+      }
+    } 
+  }
   # todo: no need to read/write all of these
   # Writes files to txt
   
@@ -104,6 +134,61 @@ cleanGTFS <- function(gtfs.dir,
       files = file.path(files))
   file.rename(paste0(prefix, gsub(".zip", "", gtfs.filename), "_new", ".zip"),
               paste0(gsub(".zip", "", gtfs.file), "_new", ".zip"))
+  unlink(tmp.dir, recursive = TRUE) # Deletes tmp_folder
+  
+}
+
+##' Fixes 0,0 in stops GTFS file
+##'
+##' Fixes 0,0 in stops GTFS file
+##'
+##' @param gtfs.dir The directory for the stop file
+##' @param stops.filename The name of the stop file
+##' @return Returns a stop file with fixed lats and lons
+##' @author Michael Hodge
+##' @examples
+##' cleanGTFS(stopsfile)
+##'
+##' @export
+stopFIX <- function(gtfs.dir,
+                    stops.filename) {
+
+  stops.file <- paste0(gtfs.dir, "/", stops.filename)
+  
+  stops <-
+    read.csv(stops.file,
+             sep = ",",
+             as.is = TRUE)
+  
+  tmp.dir <- paste0(gtfs.dir, "/tmp_folder")
+  unlink(tmp.dir, recursive = TRUE) # Deletes tmp_folder
+  dir.create(tmp.dir)
+  prefix <- paste0(tmp.dir, "/")
+  
+  unzip(zipfile = system.file("extdata", "stops_light.zip", package = "propeR"), exdir = tmp.dir)
+  
+  message("the number of stops with coords 0,0 are: ",
+          nrow(stops[stops$stop_lat == 0,]))
+  
+  stops_light <- read.csv(paste0(tmp.dir,'/stops_light.csv'),
+                          sep = ",",
+                          as.is = TRUE)
+  
+  for (i in 1:nrow(stops)){
+    if (stops$stop_lat[i] == 0){
+      
+      idx <- which(stops$stop_id[i] == stops_light$ATCOCode)
+      
+      stops$stop_lon[i] <- stops_light$Longitude[i]
+      stops$stop_lat[i] <- stops_light$Latitude[i]
+      
+      cat('Stop ', stops$stop_id[i], ' is now at: ', stops$stop_lat[i], ', ', stops$stop_lon[i],'\n')
+    }
+  } 
+  
+  write.csv(stops, file = (paste0(gtfs.dir, "/stops_new.txt")), row.names =
+              FALSE)
+  
   unlink(tmp.dir, recursive = TRUE) # Deletes tmp_folder
   
 }

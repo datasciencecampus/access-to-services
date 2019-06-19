@@ -103,8 +103,7 @@ Initially, we used [TransXChange2GTFS](https://github.com/danbillingsley/TransXC
 The team, [planar network](https://planar.network/), who we initially used to convert the UK train data to GTFS, have created a TypeScript TransXChange to GTFS converter, [transxchange2gtfs](https://github.com/planarnetwork/transxchange2gtfs). Their GitHub page provides good detailed instructions to installing and converting the files. The method we used was:
 
 1. Install the converter as per the GitHub instructions.
-2. Place the XML files in a folder.
-3. Run `transxchange2gtfs *.xml gtfs-output.zip` in terminal/command line.
+3. Run `transxchange2gtfs path/to/GTFS/file.zip gtfs-output.zip` in terminal/command line.
 
 #### CIF to GTFS
 
@@ -112,7 +111,7 @@ As mentioned above, UK train data in CIF format can be downloaded from [here](ht
 
 Inside the zipped folder will be the following files: ttfis\*\*\*.alf, ttfis\*\*\*.dat, ttfis\*\*\*.flf, ttfis\*\*\*.mca, ttfis\*\*\*.msn, ttfis\*\*\*.set, ttfis\*\*\*.tsi, and ttfis\*\*\*.ztr. Most of these files are difficult to read, hence the need for GTFS.
 
-We used the sql tool [dtd2mysql](https://github.com/open-track/dtd2mysql) to convert the files into a SQL database, then into the GTFS format. The [dtd2mysql github](https://github.com/open-track/dtd2mysql) page gives a guide on how to convert the data. This method used here was:
+We used the sql tool [dtd2mysql](https://github.com/open-track/dtd2mysql) created by [planar network](https://planar.network/) to convert the files into a SQL database, then into the GTFS format. The [dtd2mysql github](https://github.com/open-track/dtd2mysql) page gives a guide on how to convert the data. This method used here was:
 
 1. Create a sql database with an appropriate name (e.g., 'train_database'). Note, this is easiest done under the root username with no password.
 2. Run the following in a new terminal/command line window within an appropriate directory:
@@ -129,7 +128,7 @@ DATABASE_USERNAME=root DATABASE_NAME=train_database dtd2mysql --gtfs-zip train_G
 
 ### Cleaning the GTFS Data
 
-It is unlikely that the converted GTFS ZIP files will work directly with [OpenTripPlanner (OTP)](http://www.opentripplanner.org/). Often this is caused by stops within the stop.txt file that are not handled by other parts of the GTFS feed, but there are other issues too. In propeR we have created a function called `cleanGTFS()` to clean and preprocess the GTFS files. To run:
+The converted GTFS ZIP files may not work directly with [OpenTripPlanner (OTP)](http://www.opentripplanner.org/). Often this is caused by stops within the stop.txt file that are not handled by other parts of the GTFS feed, but there are other issues too, such as latitude and longitudes of stops being assigned to 0. In propeR we have created a function called `cleanGTFS()` to clean and preprocess the GTFS files. To run:
 
 ```
 #R
@@ -141,7 +140,7 @@ Where `gtfs.dir` is the directory where the GTFS ZIP folder is located, and `gtf
 
 ### Sample GTFS data
 
-The Data Science Campus as created some cleaned GTFS data for buses around [Cardiff, Wales](https://www.openstreetmap.org/#map=11/51.6700/-3.1600). This can be found on the propeR github page [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/gtfs). This data was created using the steps above.
+The Data Science Campus as created some cleaned GTFS data for buses around [Cardiff, Wales](https://www.openstreetmap.org/#map=11/51.6700/-3.1600). This can be found [here](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Cardiff/Mar19/Cardiff_Mar19.zip). This data was created using the steps above.
 
 **Note**: _this GTFS may not contain the most recent timetables, it is only designed as a practice set of GTFS data for use with the propeR tool. Some (but not most) services have end dates of 2018-08-15, 2018-09-02, 2018-10-31. Therefore, anlysing journeys after these dates will not include these services. Most services have an end date capped at 2020-01-01._
 
@@ -182,18 +181,13 @@ This will give you access to the the following functions:
 
 | Function | Description |
 |-----------------------|-----------------------------------------|
-| `choropleth()` | Calculates the journey time from multiple origins to a single destination, and produces a [choropleth map](https://en.wikipedia.org/wiki/Choropleth_map). |
-| `importLocationData()` | Used to generate a dataframe from a CSV file containing origin or destination information. |
-| `importGeojsonData()` | Used to create a polygon file from a GeoJSON file containing origin information. |
-| `postcodeToDecimalDegrees()` | Used in `importLocationData()` to convert postcodes to decimal degrees latitude and longitude via API calls (*needs internet access*). |
-| `cleanGTFS()` | Used to clean GTFS ZIP folder before OTP graph building. |
-| `isochrone()` | Generates a polygon [(isochrone)](https://en.wikipedia.org/wiki/Isochrone_map) around a single origin to calculate journey times to multiple destinations, can output a PNG map, HTML map, and .GeoJSON polygon file. |
-| `isochroneTime()` | Same as `isochrone()`, but between a start and end time/date. Output can be an animated GIF image. |
-| `isochroneMulti()`  | Same as `isochrone()`, but for multiple origins. A polygon is created for each origin. |
-| `isochroneMultiIntersect()` | Similar to `isochroneMulti()`, but generates a polygon for the intersection between multiple polygons from multiple origins. Each origin can have its own journey parameters. |
-| `isochroneMultiIntersectSensitivity()` | Same as `isochroneMultiIntersect()`, but applies a 30-minute window either side of start time. |
-| `isochroneMultiIntersectTime()` | Same as `isochroneMultiIntersect()`, but between a start and end time/date. |
-| `otpChoropleth()` | A core function used to produce an API call to OTP to be used with `choropleth()`. |
+| `importLocationData` | Used to generate a dataframe from a CSV file containing origin or destination information. |
+| `postcodeToDecimalDegrees` | Used in `importLocationData()` to convert postcodes to decimal degrees latitude and longitude via API calls (*needs internet access*). |
+| `cleanGTFS` | Used to clean GTFS ZIP folder before OTP graph building. |
+| `isochrone` | Generates a polygon [(isochrone)](https://en.wikipedia.org/wiki/Isochrone_map) around a single origin to calculate journey times to multiple destinations, can output a PNG map, HTML map, and .GeoJSON polygon file. |
+| `isochroneTime` | Same as `isochrone()`, but between a start and end time/date. Output can be an animated GIF image. |
+| `isochroneMulti`  | Same as `isochrone()`, but for multiple origins. A polygon is created for each origin. |
+| `locationValidator` | Used to check the validity of location points by trying to create a small isochrone around the location. FIxes the nearest routable point if there is an error. |
 | `otpConnect` | A core function used to connect to OTP either locally or remotely (i.e. the URL of the generated and hosted OTP graph). |
 | `otpIsochrone` | A core function used to produce an API call to OTP to be used with the propeR isochrone functions. |
 | `otpTripDistance` | A core function used to produce an API call to OTP to find trip distance. |
@@ -212,69 +206,59 @@ All location data (origin and destination) must be in comma separated (CSV) form
 
 The CSV file must contain headers, the header names can be specified in **`importLocationData()`**.
 
-**Note**: _if using the **`choropleth()`** function the **name** column must match to the `origins` file._
-
 ### propeR Functions
 
 Use **`?`** in R to view the function help files for more information, e.g., **`?isochrone`**. Below we will run through each function, but the help files will help you understand all the parameters that can be changed in each function.
 
 #### otpConnect
 
-The connection to the OTP server can be initiated using:
-
 ```
 #R
 otpcon <- otpConnect()
 ```
 
-If you have named the folders differently to that suggested in [earlier in this guide](#creating-the-opentripplanner-server), you will need to specify these in the parameter fields (i.e. `hostname`, `router`, `port`). See **`?otpConnect`** for more information.
+This function establishes the connection to the OTP server. You will need to specify these in the parameter fields (i.e. `hostname`, `router`, `port`). See **`?otpConnect`** for more information.
 
 #### importLocationData and importGeojsonData
 
-The propeR package comes with some sample CSV and GeoJSON data to be used alongside the OTP graph built using the sample GTFS and .osm files on the [github repo](https://github.com/datasciencecampus/propeR). To load this data, run:
+```
+#R
+originPoints <- importLocationData('PATH/TO/FILE')
+```
+
+This loads csv location data into propeR. Specify the unique ID column header using `idcol=""` (default is 'name'), the latitude column using `latcol=""` (default is 'lat'), the longitude column using `loncol=""` (default is 'lon'), and (if needed) the postcode column using `postcodecol=""` (default is 'postcode').
+
+The propeR package comes with some sample CSV data to be used alongside the OTP graph built using the sample GTFS and .osm files on the [github repo](https://github.com/datasciencecampus/propeR). To load this data, run:
 
 ```
 #R
 originPoints <- importLocationData(system.file("extdata", "origin.csv", package = "propeR"))
 destinationPoints <- importLocationData(system.file("extdata", "destination.csv", package = "propeR"))
-originPolygons <- importGeojsonData(system.file("extdata", "origin.geojson", package = "propeR"))
 ```
-
-If using on non-sample data, replace `system.file("extdata", "origin.csv", package = "propeR")` with the full path of your data file. 
 
 The sample data shows an example of data with a latitude, longitude column (recommended) in the origin CSV file, and one with a postcode column only (works, but not recommended) in the destination CSV file. The **`importLocationData()`** function will call a separate function (`postcodeToDecimalDegrees()`) that converts postcode to latitude and longitude. 
 
-When loading your own data, you must specify the column name of the unique ID, latitude and longitude (or postcode) columns using the parameters `idcol`, `loncol`, `latcol` (or `postcodecol`). The defaults are name, lon, lat (and postcode), respectively.
-
-The GeoJSON file is only required for the **`choropleth()`** function.
-
-For the sample data importLocationData on the sample origin CSV file ('origin.csv') will load the following table:
-
-|| objectid | lsoa11cd | name  | lat  | lon  | lat_lon |
-|----|----------|----------|-------|------|------|---------|
-| 5 | 33712 | W01001730 | Cardiff 008A | 51.52131 | -3.16326 | 51.52131,-3.16326  |
-| 1 | 34128 | W01001888 | Cardiff 010A | 51.51275 | -3.23468 | 51.51275,-3.23468 | 
-| 4 | 33303 | W01001755 | Cardiff 025A | 51.50079 | -3.19173 | 51.50079,-3.19173 | 
-| 2 | 33907 | W01001724 | Cardiff032C | 51.49211 | -3.17585 | 51.49211,-3.17585 | 
-| 3 | 34039 | W01001715 | Cardiff 035B | 51.48688 | -3.21213 | 51.48688,-3.21213 | 
-
-And the sample destination CSV file ('destination.csv') will load the following table:
-
-|| name | postcode | lat  | lon  | lat_lon |
-|----|------|----------|------|------|---------|
-| 1 | Principality Stadium | CF10 1NS | 51.478284 | -3.182652 | 51.478284,-3.182652 | 
-| 2 | Cardiff City Stadium | CF11 8AZ | 51.473246 | -3.211002 | 51.473246,-3.211002 | 
-
-
 **Note:** _the column lat\_lon is generated automatically by `importLocationData()` and does not need to be manually entered._
 
-#### pointToPoint
-
-The most basic function in propeR is find the journey details for a trip with a single origin and destination. To do this, once the data has been loaded and the otp connection established, run the following:
+#### locationValidator
 
 ```
 #R
-pointToPoint(output.dir = PATH_TO_DIR, 
+pointToPoint(output.dir = 'PATH/TO/DIR', 
+              otpcon = otpcon, 
+              locationPoints = originPoints, 
+              modes = 'WALK')
+```
+
+This function checks the validity of the origin and destination points. To do this the function tries to create a small isochrone around the location, and if this cannot be created, it will find the closest routable location and overwrite the latitude and longitude. This will the be saved the specified folder as a new file, which needs to be reloaded into propeR. The function is called using the following:
+
+The above will check the validity of the locations for walking routes, including the use of public transport. To check the validity of the location for driving (e.g., town centres) change `modes` to equal `CAR`.
+
+#### pointToPoint
+
+```
+#R
+pointToPoint(output.dir = 'PATH/TO/DIR', 
               otpcon = otpcon, 
               originPoints = originPoints, 
               originPointsRow = 2, 
@@ -285,13 +269,16 @@ pointToPoint(output.dir = PATH_TO_DIR,
               mapOutput = F)
 ```
 
-For above - all other parameters left as default - the following journey details between Cardiff 010A (`originPointsRow = 2`) and Principality Stadium (`destinationPointsRow = 2`) are provided in a CSV file in the specified output directory:
+The most basic function in propeR is find the journey details for a trip with a single origin and destination.
 
-| start    	| end      	| duration 	| walkTime | transitTime | waitingTime | transfers |
-|----------	|----------	|----------	|---------- |------------- |------------- |-----------	|
-| 12:11:10 	| 12:45:02 	| 33.87    	| 13.83    | 20          | 0.03        | 0         |
+A csv file with the following headers will be output:
 
-To output a PNG and interactive HTML leaflet map will as shown below, change the parameter `mapOutput` to `T`:
+| origin | destination | start\_time | end\_time | distance\_km | duration\_mins | walk_distance\_km | walk\_time_mins | transit_time\_mins | waiting\_time_mins | pre_waiting\_time\_mins | transfers | cost | no\_of\_buses | no\_of\_trains | journey\_details |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+
+The header walk\_time_mins will become drive\_time_mins or cycle\_time_mins if `modes` is changed to `CAR` or `BICYCLE`, respectively. The column for cost will be 'NA' unless `costEstimate = T` is used. The field waiting\_time_mins provides the total waiting time after the first leg of the journey starts (e.g., the first bus/train journey), the field pre_waiting\_time\_mins provides the time between the given `startDateAndTime` and the first leg of the journey (this cannot exceed the `preWaitTime`).
+
+To output a PNG and interactive HTML leaflet map will as shown below, change the parameter `mapOutput` to `T`. For example:
 
 <p align="center"><img align="center" src="meta/images/pointToPoint.png" width="600px"></p>
 
@@ -303,11 +290,9 @@ Map colours, zoom and other parameters can be specified by the user. See ?pointT
 
 #### pointToPointLoop
 
-This function works in the similar way to the [`pointToPoint()`](#pointtopoint) function, but instead of a single origin and destination, the function loops through all origins and/or destinations provided.
-
 ```
 #R
-pointToPointLoop(output.dir = PATH_TO_DIR, 
+pointToPointLoop(output.dir = 'PATH/TO/DIR', 
               otpcon = otpcon, 
               originPoints = originPoints, 
               destinationPoints = destinationPoints, 
@@ -316,32 +301,15 @@ pointToPointLoop(output.dir = PATH_TO_DIR,
               modes = 'WALK, TRANSIT')
 ```
 
-To loop just through the origins, set `journeyLoop` to `1`, to loop just through the destinations, set `journeyLoop` to `2`, and to loop through both, set `journeyLoop` to `0` (default). Also, you can calculate return leg journies by setting `journeyReturn` to `T` (default is `F`).
+This function works in the similar way to the [`pointToPoint()`](#pointtopoint) function, but instead of a single origin and destination, the function loops through all origins and/or destinations provided.
 
-For the sample origin and destination locations, this following is produced:
-
-| origin       | destination          | start_time | end_time | distance_km | duration_mins | walk\_time_mins | transit\_time_mins | waiting\_time_mins | transfers |
-|--------------|----------------------|------------|----------|-------------|---------------|----------------|-------------------|-------------------|-----------|
-| Cardiff 008A | Cardiff City Stadium | NA         | NA       | NA          | NA            | NA             | NA                | NA                | NA        |
-| Cardiff 010A | Cardiff City Stadium | NA         | NA       | NA          | NA            | NA             | NA                | NA                | NA        |
-| Cardiff 025A | Cardiff City Stadium | NA         | NA       | NA          | NA            | NA             | NA                | NA                | NA        |
-| Cardiff 032C | Cardiff City Stadium | 12:07:58   | 12:49:16 | 4.91        | 41.3          | 17.27          | 12                | 12.03             | 1         |
-| Cardiff 035B | Cardiff City Stadium | 12:13:01   | 12:54:16 | 4.86        | 41.25         | 14.25          | 8                 | 19                | 1         |
-| Cardiff 008A | Principality Stadium | NA         | NA       | NA          | NA            | NA             | NA                | NA                | NA        |
-| Cardiff 010A | Principality Stadium | NA         | NA       | NA          | NA            | NA             | NA                | NA                | NA        |
-| Cardiff 025A | Principality Stadium | NA         | NA       | NA          | NA            | NA             | NA                | NA                | NA        |
-| Cardiff 032C | Principality Stadium | 12:00:58   | 12:27:17 | 3           | 26.32         | 13.28          | 13                | 0.03              | 0         |
-| Cardiff 035B | Principality Stadium | 12:13:01   | 12:55:17 | 6.06        | 42.27         | 10.27          | 13                | 19                | 1         |
-
-**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
+To loop just through the origins, set `journeyLoop` to `1`, to loop just through the destinations, set `journeyLoop` to `2`, and to loop through both, set `journeyLoop` to `0` (default). If you want to loop through each row of origins and route to the same row in destinations, set `journeyLoop` to `3`. Also, you can calculate return leg journeys by setting `journeyReturn` to `T` (default is `F`).
 
 #### pointToPointNearest
 
-This function is useful to analyse the travel details between the nearest *k* destination and origin. By default *k* is set to 1, denoted the geographically closest destination. However, the second, third etc nearest destination can be analysed by changing the parameter `nearestNum`. Like `pointToPointLoop` the parameter `journeyReturn` can be used to specify whether the return journey between origin and destination should be also calculated.
-
 ```
 #R
-pointToPointNearest(output.dir = PATH_TO_DIR,
+pointToPointNearest(output.dir = 'PATH/TO/DIR',
               otpcon = otpcon,
               originPoints = originPoints,
               destinationPoints = destinationPoints,
@@ -351,15 +319,15 @@ pointToPointNearest(output.dir = PATH_TO_DIR,
               nearestNum = 1,)
 ```
 
-This function is useful in analysing whether the geographically closest destination (or service) is the fastest and most appropriate for an origin. 
+This function is useful to analyse the travel details between a destination and origin using a K-nearest neighbour (KNN) approached. It is therefore useful in analysing whether the geographically closest destination (or service) is the fastest and most appropriate for an origin. 
+
+By default *k* is set to 1, denoted the geographically closest destination. However, the second, third etc nearest destination can be analysed by changing the parameter `nearestNum`. Like `pointToPointLoop` the parameter `journeyReturn` can be used to specify whether the return journey between origin and destination should be also calculated. 
 
 #### pointToPointTime
 
-This function works in the similar way to the [`pointToPoint()`](#pointtopoint) function, but instead of a single `startDateAndTime`, an `endDateAndTime` and `timeIncrease` (the incremental increase in time between `startDateAndTime` and `endDateAndTime` journeys should be analysed for) can be stated:
-
 ```
 #R
-pointToPointTime(output.dir = PATH_TO_DIR,
+pointToPointTime(output.dir = 'PATH/TO/DIR',
               otpcon = otpcon,
               originPoints = originPoints,
               originPointsRow = 2,
@@ -372,30 +340,19 @@ pointToPointTime(output.dir = PATH_TO_DIR,
               mapOutput = F)
 ```
 
-For example between Cardiff 010A and Principality Stadium - all other parameters left again as default - the following journey details are provided in a CSV file in the specified output directory:
+This function works in the similar way to the [`pointToPoint()`](#pointtopoint) function, but instead of a single `startDateAndTime`, an `endDateAndTime` and `timeIncrease` (the incremental increase in time between `startDateAndTime` and `endDateAndTime` journeys should be analysed for) can be stated.
 
-| start    	| end      	| duration 	| walkTime 	| transitTime 	| waitingTime 	| transfers 	| date       	| date_time           	|
-|----------	|----------	|----------	|----------	|-------------	|-------------	|-----------	|------------	|---------------------	|
-| 12:11:36 	| 12:44:34 	| 32.97    	| 12.93    	| 20          	| 0.03        	| 0         	| 08/18/2018 	| 08/18/2018 12:11:36 	|
-| 12:20:31 	| 12:54:19 	| 33.8    	| 17.77    	| 16          	| 0.03        	| 0         	| 08/18/2018 	| 08/18/2018 12:20:31 	|
-| 12:51:36 	| 13:24:34 	| 32.97    	| 12.93    	| 20          	| 0.03        	| 0         	| 08/18/2018 	| 08/18/2018 12:51:36 	|
-| 13:11:36 	| 13:44:34 	| 32.97    	| 12.93    	| 20          	| 0.03        	| 0         	| 08/18/2018 	| 08/18/2018 13:11:36 	|
-
-Again, changing `mapOutput` to `T` will save a GIF map to the output directory:
+Changing `mapOutput` to `T` will save a map for each journey. To save a GIF of the time-series, set `gifOutput` to `T`. For example:
 
 <p align="center"><img align="center" src="meta/images/pointToPointTime.gif" width="600px"></p>
 
 **Note:** _if left to the default mapZoom tries to set the zoom to the bounding box (`'bb'`) of the origin and destination locations, and the polyline created from the first API call; however, if the first call returns no journey, the map zoom level may not be appropriately set. If this is the case, you may need to manually enter an appropriate mapZoom number (e.g. `mapZoom = 12`)._
 
-**Note:** _`preWaitTime` is set by default to 15 minutes, any journey after this will not be deemed suitable. Please change `preWaitTime` value to something more appropriate, if needed._
-
 #### isochrone
-
-Instead of a single origin (Cardiff 010A) to a single destination (Principality Stadium), the isochrone function works by taking a single origin (Cardiff 010A) and computing the maximum distance from this origin within specified cutoff times. This means that the travel time to multiple destinations (Principality Stadium and Cardiff City Stadium) can be analysed through a single OTP API call. For example for the default parameters:
 
 ```
 #R
-isochrone(output.dir = PATH_TO_DIR,
+isochrone(output.dir = 'PATH/TO/DIR',
               otpcon = otpcon,
               originPoints = originPoints,
               originPointsRow = 2,
@@ -409,14 +366,11 @@ isochrone(output.dir = PATH_TO_DIR,
               geojsonOutput = F)
 ```
 
-Will output the message `The number of destinations that are within the maximum travel time is 1/2, or 50%` as only the Principality Stadium can be reached within the maximum specified cutoff time (90 minutes). To change the cutoffs use the function parameter `isochroneCutOffMax`, `isochroneCutOffMin` and `isochroneCutOffStep`. A tabular output will also show the travel time (in minutes) for each destination:
+Instead of a single origin to a single destination, the isochrone function works by taking a single origin and computing the maximum distance from this origin within specified cutoff times. This means that the travel time to multiple destinations can be analysed through a single OTP API call.
 
-| name                 	| postcode 	| lat       	| lon       	| lat_lon             	| travel_time 	|
-|----------------------	|----------	|-----------	|-----------	|---------------------	|-------------	|
-| Cardiff City Stadium 	| CF11 8AZ 	| 51.473246   | -3.211002  	| 51.473246,-3.211002  	| NA         	|
-| Principality Stadium 	| CF10 1NS 	| 51.478284 	| -3.182652 	| 51.478284,-3.182652 	| 60          	|
+A tabular output will show the travel time (in minutes) for each destination by appending the travel time to the destination from the origin to the original destination csv file. This is then saved to the specified `output.dir`.
 
-The NA result for the Cardiff City Stadium shows that is outside the maximum cutoff time. But the map (outputted by changing `mapOutput` to `T`) below shows that it only just outside (black circle):
+A map can also be saved by usingn `mapOutput = T`). For example:
 
 <p align="center"><img align="center" src="meta/images/isochrone.png" width="600px"></p>
 
@@ -424,11 +378,9 @@ To save the polygon as a .GeoJSON file into the output folder, change `geojsonOu
 
 #### isochroneTime
 
-This function is to [`isochrone()`](#isochrone) what [`pointToPointTime()`](#pointtopointtime) was to [`pointToPoint()`](#pointtopoint), i.e., a time-series between a start and end time/date at specified time intervals that produces a table and an optional animated GIF image. For the default parameters, running:
-
 ```
 #R
-isochroneTime(output.dir = PATH_TO_DIR,
+isochroneTime(output.dir = 'PATH/TO/DIR',
               otpcon = otpcon,
               originPoints = originPoints,
               originPointsRow = 2,
@@ -443,14 +395,9 @@ isochroneTime(output.dir = PATH_TO_DIR,
               mapOutput = F)
 ```
 
-The following table is produced:
+This function is to [`isochrone()`](#isochrone) what [`pointToPointTime()`](#pointtopointtime) was to [`pointToPoint()`](#pointtopoint), i.e., a time-series between a start and end time/date at specified time intervals that produces a table and an optional animated GIF image. 
 
-| name                 	| postcode 	| lat       	| lon       	| lat_lon             	| 2018-08-18 12:00:00 	| 2018-08-18 12:20:00 	| 2018-08-18 12:40:00 	| 2018-08-18 13:00:00 	|
-|----------------------	|----------	|-----------	|-----------	|---------------------	|---------------------	|---------------------	|---------------------	|---------------------	|
-| Cardiff City Stadium 	| CF11 8AZ 	| 51.473246   | -3.211002   | 51.473246,-3.211002 	| NA                  	| NA                  	| 60                  	| NA                  	|
-| Principality Stadium 	| CF10 1NS 	| 51.478284 	| -3.182652 	| 51.478284,-3.182652 	| 60                  	| 60                  	| 60                  	| 60                  	|
-
-And the following GIF image if `mapOutput` is `T`:
+Changing `mapOutput` to `T` will save a map for each journey. To save a GIF of the time-series, set `gifOutput` to `T`. For example:
 
 <p align="center"><img align="center" src="meta/images/isochroneTime.gif" width="600px"></p>
 
@@ -458,13 +405,9 @@ And the following GIF image if `mapOutput` is `T`:
 
 #### 3.2.7. isochroneMulti
 
-This function works similarly to the [`isochrone()`](#isochrone) function; however, it can handle multiple origins and multiple destinations. This is useful when considering the travel time between multiple locations to multiple possible destinations. For example, the sample data will show how travel time from two areas in Cardiff (Cardiff 010A and Cardiff 032C) to the two sports venues (Principality Stadium and Cardiff City Stadium). 
-
-Using the default parameters, the function is run by:
-
 ```
 #R
-isochroneMulti(output.dir = PATH_TO_DIR,
+isochroneMulti(output.dir = 'PATH/TO/DIR',
               otpcon = otpcon,
               originPoints = originPoints,
               destinationPoints = destinationPoints,
@@ -477,124 +420,35 @@ isochroneMulti(output.dir = PATH_TO_DIR,
               geojsonOutput = F)
 ```
 
-Which produces the following table:
+This function works similarly to the [`isochrone()`](#isochrone) function; however, it can handle multiple origins and multiple destinations. This is useful when considering the travel time between multiple locations to multiple possible destinations. 
 
-|              	|  Cardiff City Stadium	|  	Principality Stadium|
-|--------------	|-----------------------|----------------------	|
-| Cardiff 008A 	| 60                   	| 60                 	  |
-| Cardiff 010A 	| NA                 	| 60                 	  |
-| Cardiff 025A 	| 60                   	| 30                 	  |
-| Cardiff 032C 	| 60                 	  | 30                 	  |
-| Cardiff 035B 	| 60                 	  | 30                 	  |
-
-Where the values are duration times in minutes. A PNG and interactive HTML map can also be saved in the output directory by changing `mapOutput` to `T`.
+A PNG and interactive HTML map can also be saved in the output directory by changing `mapOutput` to `T`. For example:
 
 <p align="center"><img align="center" src="meta/images/isochroneMulti.png" width="600px"></p>
 
 In addition, the polygons can be saved as a single .GeoJSON file by changing `geojsonOutput` to `T`.
 
-#### isochroneMultiIntersect
-
-This function finds the intersection of isochrone polygons from multiple origins. As a result, it can be slow on large datasets. Additional columns may be added to the origin CSV file to maximise this tool. They include:
-
-* `mode` - the specific mode of transport that is usually specified within the function call (e.g., `'WALK, TRANSIT'` or `'CAR'`)
-* `max_duration` - the maximum isochrone cutoff duration in minutes (e.g., `90`)
-* `time` - the time of travel in 12 hour format (e.g., `'08:00am'`)
-* `date` - the date of travel in YY-MM-DD format (e.g., `'2018-10-01'`)
-
-Therefore, each origin may have its own `mode`, `max_duration`, `time` and `date`. If none are specified, the defaults or those called within the function (like normal) are used. We've included a new origin CSV file to show this feature. To load it, use:
-
-```
-#R
-originPoints <- importLocationData(system.file("extdata", "origin2.csv", package = "propeR"))
-```
-
-Using the new origin CSv file, this function will output a map (below) and .GeoJSON file with the intersection polygon, both saved to the output directory.
-
-```
-#R
-isochroneMultiIntersect(output.dir = PATH_TO_DIR,
-              otpcon = otpcon,
-              originPoints = originPoints,
-              destinationPoints = destinationPoints)
-```
-
-<p align="center"><img align="center" src="meta/images/isochroneMultiIntersect.png" width="600px"></p>
-
-#### isochroneMultiIntersectSensitivity
-
-This function is similar to [`isochroneMultiIntersect()`](#isochronemultiintersect) but instead of a fixed time, as specified, it runs for a time window either side. The time window is specified in the function parameters as `timeSensitivity` (in minutes), and the time step is specified as `timeSensitivityStep` (in minutes). These default to `30` and `5` minutes, respectively. The function is run using:
-
-```
-#R
-isochroneMultiIntersectSensitivity(output.dir = PATH_TO_DIR, 
-              otpcon = otpcon,
-              originPoints = originPoints,
-              destinationPoints = destinationPoints,
-              timeSensitivity = 30,
-              timeSensitivityStep = 5)
-```
-
-Currently, the only output is an animated GIF file. This function is designed to show whether the `isochroneIntersect()` call is valid (little change in intersection of isochrones) or not.
-
-<p align="center"><img align="center" src="meta/images/isochroneMultiIntersectSensitivity.gif" width="600px"></p>
-
-#### isochroneMultiIntersectTime
-
-Like [`isochroneMultiIntersectSensitivity()`](#isochronemultiintersectsensitivity) this is a visual function, which creates the isochrone intersections between a start and end date/time **only** for uniform parameters for each origin, i.e., the additional origin CSV columns in isochroneMultiIntersect are not considered. The output will be an animated GIF file in the output directory.
-
-```
-#R
-isochroneMultiIntersectTime(output.dir = PATH_TO_DIR,
-              otpcon = otpcon,
-              originPoints = originPoints,
-              destinationPoints = destinationPoints,
-              startDateAndTime  = '2018-08-18 12:00:00',
-              endDateAndTime  = '2018-08-18 13:00:00',
-              timeIncrease = 20,
-              modes = 'WALK, TRANSIT',
-              isochroneCutOffs = 60)
-```
-
-<p align="center"><img align="center" src="meta/images/isochroneMultiIntersectTime.gif" width="600px"></p>
-
-#### choropleth
-
-This function uses the backbone of the `otpTripTime()` function to create a number of OTP API calls for multiple origins to a single destination. It then uses a .GeoJSON file to create polygons and colour them based on the journey details. As a result, the name of the origins between the CSV file and .GeoJSON file must match. Using the sample .GeoJSON file and origin CSV file, we can call this function using:
-
-```
-#R
-choropleth(output.dir = PATH_TO_DIR,
-              otpcon = otpcon,
-              originPoints = originPoints,
-              originPolygons = originPolygons,
-              destinationPoints = destinationPoints,
-              destinationPointsRow = 2,
-              startDateAndTime = '2018-08-18 12:00:00',
-              modes  = 'WALK, TRANSIT',
-              durationCutoff = 60,
-              waitingCutoff = 10,
-              transferCutoff = 1)
-```
-
-This produces a series of choropleth maps (example below) and a table output.
-
-| name         	| status 	| duration 	| waitingtime 	| transfers 	| duration_cat     	| waitingtime_cat  	| transfers_cat       	|
-|--------------	|--------	|----------	|-------------	|-----------	|------------------	|------------------	|---------------------	|
-| Cardiff 010A 	| OK     	| 32.97    	| 0.03        	| 0         	| Under 60 minutes 	| Under 10 minutes 	| Under 1 transfer(s) 	|
-| Cardiff 032C 	| OK     	| 26.05    	| 0.03        	| 0         	| Under 60 minutes 	| Under 10 minutes 	| Under 1 transfer(s) 	|
-
-As the table shows, specific duration, waiting time and transfer cutoffs can be specified within the function parameters using `durationCutoff`, `waitingCutoff` and `transferCutoff`. The output maps will be continuous (between a minimum and maximum value) and also discrete (above or below the thresholds).
-
-<p align="center"><img align="center" src="meta/images/choropleth_duration.png" width="600px"></p>
-
-<p align="center"><img align="center" src="meta/images/choropleth_duration_cat.png" width="600px"></p>
-
 ## FAQ
 
 Q: Do I need an OpenStreetMap (.osm) file to run propeR?
 
-A: Yes, whilst you can build the graph without an .osm file. You will need it to analyse the graph.
+>A: Yes, whilst you can build the graph without an .osm file. You will need it to analyse the graph.
+
+Q: Do I need a GTFS file to run propeR?
+
+>A: Only if you want to analyse public transport. Without a GTFS file you can still analyse private transport or walking by setting `modes` to `CAR`, `BICYCLE` or `WALK` in each of the functions.
+
+Q: How accurate is the cost calculation in the point to point functions?
+
+>A: The tool currently cannot ingest fare information. Therefore `costEstimate` can be used in the point to point functions. This provides an *estimate* based on the values given in the parameters `busTicketPrice`, `busTicketPriceMax`, `trainTicketPriceKm` and `trainTicketPriceMin`. 
+
+Q: How to I stop propeR printing to the R console:
+
+>A: All functions have a parameter called `infoPrint`. This by default is set to `T`, please set to `F` if you want to prevent console printing.
+
+Q: I found a bug!
+
+>A: Please use the GitHub issues form to provide us with the information ([here](https://github.com/datasciencecampus/access-to-services/issues))
 
 ### Common Errors
 
@@ -606,7 +460,7 @@ Error in curl::curl_fetch_memory(url, handle = handle) :
 Called from: curl::curl_fetch_memory(url, handle = handle)
 ```
 
-A: The OTP server has not been initiated. Please see [step 2.](#creating-the-opentripplanner-server) of this guide.
+> A: The OTP server has not been initiated. Please see [step 2.](#creating-the-opentripplanner-server) of this guide.
 
 Q: Why am I receiving the following error when running propeR?
 
@@ -614,5 +468,5 @@ Q: Why am I receiving the following error when running propeR?
 Error in paste0(otpcon, "/plan") : object 'otpcon' not found
 ```
 
-A: The OTP connection has not been established. Please see [step 3.2.1.](#otpconnect) of this guide.
+> A: The OTP connection has not been established. Please see [step 3.2.1.](#otpconnect) of this guide.
 
