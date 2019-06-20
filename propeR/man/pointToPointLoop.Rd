@@ -6,11 +6,15 @@
 \usage{
 pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
   destinationPoints, destinationPointsRow = 1, journeyLoop = 0,
-  journeyReturn = F, startDateAndTime = "2018-08-13 09:00:00",
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
-  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
-  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, preWaitTime = 15, distThreshold = F, distMax = 20)
+  journeyReturn = F, startDateAndTime = format(Sys.time(),
+  "\%Y-\%m-\%d \%H:\%M:\%S"), modes = "WALK, TRANSIT",
+  maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
+  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
+  wheelchair = F, arriveBy = F, preWaitTime = 15,
+  distThreshold = F, distMax = 20, estimateCost = F,
+  busTicketPrice = 3, busTicketPriceMax = 12,
+  trainTicketPriceKm = 0.12, trainTicketPriceMin = 3, infoPrint = T,
+  failSafeSave = 100)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -25,11 +29,11 @@ pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{destinationPointsRow}{The row of destinationPoints to be used, defaults to 1}
 
-\item{journeyLoop}{Specifies the type of loop, only origins (1), only destinations (2), or both (0, default)}
+\item{journeyLoop}{Specifies the type of loop, only origins (1), only destinations (2), both (0, default), or fixed (3)}
 
 \item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is FALSE)}
 
-\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time}
 
 \item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
@@ -51,9 +55,19 @@ pointToPointLoop(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
 
-\item{distThreshold}{Specify whether points have to be within a certain distance of each other to calculate, useful for big datasets (default is FALSE)}
+\item{estimateCost}{Specify whether to estimate costs of journey or not (default is False)}
 
-\item{distMax}{Specify the maximum distance if distThreshold is TRUE (default is 20 km)}
+\item{busTicketPrice}{Specifiy the cost of a bus journey (default is 3 GPB)}
+
+\item{busTicketPriceMax}{Specifiy the maximum cost of a bus journey (default is 12 GPB)}
+
+\item{trainTicketPriceKm}{Specifiy the cost of a train journey per km (default is 0.12 GPB per km)}
+
+\item{trainTicketPriceMin}{Specifiy the minimum cost of a train journey (default is 3 GBP)}
+
+\item{infoPrint}{Specifies whether you want some information printed to the console or not, default is TRUE}
+
+\item{failSafeSave}{Specify the failsafe save number for large datasets, default is 100}
 }
 \value{
 Saves journey details as comma separated value file to output directory

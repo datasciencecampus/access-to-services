@@ -12,8 +12,8 @@
 ##' @param originPoints The variable containing origin(s), see ?importLocationData for details
 ##' @param originPointsRow The row of originPoints to be used, defaults to 1
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData for details
-##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
-##' @param endDateAndTime The end time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time
+##' @param endDateAndTime The end time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is an hour after the currrent date and time
 ##' @param timeIncrease The time increase in minutes, default 60
 ##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
 ##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
@@ -27,12 +27,13 @@
 ##' @param isochroneCutOffMax Provide the maximum cutoff time for the isochrone, defaults 90
 ##' @param isochroneCutOffMin Provide the minimum cutoff time for the isochrone, defaults 10
 ##' @param isochroneCutOffStep Provide the cutoff time step for the isochrone, defaults 10
+##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @param gifOutput Specifies whether you want to output a gif, defaults to FALSE
 ##' @param mapOutput Specifies whether you want to output the maps, defaults to FALSE
 ##' @param geojsonOutput Specifies whether you want to output a GeoJSON file, defaults to FALSE
 ##' @param mapPolygonColours The color palette of the map, defaults to 'Blues'
 ##' @param mapZoom The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach
-##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 1 px
+##' @param mapPolygonLineWeight Specifies the weight of the polygon, defaults to 0 px
 ##' @param mapPolygonLineColor Specifies the color of the polygon, defaults to 'white'
 ##' @param mapPolygonLineOpacity Specifies the opacity of the polygon line, defaults to 1 (solid)
 ##' @param mapPolygonFillOpacity Specifies the opacity of the polygon fill, defaults to 1
@@ -44,9 +45,9 @@
 ##' @param destinationMarkerStroke Specifies whether a destination marker(s) stroke is used (default is T)
 ##' @param destinationMarkerStrokeColor Specifies the stroke color for the destination marker(s) (default is 'black')
 ##' @param destinationMarkerStrokeWeight Specifies the marker stroke weight for the destination marker(s) (default is 1)
-##' @param destinationMarkerInColor Specifies the colour of destination marker(s)if it is within a isochrone (default is '#00FFAE')
-##' @param destinationMarkerOutColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#FF00E0')
-##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 0.5
+##' @param destinationMarkerInColor Specifies the colour of destination marker(s)if it is within a isochrone (default is 'white')
+##' @param destinationMarkerOutColor Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'grey')
+##' @param mapLegendOpacity Specifies the opacity of the legend, defaults to 1
 ##' @param mapDarkMode Specifies if you want to use the dark leaflet map colour (default is FALSE)
 ##' @return Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 ##' @author Michael Hodge
@@ -68,8 +69,8 @@ isochroneTime <- function(output.dir,
                           destinationPoints,
                           destinationPointsRow = 1,
                           # otpIsochrone args
-                          startDateAndTime = "2018-08-18 12:00:00",
-                          endDateAndTime = "2018-08-18 15:00:00",
+                          startDateAndTime = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+                          endDateAndTime = format(Sys.time() + 1 * 60 * 60, "%Y-%m-%d %H:%M:%S"),
                           timeIncrease = 60,
                           modes = "WALK, TRANSIT",
                           maxWalkDistance = 1000,
@@ -84,14 +85,14 @@ isochroneTime <- function(output.dir,
                           isochroneCutOffMax = 90,
                           isochroneCutOffMin = 10,
                           isochroneCutOffStep = 10,
-                          isochroneCutOffs = seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep),
+                          infoPrint = T,
                           # leaflet map args
                           gifOutput = F,
                           mapOutput = F,
                           geojsonOutput = F,
                           mapPolygonColours = "Blues",
                           mapZoom = "bb",
-                          mapPolygonLineWeight = 1,
+                          mapPolygonLineWeight = 0,
                           mapPolygonLineColor = 'white',
                           mapPolygonLineOpacity = 1,
                           mapPolygonFillOpacity = 1,
@@ -103,13 +104,11 @@ isochroneTime <- function(output.dir,
                           destinationMarkerStroke = T,
                           destinationMarkerStrokeColor = 'black',
                           destinationMarkerStrokeWeight = 1,
-                          destinationMarkerInColor = '#00FFAE',
-                          destinationMarkerOutColor = '#FF00E0',
-                          mapLegendOpacity = 0.5,
+                          destinationMarkerInColor = 'white',
+                          destinationMarkerOutColor = 'grey',
+                          mapLegendOpacity = 1,
                           mapDarkMode = F) {
   
-  message("Now running the propeR isochroneTime tool.\n")
-
   #########################
   #### SETUP VARIABLES ####
   #########################
@@ -117,8 +116,11 @@ isochroneTime <- function(output.dir,
   origin_points_row_num <- originPointsRow
   from_origin <- originPoints[origin_points_row_num,]
   if (origin_points_row_num > nrow(originPoints)) {
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = T)
     stop('Row is not in origin file')
+  }
+  
+  if (isochroneCutOffMin < 5) {
+    stop('Minimum cutoff time needs to be above 5 minutes.\n')
   }
   
   start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") 
@@ -129,23 +131,50 @@ isochroneTime <- function(output.dir,
   destination_points_output <- destinationPoints
   destination_points_output[as.character(time_series)] <- NA
   
+  file_name <- paste0(from_origin$name)
+  
+  unlink(paste0(output.dir, "/isochroneTime-", file_name) , recursive = T) 
+  dir.create(paste0(output.dir, "/isochroneTime-", file_name)) 
+  dir.create(paste0(output.dir, "/isochroneTime-", file_name, "/csv")) 
+  
   if (isochroneCutOffStep == 0){
     isochroneCutOffs <- isochroneCutOffMax
   } else {
     isochroneCutOffs <- seq(isochroneCutOffMin, isochroneCutOffMax, isochroneCutOffStep)
   }
   
-  if (mapDarkMode == T){
-    mapPolygonColours <- c("#4365BC", "#5776C4", "#6C87CC", "#8098D4", "#95A9DB", "#AABAE3", "#BFCBEA", "#D4DCF1", "#E9EEF8")
-  } else {
-    mapPolygonColours <- c("#192448", "#1F2B58", "#243368", "#293B78", "#2E4288", "#334A98", "#3851A8", "#3D58B9", "#4863C3")
-  }
+  mapPolygonColours <- c("#4365BC", "#5776C4", "#6C87CC", "#8098D4", "#95A9DB", "#AABAE3", "#BFCBEA", "#D4DCF1", "#E9EEF8")
   
   if (gifOutput == T  || mapOutput == T) {
     library(leaflet)
     pal_time_date = leaflet::colorFactor(c("#FFFFFF"), domain = NULL)
     palIsochrone = leaflet::colorFactor(mapPolygonColours, NULL, n = length(isochroneCutOffs))
-    dir.create(paste0(output.dir, "/tmp_folder"))
+  }
+  
+  if (mapOutput == T){
+    dir.create(paste0(output.dir, "/isochroneTime-", file_name, "/map"))
+  }
+  
+  if (gifOutput == T){
+    dir.create(paste0(output.dir, "/isochroneTime-", file_name, "/gif"))
+  }
+  
+  if (geojsonOutput == T){
+    dir.create(paste0(output.dir, "/isochroneTime-", file_name, "/geojson"))
+  }
+  
+  warning_list <- c()
+  
+  if (infoPrint == T) {
+    cat("Now running the propeR pointToPointTime tool.\n", sep="")
+    cat("Parameters chosen:\n", sep="")
+    cat("From: ", from_origin$name, " (", from_origin$lat_lon, ")\n", sep="")
+    cat("Date and Time: ", startDateAndTime, " (start) to ", endDateAndTime, " (end)\n", sep="")
+    cat("Intervals (mins): ", timeIncrease, "\n", sep="")
+    cat("Min Duration (mins): ", isochroneCutOffMin, "\n", sep = "")
+    cat("Max Duration (mins): ", isochroneCutOffMax, "\n", sep = "")
+    cat("Isochrone Step (mins): ", isochroneCutOffStep, "\n", sep = "")
+    cat("Outputs: CSV [TRUE] Map [", mapOutput, "] GeoJSON [", geojsonOutput, "] GIF [", gifOutput, "]\n\n", sep="")
   }
   
   ###########################
@@ -157,15 +186,24 @@ isochroneTime <- function(output.dir,
   num.run <- 0
   num.total <- num.end
   time.taken <- vector()
-  message("Creating ", num.end , " isochrones, please wait...")
+  if (infoPrint == T) {
+    cat("Creating ", num.total, " isochrone connections, please wait...\n", sep="")
+  }
   
-  for (i in num.start:num.end) {
+  if (infoPrint == T) {
+    pb <- progress::progress_bar$new(
+      format = "  Isochrone calculation complete for time :what [:bar] :percent eta: :eta",
+      total = num.total, clear = FALSE, width= 100)
+  }
+  
+  for (i in num.start:num.total) {
     num.run <- num.run + 1
     start.time <- Sys.time()
     stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
     date_time_legend <- format(time_series[i], "%B %d %Y %H:%M")
     time <- format(time_series[i], "%I:%M %p")
     date <- format(time_series[i], "%m/%d/%Y")
+    file_name_loop <- paste0(from_origin$name,"_",gsub("[[:punct:][:blank:]]+", "_", time_series[num.run]))
     
     isochrone <- propeR::otpIsochrone(
       otpcon,
@@ -199,9 +237,7 @@ isochroneTime <- function(output.dir,
       ))
     
     if (length(isochrone_polygons) != length(isochroneCutOffs)){
-      cutoff_error_message <- paste0("A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons@data$time)/60), " minutes could not be produced.")
-    } else {
-      cutoff_error_message <- '.'
+      warning_list <- c(warning_list, paste0("A polygon for cutoff level(s) ", setdiff(isochroneCutOffs, (isochrone_polygons@data$time)/60), " minutes could not be produced."))
     }
     
     for (n in 1:length(isochrone_polygons)) {
@@ -241,7 +277,7 @@ isochroneTime <- function(output.dir,
       m <- addScaleBar(m)
       
       if (mapDarkMode != T) {
-        m <- addProviderTiles(m, providers$OpenStreetMap.BlackAndWhite)
+        m <- addProviderTiles(m, providers$CartoDB.Positron)
       } else {
         m <- addProviderTiles(m, providers$CartoDB.DarkMatter)
       }     
@@ -323,97 +359,69 @@ isochroneTime <- function(output.dir,
               library = "fa"))
       }
       
-      mapview::mapshot(m, file = paste0(output.dir, "/tmp_folder/", stamp, ".png")) 
+      mapview::mapshot(m, file = paste0(output.dir, "/isochroneTime-", file_name, "/map/isochroneTime-", file_name_loop, ".png"))
     }
     
     if (geojsonOutput == T) {
       rgdal::writeOGR(
         isochrone_polygons,
         dsn = paste0(output.dir,
-                     "/isochrone-",
-                     stamp,
-                     "-",
-                     time_series[i],
+                     "/isochroneTime-",
+                     file_name,
+                     "/geojson/",
+                     "isochroneTime-",
+                     file_name_loop,
                      ".geoJSON"),
         layer = "isochrone_polygons",
         driver = "GeoJSON")
     }
     
-    if (mapOutput == T) {
-      invisible(print(m))
-      mapview::mapshot(m, file = paste0(output.dir, "/isochroneTime-map-", stamp, "-", time_series[i], ".png")) 
-      htmlwidgets::saveWidget(m, file = paste0(output.dir, "/isochroneTime-map-", stamp, "-", time_series[i], ".html")) 
-      unlink(paste0(output.dir, "/isochroneTime-map-", stamp, "-", time_series[i], "_files"),
-             recursive = T) 
+    if (infoPrint == T) {
+      pb$tick(tokens = list(what = time))
     }
     
-    end.time <- Sys.time()
-    time.taken[num.run] <- round(end.time - start.time, digits = 2)
-    
-    if (num.run < num.total) {
-      message(
-        num.run,
-        "/",
-        num.total,
-        ": Isochrones complete for time ",
-        time,
-        ". Time taken ",
-        round(sum(time.taken), digit = 2),
-        " seconds. Estimated time left is approx. ",
-        round((
-          mean(time.taken) * num.total
-        ) - sum(time.taken),
-        digits = 2),
-        " seconds",
-        cutoff_error_message)
-    } else {
-      message(
-        num.run,
-        "/",
-        num.total,
-        ": Isochrone complete for time ",
-        time,
-        ". Time taken ",
-        sum(time.taken),
-        " seconds",
-        cutoff_error_message,
-        "\n"
-      )
-    }
   }
   
   ######################
   #### SAVE RESULTS ####
   ######################
   
-  message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
-  
+  if (infoPrint == T) {
+    cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
+  }
+
   write.csv(
     destination_points_output,
-    file = paste0(output.dir, "/isochroneTime-", stamp, ".csv"),
+    file = paste0(output.dir, "/isochroneTime-", file_name, "/csv/isochroneTime-", file_name, ".csv"),
     row.names = F)
   
-  if (mapOutput == T) {
-    message("Making and saving GIF, this may take a while.")
+  if (length(warning_list) > 0){
+    write.csv(
+      warning_list,
+      file = paste0(output.dir, "/isochrone-", file_name, "/csv/warning-list.csv"),
+      row.names = F)
+  }
+  
+  if (gifOutput == T) {
     library(dplyr)
     list.files(
-      path = paste0(output.dir, "/tmp_folder"),
+      path = paste0(output.dir, "/isochroneTime-", file_name, "/map"),
       pattern = "*.png",
       full.names = T
     ) %>%  # Creates gif of results
       purrr::map(magick::image_read) %>%  # reads each path file
       magick::image_join() %>% # joins image
       magick::image_animate(fps = 5) %>%  # animates, can opt for number of loops
-      magick::image_write(paste0(output.dir, "/isochroneTime-map-", stamp, ".gif")) # write to current dir
+      magick::image_write(paste0(output.dir, "/isochroneTime-", file_name, "/gif/", "/isochroneTime-gif-", file_name, ".gif"))
     
     m <-
-      magick::image_read(paste0(output.dir, "/isochroneTime-map-", stamp, ".gif")) %>%
-      magick::image_scale("600") # Loads GIF into R
+      magick::image_read(paste0(output.dir, "/isochroneTime-", file_name, "/gif/", "/isochroneTime-gif-", file_name, ".gif")) %>%
+      magick::image_scale("800") # Loads GIF into R
     
     invisible(print(m)) # plots map to Viewer
-    unlink(paste0(output.dir, "/tmp_folder"), recursive = T) # Deletes tmp_folder if exists
   }
   
-  message("Thanks for using propeR.")
+  if (infoPrint == T) {
+    cat("Outputs saved. Thanks for using propeR.\n")
+  }
 }

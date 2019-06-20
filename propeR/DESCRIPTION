@@ -1,6 +1,6 @@
 Package: propeR
 Title: An R tool for analysing multimodal transport
-Version: 1.3.1
+Version: 1.4.1
 Description: An R tool for analysing multimodal transport based on a graph built using OpenTripPlanner (OTP).
   The generation of the OTP graph is based on a GTFS feed. The package includes a pre-OTP GTFS feed cleaner.
   The output functions include a: point-to-point map, which analyses from a single origin to destination;
@@ -34,7 +34,8 @@ Imports:
   gepaf,
   geosphere,
   FNN,
-  RColorBrewer
+  RColorBrewer,
+  progress
 Suggests:
   testthat,
   knitr, 

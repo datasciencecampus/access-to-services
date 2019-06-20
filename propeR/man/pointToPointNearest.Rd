@@ -4,12 +4,15 @@
 \alias{pointToPointNearest}
 \title{Calculates the journey for a number of origins and/or destinations.}
 \usage{
-pointToPointNearest(output.dir, otpcon, originPoints, destinationPoints,
-  journeyReturn = F, startDateAndTime = "2018-08-13 09:00:00",
-  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
-  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
-  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
-  arriveBy = F, preWaitTime = 15, nearestNum = 1)
+pointToPointNearest(output.dir, otpcon = otpcon,
+  originPoints = originPoints, destinationPoints = destinationPoints,
+  journeyReturn = F, startDateAndTime = format(Sys.time(),
+  "\%Y-\%m-\%d \%H:\%M:\%S"), modes = "WALK, TRANSIT",
+  maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
+  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
+  wheelchair = F, arriveBy = F, preWaitTime = 15, nearestNum = 1,
+  estimateCost = F, busTicketPrice = 3, busTicketPriceMax = 12,
+  trainTicketPriceKm = 0.12, trainTicketPriceMin = 3, infoPrint = T)
 }
 \arguments{
 \item{output.dir}{The directory for the output files}
@@ -22,7 +25,7 @@ pointToPointNearest(output.dir, otpcon, originPoints, destinationPoints,
 
 \item{journeyReturn}{Specifies whether the journey should be calculated as a return or not (default is FALSE)}
 
-\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time}
 
 \item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
@@ -45,9 +48,18 @@ pointToPointNearest(output.dir, otpcon, originPoints, destinationPoints,
 \item{preWaitTime}{The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins}
 
 \item{nearestNum}{Specify the number of nearest pairs to return (default is 1)}
-}
-\value{
-Saves journey details as comma separated value file to output directory
+
+\item{estimateCost}{Specify whether to estimate costs of journey or not (default is False)}
+
+\item{busTicketPrice}{Specifiy the cost of a bus journey (default is 3 GPB)}
+
+\item{busTicketPriceMax}{Specifiy the maximum cost of a bus journey (default is 12 GPB)}
+
+\item{trainTicketPriceKm}{Specifiy the cost of a train journey per km (default is 0.12 GPB per km)}
+
+\item{trainTicketPriceMin}{Specifiy the minimum cost of a train journey (default is 3 GBP)}
+
+\item{infoPrint}{Specifies whether you want some information printed to the console or not, default is TRUE}
 }
 \description{
 Calculates the journey time and details between multiple origins and/or destinations. 

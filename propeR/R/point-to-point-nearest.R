@@ -8,7 +8,7 @@
 ##' @param originPoints The variable containing origin(s), see ?importLocationData for details
 ##' @param destinationPoints The variable containing destination(s) see ?importLocationData for details
 ##' @param journeyReturn Specifies whether the journey should be calculated as a return or not (default is FALSE)
-##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format
+##' @param startDateAndTime The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time
 ##' @param modes The mode of the journey, defaults to 'TRANSIT, WALK'
 ##' @param maxWalkDistance The maximum walking distance, in meters, defaults to 1000 m
 ##' @param walkReluctance The reluctance of walking-based routes, defaults to 2 (range 0 (lowest) - 20 (highest))
@@ -20,7 +20,12 @@
 ##' @param arriveBy Selects whether journey starts at startDateandTime (FALSE) or finishes (TRUE), defaults to FALSE
 ##' @param preWaitTime The maximum waiting time before a journey cannot be found, in minutes, defaults to 15 mins
 ##' @param nearestNum Specify the number of nearest pairs to return (default is 1)
-##' @return Saves journey details as comma separated value file to output directory
+##' @param estimateCost Specify whether to estimate costs of journey or not (default is False)
+##' @param busTicketPrice Specifiy the cost of a bus journey (default is 3 GPB)
+##' @param busTicketPriceMax Specifiy the maximum cost of a bus journey (default is 12 GPB)
+##' @param trainTicketPriceKm Specifiy the cost of a train journey per km (default is 0.12 GPB per km)
+##' @param trainTicketPriceMin Specifiy the minimum cost of a train journey (default is 3 GBP)
+##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @author Michael Hodge
 ##' @examples
 ##'   pointToPointNearest(
@@ -34,12 +39,12 @@
 ##'   )
 ##' @export
 pointToPointNearest <- function(output.dir,
-                             otpcon,
-                             originPoints,
-                             destinationPoints,
+                             otpcon = otpcon,
+                             originPoints = originPoints,
+                             destinationPoints = destinationPoints,
                              journeyReturn = F,
                              # otpTime args
-                             startDateAndTime = "2018-08-13 09:00:00",
+                             startDateAndTime = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
                              modes = "WALK, TRANSIT",
                              maxWalkDistance = 1000,
                              walkReluctance = 2,
@@ -50,11 +55,13 @@ pointToPointNearest <- function(output.dir,
                              wheelchair = F,
                              arriveBy = F,
                              preWaitTime = 15,
-                             nearestNum = 1) {
-  
-  message("Now running the propeR pointToPointNearest tool.\n")
-  
-  stamp <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+                             nearestNum = 1,
+                             estimateCost = F,
+                             busTicketPrice = 3,
+                             busTicketPriceMax = 12,
+                             trainTicketPriceKm = 0.12,
+                             trainTicketPriceMin = 3,
+                             infoPrint = T) {
   
   #########################
   #### SETUP VARIABLES ####
@@ -62,7 +69,6 @@ pointToPointNearest <- function(output.dir,
   
   if (journeyReturn == T) { multiplier <- 2 } else { multiplier <- 1 }
   
-  message("Finding nearest pairs of origin and destination points using KNN...")
   originPointsSpatial <- originPoints
   destinationPointsSpatial <- destinationPoints
   
@@ -71,14 +77,101 @@ pointToPointNearest <- function(output.dir,
   g = FNN::get.knnx(sp::coordinates(destinationPointsSpatial), sp::coordinates(originPointsSpatial), k = nearestNum)
   pair = g$nn.index
   
-  num.run <- 0
-  
   num.total <- nrow(originPoints) * multiplier
+  
+  file_name <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+  
+  unlink(paste0(output.dir, "/pointToPointNearest-", file_name) , recursive = T) 
+  dir.create(paste0(output.dir, "/pointToPointNearest-", file_name)) 
+  dir.create(paste0(output.dir, "/pointToPointNearest-", file_name, "/csv")) 
+
+  if (infoPrint == T) {
+    cat("Now running the propeR pointToPointNearest tool.\n", sep="")
+    cat("Parameters chosen:\n", sep="")
+    cat("KNN nearest number: ", nearestNum, " (", num.total, " calls)\n", sep="")
+    cat("Return Journey: ", journeyReturn, "\n", sep="")
+    cat("Date and Time: ", startDateAndTime, "\n", sep="")
+  }
+  
+  ###########################
+  #### CALL OTP FUNCTION ####
+  ###########################
+  
+  num.run <- 0
+
   start_time <- format(as.POSIXct(startDateAndTime), "%I:%M %p") 
   start_date <- as.Date(startDateAndTime)
   time.taken <- vector()
   calls.list <- c(0)
-  message("Creating ", num.total, " point to point connections, please wait...")
+  if (infoPrint == T) {
+    cat("Creating ", num.total, " point to point connections, please wait...\n")
+  }
+  
+  make_blank_df <- function(from, to, modes) {
+    
+    if (modes == "CAR") {
+      df <- data.frame(
+        "origin" = from$name,
+        "destination" = to$name,
+        "start_time" = NA,
+        "end_time" = NA,
+        "distance_km" = NA,
+        "duration_mins" = NA,
+        "walk_distance_km" = NA,
+        "drive_time_mins" = NA,
+        "transit_time_mins" = NA,
+        "waiting_time_mins" = NA,
+        "pre_waiting_time_mins" = NA,
+        "transfers" = NA,
+        "cost" = NA,
+        "no_of_buses" = NA,
+        "no_of_trains" = NA,
+        "journey_details" = NA)
+    } else if (modes == "BICYCLE") {
+      df <- data.frame(
+        "origin" = from$name,
+        "destination" = to$name,
+        "start_time" = NA,
+        "end_time" = NA,
+        "distance_km" = NA,
+        "duration_mins" = NA,
+        "walk_distance_km" = NA,
+        "cycle_time_mins" = NA,
+        "transit_time_mins" = NA,
+        "waiting_time_mins" = NA,
+        "pre_waiting_time_mins" = NA,
+        "transfers" = NA,
+        "cost" = NA,
+        "no_of_buses" = NA,
+        "no_of_trains" = NA,
+        "journey_details" = NA)
+    } else {
+      df <- data.frame(
+        "origin" = from$name,
+        "destination" = to$name,
+        "start_time" = NA,
+        "end_time" = NA,
+        "distance_km" = NA,
+        "duration_mins" = NA,
+        "walk_distance_km" = NA,
+        "walk_time_mins" = NA,
+        "transit_time_mins" = NA,
+        "waiting_time_mins" = NA,
+        "pre_waiting_time_mins" = NA,
+        "transfers" = NA,
+        "cost" = NA,
+        "no_of_buses" = NA,
+        "no_of_trains" = NA,
+        "journey_details" = NA)
+    }
+    df
+  }
+  
+  if (infoPrint == T) {
+    pb <- progress::progress_bar$new(
+      format = "  Travel time calculation complete for call :what [:bar] :percent eta: :eta",
+      total = num.total, clear = FALSE, width= 100)
+  }
   
   for (j in 1:multiplier) {
     
@@ -100,18 +193,13 @@ pointToPointNearest <- function(output.dir,
           from <- to_destination
         }
         
-        if (to$name == from$name) {
-          num.run <- num.run - 1
-          num.total <- num.total - 1
-          message("Dropped a connection call as origin and destination were the same!")
-          next
-        }
-        
         point_to_point <- propeR::otpTripTime(
           otpcon,
           detail = T,
-          from = from$lat_lon,
-          to = to$lat_lon,
+          from_name = from$name,
+          from_lat_lon = from$lat_lon,
+          to_name = to$name,
+          to_lat_lon =   to$lat_lon,
           modes = modes,
           date = start_date,
           time = start_time,
@@ -132,39 +220,45 @@ pointToPointNearest <- function(output.dir,
             
             if (point_to_point$errorId == "OK") {
               
+              if (estimateCost == T){
+                
+                cost <- 0
+                busCost <- 0
+                trainCost <- 0
+                
+                for (n in 1:nrow(point_to_point$output_table)){
+                  if (point_to_point$output_table[n,]$mode == 'BUS'){
+                    busCost <- busCost + busTicketPrice
+                  } else if (point_to_point$output_table[n,]$mode == 'RAIL'){
+                    trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance)
+                    if (trainCost_tmp < trainTicketPriceMin){
+                      trainCost_tmp <- trainTicketPriceMin
+                    }
+                    trainCost <- trainCost + trainCost_tmp
+                  }
+                }
+                
+                if (busCost > busTicketPriceMax){
+                  busCost <- busTicketPriceMax
+                }
+                cost <- busCost + trainCost  
+                
+              } else {
+                cost <- NA
+              }
+              
               point_to_point_table_overview <- point_to_point$itineraries
-              point_to_point_table_overview["origin"] <- from$name
-              point_to_point_table_overview["destination"] <- to$name
-              point_to_point_table_overview["distance_km"] <- round(sum(point_to_point$output_table$distance) / 1000, digits = 2)
+              point_to_point_table_overview["cost"] <- round(cost, digits = 2)
+              point_to_point_table_overview["no_of_buses"] <- nrow(point_to_point$output_table[point_to_point$output_table$mode == 'BUS',])
+              point_to_point_table_overview["no_of_trains"] <- nrow(point_to_point$output_table[point_to_point$output_table$mode == 'RAIL',])
               point_to_point_table_overview["journey_details"] <- jsonlite::toJSON(point_to_point$output_table)
+              
             } else {
-              point_to_point_table_overview <- data.frame(
-                "start" = NA,
-                "end" = NA,
-                "duration" = NA,
-                "walkTime" = NA,
-                "transitTime" = NA,
-                "waitingTime" = NA,
-                "transfers" = NA,
-                "origin" = from$name,
-                "destination" = to$name,
-                "distance_km" = NA,
-                "journey_details" = NA)
+              point_to_point_table_overview <- make_blank_df(from, to, modes)
             }
             
           } else {
-            point_to_point_table_overview <- data.frame(
-              "start" = NA,
-              "end" = NA,
-              "duration" = NA,
-              "walkTime" = NA,
-              "transitTime" = NA,
-              "waitingTime" = NA,
-              "transfers" = NA,
-              "origin" = from$name,
-              "destination" = to$name,
-              "distance_km" = NA,
-              "journey_details" = NA)
+            point_to_point_table_overview <- make_blank_df(from, to, modes)
           }
           
         } else {
@@ -172,116 +266,58 @@ pointToPointNearest <- function(output.dir,
           if (!is.null(point_to_point$errorId)){
             
             if (point_to_point$errorId == "OK") {
+              
+              if (estimateCost == T){
+                
+                cost <- 0
+                busCost <- 0
+                trainCost <- 0
+                
+                for (n in 1:nrow(point_to_point$output_table)){
+                  if (point_to_point$output_table[n,]$mode == 'BUS'){
+                    busCost <- busCost + busTicketPrice
+                  } else if (point_to_point$output_table[n,]$mode == 'RAIL'){
+                    trainCost_tmp <- trainTicketPriceKm * (point_to_point$output_table[n,]$distance)
+                    if (trainCost_tmp < trainTicketPriceMin){
+                      trainCost_tmp <- trainTicketPriceMin
+                    }
+                    trainCost <- trainCost + trainCost_tmp
+                  }
+                }
+                
+                if (busCost > busTicketPriceMax){
+                  busCost <- busTicketPriceMax
+                }
+                cost <- busCost + trainCost  
+                
+              } else {
+                cost <- NA
+              }
+              
               point_to_point_table_overview_tmp <- point_to_point$itineraries
-              point_to_point_table_overview_tmp["origin"] <- from$name
-              point_to_point_table_overview_tmp["destination"] <- to$name
-              point_to_point_table_overview_tmp["distance_km"] <- round(sum(point_to_point$output_table$distance) / 1000, digits = 2)
+              point_to_point_table_overview_tmp["cost"] <- round(cost, digits = 2)
+              point_to_point_table_overview_tmp["no_of_buses"] <- nrow(point_to_point$output_table[point_to_point$output_table$mode == 'BUS',])
+              point_to_point_table_overview_tmp["no_of_trains"] <- nrow(point_to_point$output_table[point_to_point$output_table$mode == 'RAIL',])
               point_to_point_table_overview_tmp["journey_details"] <- jsonlite::toJSON(point_to_point$output_table)
+              
             } else {
-              point_to_point_table_overview_tmp <- data.frame(
-                "start" = NA,
-                "end" = NA,
-                "duration" = NA,
-                "walkTime" = NA,
-                "transitTime" = NA,
-                "waitingTime" = NA,
-                "transfers" = NA,
-                "origin" = from$name,
-                "destination" = to$name,
-                "distance_km" = NA,
-                "journey_details" = NA)
-            }
-            
-            if (modes == "CAR") {
-              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "driveTime"
-              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "driveTime"
-            } else if (modes == "BICYCLE") {
-              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "cycleTime"
-              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "cycleTime"
+              point_to_point_table_overview_tmp <- make_blank_df(from, to, modes)
             }
             
             point_to_point_table_overview = rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
             
           } else {
-            point_to_point_table_overview_tmp <- data.frame(
-              "start" = NA,
-              "end" = NA,
-              "duration" = NA,
-              "walkTime" = NA,
-              "transitTime" = NA,
-              "waitingTime" = NA,
-              "transfers" = NA,
-              "origin" = from$name,
-              "destination" = to$name,
-              "distance_km" = NA,
-              "journey_details" = NA)
-            
-            if (modes == "CAR") {
-              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "driveTime"
-              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "driveTime"
-            } else if (modes == "BICYCLE") {
-              colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walkTime")] <- "cycleTime"
-              colnames(point_to_point_table_overview_tmp)[which(names(point_to_point_table_overview_tmp) == "walkTime")] <- "cycleTime"
-            }
-            
+            point_to_point_table_overview_tmp <- make_blank_df(from, to, modes)
             point_to_point_table_overview <- rbind(point_to_point_table_overview, point_to_point_table_overview_tmp)
           }
         }
-        
-        end.time <- Sys.time()
-        time.taken[num.run] <- round(end.time - start.time, digits = 2)
-        
-        if (num.run < num.total) {
-          message(
-            num.run,
-            "/",
-            num.total,
-            ": Travel time calculation complete for ",
-            from$name,
-            " to ",
-            to$name,
-            ". Time taken ",
-            round(sum(time.taken), digits = 2),
-            " seconds. Estimated time left is approx. ",
-            round((mean(
-              time.taken
-            ) * num.total) - sum(time.taken),
-            digits = 2),
-            " seconds."
-          )
-        } else {
-          message(
-            num.run,
-            "/",
-            num.total,
-            ": Travel time calculation complete for ",
-            from$name,
-            " to ",
-            to$name,
-            ". Time taken ",
-            sum(time.taken),
-            " seconds.\n"
-          )
+        if (infoPrint == T) {
+          pb$tick(tokens = list(what = num.run))
         }
-        
+      
         if ((num.run/100) %% 1 == 0) { # fail safe for large files
           
-          message("Large dataset, failsafe, saving outputs to ", output.dir, ", please wait.")
-          
-          point_to_point_table_overview_out <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7, 11)]
-          colnames(point_to_point_table_overview_out) <-
-            c(
-              "origin",
-              "destination",
-              "start_time",
-              "end_time",
-              "distance_km",
-              "duration_mins",
-              "walk_time_mins",
-              "transit_time_mins",
-              "waiting_time_mins",
-              "transfers",
-              "journey_details")
+          point_to_point_table_overview_out <- point_to_point_table_overview
           
           if (modes == "CAR") {
             colnames(point_to_point_table_overview_out)[which(names(point_to_point_table_overview_out) == "walk_time_mins")] <- "drive_time_mins"
@@ -291,41 +327,31 @@ pointToPointNearest <- function(output.dir,
           
           write.csv(
             point_to_point_table_overview_out,
-            file = paste0(output.dir, "/pointToPointNearest-", stamp, ".csv"),
-            row.names = F)
+            file = paste0(output.dir, "/pointToPointNearest-", file_name, "/csv/pointToPointNearest-", file_name, ".csv"),
+            row.names = F) 
           
         }
         
       }
     }
   
-  message("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n")
-  
-  point_to_point_table_overview_out <- point_to_point_table_overview[, c(8, 9, 1, 2, 10, 3, 4, 5, 6, 7, 11)]
-  colnames(point_to_point_table_overview_out) <-
-    c(
-      "origin",
-      "destination",
-      "start_time",
-      "end_time",
-      "distance_km",
-      "duration_mins",
-      "walk_time_mins",
-      "transit_time_mins",
-      "waiting_time_mins",
-      "transfers",
-      "journey_details")
+  if (infoPrint == T) {
+    cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
+    cat("Journey details:\n", sep = "")
+    cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
+  }
   
   if (modes == "CAR") {
-    colnames(point_to_point_table_overview_out)[which(names(point_to_point_table_overview_out) == "walk_time_mins")] <- "drive_time_mins"
+    colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walk_time_mins")] <- "drive_time_mins"
   } else if (modes == "BICYCLE") {
-    colnames(point_to_point_table_overview_out)[which(names(point_to_point_table_overview_out) == "walk_time_mins")] <- "cycle_time_mins"
+    colnames(point_to_point_table_overview)[which(names(point_to_point_table_overview) == "walk_time_mins")] <- "cycle_time_mins"
   }
   
   write.csv(
-    point_to_point_table_overview_out,
-    file = paste0(output.dir, "/pointToPointNearest-", stamp, ".csv"),
+    point_to_point_table_overview,
+    file = paste0(output.dir, "/pointToPointNearest-", file_name, "/csv/pointToPointNearest-", file_name, ".csv"),
     row.names = F)
-  
-  message("Thanks for using propeR.")
+  if (infoPrint == T) {
+    cat("Outputs saved. Thanks for using propeR.\n")
+  }
 }

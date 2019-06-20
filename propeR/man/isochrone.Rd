@@ -6,20 +6,21 @@
 \usage{
 isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
   destinationPoints, destinationPointsRow = 1,
-  startDateAndTime = "2018-08-18 12:00:00", modes = "WALK, TRANSIT",
-  maxWalkDistance = 1000, walkReluctance = 2, walkSpeed = 1.5,
-  bikeSpeed = 5, minTransferTime = 1, maxTransfers = 5,
-  wheelchair = F, arriveBy = F, isochroneCutOffMax = 90,
-  isochroneCutOffMin = 10, isochroneCutOffStep = 10, mapOutput = F,
-  geojsonOutput = F, mapZoom = "bb", mapPolygonLineWeight = 1,
+  startDateAndTime = format(Sys.time(), "\%Y-\%m-\%d \%H:\%M:\%S"),
+  modes = "WALK, TRANSIT", maxWalkDistance = 1000,
+  walkReluctance = 2, walkSpeed = 1.5, bikeSpeed = 5,
+  minTransferTime = 1, maxTransfers = 5, wheelchair = F,
+  arriveBy = F, isochroneCutOffMax = 90, isochroneCutOffMin = 10,
+  isochroneCutOffStep = 10, infoPrint = T, mapOutput = F,
+  geojsonOutput = F, mapZoom = "bb", mapPolygonLineWeight = 0,
   mapPolygonLineColor = "white", mapPolygonLineOpacity = 1,
   mapPolygonFillOpacity = 1, originMarker = T,
   originMarkerColor = "red", destinationMarkerSize = 3,
   destinationMarkerOutOpacity = 1, destinationMarkerInOpacity = 1,
   destinationMarkerStroke = T, destinationMarkerStrokeColor = "black",
   destinationMarkerStrokeWeight = 1,
-  destinationMarkerInColor = "#00FFAE",
-  destinationMarkerOutColor = "#FF00E0", mapLegendOpacity = 0.5,
+  destinationMarkerInColor = "white",
+  destinationMarkerOutColor = "grey", mapLegendOpacity = 1,
   mapDarkMode = F)
 }
 \arguments{
@@ -33,7 +34,7 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{destinationPoints}{The variable containing destination(s) see ?importLocationData for details}
 
-\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format}
+\item{startDateAndTime}{The start time and date, in 'YYYY-MM-DD HH:MM:SS' format, default is currrent date and time}
 
 \item{modes}{The mode of the journey, defaults to 'TRANSIT, WALK'}
 
@@ -59,13 +60,15 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{isochroneCutOffStep}{Provide the cutoff time step for the isochrone, 0 denotes no step is required (returns isochroneCutOffMax only), defaults 10}
 
+\item{infoPrint}{Specifies whether you want some information printed to the console or not, default is TRUE}
+
 \item{mapOutput}{Specifies whether you want to output a map, defaults to FALSE}
 
 \item{geojsonOutput}{Specifies whether you want to output a GeoJSON file, defaults to FALSE}
 
 \item{mapZoom}{The zoom level of the map as an integer (e.g. 12), defaults to bounding box approach}
 
-\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 1 px}
+\item{mapPolygonLineWeight}{Specifies the weight of the polygon, defaults to 0 px}
 
 \item{mapPolygonLineColor}{Specifies the color of the polygon, defaults to 'white'}
 
@@ -89,11 +92,11 @@ isochrone(output.dir, otpcon, originPoints, originPointsRow = 1,
 
 \item{destinationMarkerStrokeWeight}{Specifies the marker stroke weight for the destination marker(s) (default is 1)}
 
-\item{destinationMarkerInColor}{Specifies the colour of destination marker(s)if it is within a isochrone (default is '#00FFAE')}
+\item{destinationMarkerInColor}{Specifies the colour of destination marker(s)if it is within a isochrone (default is 'white')}
 
-\item{destinationMarkerOutColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is '#FF00E0')}
+\item{destinationMarkerOutColor}{Specifies the colour of destination marker(s) if it is not within a isochrone (default is 'grey')}
 
-\item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 0.5}
+\item{mapLegendOpacity}{Specifies the opacity of the legend, defaults to 1}
 
 \item{mapDarkMode}{Specifies if you want to use the dark leaflet map colour (default is FALSE)}
 }
