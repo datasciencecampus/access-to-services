@@ -7,6 +7,8 @@
 ##' @param loncol The title of the header of the column containing the longitudinal values, default is "lon"
 ##' @param latcol The title of the header of the column containing the latitudinal values, default is "lat"
 ##' @param postcodecol  The title of the header of the column containing the postcode values, default is "postcode"
+##' @param deleteRow Specify whether to delete the row if no postcode is found, defaults to T
+##' @param autoComplete Specify whether to use autocomplete if postcode is not valid
 ##' @return R dataframe of location points
 ##' @author Michael Hodge
 ##' @examples originPoints <- importLocationData('C:\Users\User\Documents\origins.csv', idcol = "name", loncol = "lon", latcol = "lat")
@@ -15,7 +17,9 @@ importLocationData <- function(src,
                                idcol = "name",
                                loncol = "lon",
                                latcol = "lat",
-                               postcodecol = "postcode") {
+                               postcodecol = "postcode",
+                               deleteRow = T,
+                               autoComplete = F) {
   
   data_points <-
     read.csv(src, sep = ",", as.is = TRUE) # Opens file box
@@ -26,6 +30,27 @@ importLocationData <- function(src,
   colnames(data_points)[which(names(data_points) == postcodecol)] <- "postcode"
   
   data_points$name <- as.character(data_points$name)
+  
+  rows_to_delete = c()
+  
+  postcodeAutoComplete <- function(postcode, num_char) {
+    
+    lat_lon = c()
+    new_postcode_content <- propeR::postcodeComplete(substr(postcode, 1, nchar(postcode)-num_char))
+    new_postcode <- new_postcode_content$result[[1]]
+    new_postcode <- gsub('\\s+', '', new_postcode)
+    
+    pc_content <- propeR::postcodeToDecimalDegrees(new_postcode)
+    if (pc_content$status == 'no_match' || is.null(pc_content$data$latitude) || pc_content$status == '404') {
+      pc_content <- propeR::postcodeToDecimalDegrees_backup(new_postcode)
+      lat_lon <- pc_content$result$latitude
+      lat_lon <- cbind(lat_lon,pc_content$result$longitude)
+    } else {
+      lat_lon <-  as.double(pc_content$data$latitude)
+      lat_lon <- cbind(lat_lon,as.double(pc_content$data$longitude))
+    }
+    lat_lon
+  }
   
   if ("lat" %in% colnames(data_points))
   {
@@ -62,32 +87,85 @@ importLocationData <- function(src,
         the location will be removed from the list.\n"
       )
       
-      data_points$postcode <- gsub('\\s+', '', data_points$postcode)
+      pb <- progress::progress_bar$new(
+        format = "  Postcode to lat and lon conversion complete for call :what [:bar] :percent eta: :eta",
+        total = nrow(data_points), clear = FALSE, width= 100)
       
       for (i in 1:nrow(data_points)) {
+        
+        data_points$postcode[i] <- gsub('\\s+', '', data_points$postcode[i])
+        
         pc_content <-
           propeR::postcodeToDecimalDegrees(data_points$postcode[i])
         if (pc_content$status == 'no_match') {
           pc_content <-
             propeR::postcodeToDecimalDegrees_backup(data_points$postcode[i])
           if (pc_content$status == '404') {
-            warning(
-              "Warning: Postcode ",
-              data_points$postcode[i],
-              " for location ",
-              data_points$name[i],
-              " cannot be convert to a latitude and longitude.
-              This location shall be removed from the list.\n"
-            )
-            data_points <- data_points[-i,]
+            
+            if(autoComplete == T){
+              lat_lon <- postcodeAutoComplete(data_points$postcode[i], 1)
+              if (is.null(lat_lon[1])){
+                lat_lon <- lat_lon <- postcodeAutoComplete(data_points$postcode[i], 2)
+                if (is.null(lat_lon[1])){
+                  lat_lon <- lat_lon <- postcodeAutoComplete(data_points$postcode[i], 3)
+                  if (is.null(lat_lon[1])){
+                    rows_to_delete = rbind(i,rows_to_delete)
+                    data_points$lat[i] <- 'NA'
+                    data_points$lon[i] <- 'NA'
+                  } else {
+                    data_points$lat[i] <- lat_lon[1]
+                    data_points$lon[i] <- lat_lon[2]
+                  }
+                } else {
+                  data_points$lat[i] <- lat_lon[1]
+                  data_points$lon[i] <- lat_lon[2]
+                }
+              } else {
+                data_points$lat[i] <- lat_lon[1]
+                data_points$lon[i] <- lat_lon[2]
+              }
+            } else {
+              rows_to_delete = rbind(i,rows_to_delete)
+              data_points$lat[i] <- 'NA'
+              data_points$lon[i] <- 'NA'
+            }
           } else {
             data_points$lat[i] <- pc_content$result$latitude
             data_points$lon[i] <- pc_content$result$longitude
           }
         } else {
-          data_points$lat[i] <- as.double(pc_content$data$latitude)
-          data_points$lon[i] <- as.double(pc_content$data$longitude)
+          if (is.null(pc_content$data$latitude) || is.null(pc_content$data$longitude)){
+            
+            if(autoComplete == T){
+              lat_lon <- postcodeAutoComplete(data_points$postcode[i], 1)
+              if (is.null(lat_lon[1])){
+                lat_lon <- lat_lon <- postcodeAutoComplete(data_points$postcode[i], 2)
+                if (is.null(lat_lon[1])){
+                  lat_lon <- lat_lon <- postcodeAutoComplete(data_points$postcode[i], 3)
+                  if (is.null(lat_lon[1])){
+                    rows_to_delete = rbind(i,rows_to_delete)
+                    data_points$lat[i] <- 'NA'
+                    data_points$lon[i] <- 'NA'
+                  } else {
+                    data_points$lat[i] <- lat_lon[1]
+                    data_points$lon[i] <- lat_lon[2]
+                  }
+                } else {
+                  data_points$lat[i] <- lat_lon[1]
+                  data_points$lon[i] <- lat_lon[2]
+                }
+              } else {
+                data_points$lat[i] <- lat_lon[1]
+                data_points$lon[i] <- lat_lon[2]
+              }
+            }
+          
+          } else {
+            data_points$lat[i] <- as.double(pc_content$data$latitude)
+            data_points$lon[i] <- as.double(pc_content$data$longitude)
+          }
         }
+        pb$tick(tokens = list(what = i))
       }
     } else {
       stop(
@@ -99,12 +177,21 @@ importLocationData <- function(src,
         )
       )
     }
+    
   }
+  
+
   
   # data_points <-
   #   data_points[order(data_points$name),] # Sort by name
   data_points <-
     as.data.frame(data_points) # Converts to dataframes and create lat, lon field needed by otp
+  
+  if (deleteRow == T && length(rows_to_delete) > 0){
+    message(paste0('Number of rows removed from ', length(data_points), ' was ',length(rows_to_delete)))
+    data_points <- data_points[-rows_to_delete,]
+  }
+  
   data_points$lat_lon <-
     with(data_points, paste0(lat, ",", lon)) # Adds a lat_lon column as needed by otp
   data_points
