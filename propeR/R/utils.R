@@ -24,7 +24,21 @@ postcodeToDecimalDegrees <- function(postcode) {
 postcodeToDecimalDegrees_backup <- function(postcode) {
   r <-
     httr::GET(paste0("http://api.postcodes.io/postcodes/", postcode))
-  httr::warn_for_status(r)
+  httr::content(r)
+}
+
+##' Postcode autocomplete
+##'
+##' Generates a postcode from a partial postcode
+##'
+##' @param postcode UK postcode
+##' @return The latitude and longitude in decimal degrees.
+##' @author Michael Hodge
+##' @examples postcodeToDecimalDegrees_backup('NP10 8XG')
+##' @export
+postcodeComplete <- function(postcode) {
+  r <-
+    httr::GET(paste0("http://api.postcodes.io/postcodes/", postcode,'/autocomplete'))
   httr::content(r)
 }
 
