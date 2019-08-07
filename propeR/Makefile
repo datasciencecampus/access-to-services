@@ -4,6 +4,9 @@ PKGSRC  := $(shell basename `pwd`)
 
 all: check clean
 
+deps:
+	R --silent -e 'install.packages(c("cleangeo", "leaflet", "magick", "mapview", "rgdal", "rgeos", "htmlwidgets", "gepaf", "geosphere", "FNN"), repos="https://cran.rstudio.com/")'
+
 man-docs:
 	R --silent -e 'devtools::document()'
 
@@ -17,7 +20,7 @@ build: man-docs
 	cd ..;\
 	R CMD build $(PKGSRC)
 
-check: build
+check: deps build
 	cd ..;\
 	R CMD check $(PKGNAME)_$(PKGVERS).tar.gz
 
