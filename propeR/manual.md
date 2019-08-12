@@ -14,7 +14,7 @@
   	* [CIF to GTFS](#cif-to-gtfs)
   	* [Cleaning the GTFS Data](#cleaning-the-gtfs-data)
   	* [Sample GTFS Data](#sample-gtfs-data)  
-  
+
 * [Creating the OpenTripPlanner server](#creating-the-opentripplanner-server)    
 
 * [Running propeR packages](#running-proper-packages)
@@ -46,13 +46,13 @@
 * Installation of propeR and associated packages [[here]](https://github.com/datasciencecampus/access-to-services)
 * Java SE Runtime Environment 8 (preferrably 64-bit) [[download here]](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html)
 
-This R package (propeR) was created to analyse multimodal transport for a number of research projects at the [Data Science Campus, Office for National Statistics](https://datasciencecampus.ons.gov.uk/). 
+This R package (propeR) was created to analyse multimodal transport for a number of research projects at the [Data Science Campus, Office for National Statistics](https://datasciencecampus.ons.gov.uk/).
 
-It was quickly realised that the universally preferred form of transport timetable data was [General Transit Feed Specification (GTFS)](https://en.wikipedia.org/wiki/General_Transit_Feed_Specification), as used by [Google maps](https://developers.google.com/transit/gtfs/reference/). However, for the UK, only [Manchester](https://transitfeeds.com/p/transport-for-greater-manchester/224) and [London](https://tfl.gov.uk/info-for/open-data-users/) have open-source GTFS feeds available. 
+It was quickly realised that the universally preferred form of transport timetable data was [General Transit Feed Specification (GTFS)](https://en.wikipedia.org/wiki/General_Transit_Feed_Specification), as used by [Google maps](https://developers.google.com/transit/gtfs/reference/). However, for the UK, only [Manchester](https://transitfeeds.com/p/transport-for-greater-manchester/224) and [London](https://tfl.gov.uk/info-for/open-data-users/) have open-source GTFS feeds available.
 
-Understanding the complete UK transit network relies on the knowledge and software that can parse various other transit feeds such as bus data, provided in [TransXChange](https://www.gov.uk/government/collections/transxchange) format, and train data, provided in [CIF](https://www.raildeliverygroup.com/our-services/rail-data/timetable-data.html) format. 
+Understanding the complete UK transit network relies on the knowledge and software that can parse various other transit feeds such as bus data, provided in [TransXChange](https://www.gov.uk/government/collections/transxchange) format, and train data, provided in [CIF](https://www.raildeliverygroup.com/our-services/rail-data/timetable-data.html) format.
 
-The initial tasks was to convert these formats to GTFS. The team indentified two viable converters: (i) C# based [TransXChange2GTFS](https://github.com/danbillingsley/TransXChange2GTFS) to convert TransXChange data; and (ii) sql based [dtd2mysql](https://github.com/open-track/dtd2mysql) to convert CIF data. The [TransXChange2GTFS](https://github.com/danbillingsley/TransXChange2GTFS) code was modified by the Campus and pushed back (successfully) to the original repository. The team behind [dtd2mysql](https://github.com/open-track/dtd2mysql), [planar network](https://planar.network/), have since created their own [TransXChange to GTFS converter](https://github.com/planarnetwork/transxchange2gtfs), which does not require a C# compiler. 
+The initial tasks was to convert these formats to GTFS. The team indentified two viable converters: (i) C# based [TransXChange2GTFS](https://github.com/danbillingsley/TransXChange2GTFS) to convert TransXChange data; and (ii) sql based [dtd2mysql](https://github.com/open-track/dtd2mysql) to convert CIF data. The [TransXChange2GTFS](https://github.com/danbillingsley/TransXChange2GTFS) code was modified by the Campus and pushed back (successfully) to the original repository. The team behind [dtd2mysql](https://github.com/open-track/dtd2mysql), [planar network](https://planar.network/), have since created their own [TransXChange to GTFS converter](https://github.com/planarnetwork/transxchange2gtfs), which does not require a C# compiler.
 
 Below is a more detailed set-by-step guide on how these converters are used.
 
@@ -107,7 +107,7 @@ The team, [planar network](https://planar.network/), who we initially used to co
 
 #### CIF to GTFS
 
-As mentioned above, UK train data in CIF format can be downloaded from [here](http://data.atoc.org/data-download) following the creation of an account. The timetable data will download as a zipped folder named 'ttis\*\*\*.zip'. 
+As mentioned above, UK train data in CIF format can be downloaded from [here](http://data.atoc.org/data-download) following the creation of an account. The timetable data will download as a zipped folder named 'ttis\*\*\*.zip'.
 
 Inside the zipped folder will be the following files: ttfis\*\*\*.alf, ttfis\*\*\*.dat, ttfis\*\*\*.flf, ttfis\*\*\*.mca, ttfis\*\*\*.msn, ttfis\*\*\*.set, ttfis\*\*\*.tsi, and ttfis\*\*\*.ztr. Most of these files are difficult to read, hence the need for GTFS.
 
@@ -122,7 +122,7 @@ DATABASE_USERNAME=root DATABASE_NAME=train_database dtd2mysql --timetable /path/
 ```
 DATABASE_USERNAME=root DATABASE_NAME=train_database dtd2mysql --gtfs-zip train_GTFS.zip
 ```
-4. As [OpenTripPlanner (OTP)](http://www.opentripplanner.org/) requires GTFS files to not be stored in subfolders in the GTFS zip file, extract the downloaded 'train_GTFS.zip' and navigate to the subfolder level where the txt files are kept, then zip these files to a folder with an appropriate name (e.g., 'train_GTFS.zip'). 
+4. As [OpenTripPlanner (OTP)](http://www.opentripplanner.org/) requires GTFS files to not be stored in subfolders in the GTFS zip file, extract the downloaded 'train_GTFS.zip' and navigate to the subfolder level where the txt files are kept, then zip these files to a folder with an appropriate name (e.g., 'train_GTFS.zip').
 
 **Note**: _if you are receiving a 'group_by' error, you will need to temporarily or permenantly disable `'ONLY_FULL_GROUP_BY'` in mysql._
 
@@ -148,19 +148,19 @@ The Data Science Campus as created some cleaned GTFS data for buses around [Card
 
 [OpenTripPlanner (OTP)](http://www.opentripplanner.org/) is an open source multi-modal trip planner, which runs on Linux, Mac, Windows, or potentially any platform with a Java virtual machine. More details, including basic tutorials can be found [here](http://docs.opentripplanner.org/en/latest/). Guidance on how to setup the OpenTripPlanner locally can be found [here](https://github.com/opentripplanner/OpenTripPlanner/wiki). Here is the method that worked for us:
 
-1. Check you have the latest java SE runtime installed on your computer, preferrably the 64-bit version on a 64-bit computer. The reason for this is that the graph building process in step 7 uses a lot of memory. The 32-bit version of java might not allow a sufficient heap size to be allocated to graph and server building. For the GTFS sample data [here](add link), a 32-bit machine may suffice. 
+1. Check you have the latest java SE runtime installed on your computer, preferrably the 64-bit version on a 64-bit computer. The reason for this is that the graph building process in step 7 uses a lot of memory. The 32-bit version of java might not allow a sufficient heap size to be allocated to graph and server building. For the GTFS sample data [here](add link), a 32-bit machine may suffice.
 2. Create an 'otp' folder in a preferred root directory.
 3. Download the latest single stand-alone runnable .jar file of OpenTripPlanner [here](https://repo1.maven.org/maven2/org/opentripplanner/otp/). Choose the '-shaded.jar' file. Place this in the 'otp' folder.
 4. Create a 'graphs' folder in the 'otp' folder.
 5. Create a 'default' folder in the 'graphs' folder.
 6. Put the GTFS ZIP folder(s) in the 'default' folder along with the latest OpenStreetMap .osm data for your area, found [here](https://download.geofabrik.de/europe/great-britain/wales.html). If you're using the sample GTFS data, an .osm file for Cardiff can be found [here](https://github.com/datasciencecampus/access-to-services/tree/master/propeR/data/osm).
-7. Build the graph by using the following command line/terminal command whilst in the 'otp' folder: 
+7. Build the graph by using the following command line/terminal command whilst in the 'otp' folder:
 
     ```
     java -Xmx4G -jar otp-1.3.0-shaded.jar --build graphs/default
     ```
   changing the shaded.jar file name and end folder name to be the appropriate names for your build. '-Xmx4G' specifies a maximum heap size of 4G memory, graph building may not work with less memory than this.
-8. Once the graph has been build you should have a 'Graphs.obj' file in the 'graphs/default' folder. Now initiate the server using the following command from the 'otp' folder: 
+8. Once the graph has been build you should have a 'Graphs.obj' file in the 'graphs/default' folder. Now initiate the server using the following command from the 'otp' folder:
 
     ```
     java -Xmx4G -jar otp-1.3.0-shaded.jar --graphs graphs --router default --server
@@ -236,7 +236,7 @@ originPoints <- importLocationData(system.file("extdata", "origin.csv", package 
 destinationPoints <- importLocationData(system.file("extdata", "destination.csv", package = "propeR"))
 ```
 
-The sample data shows an example of data with a latitude, longitude column (recommended) in the origin CSV file, and one with a postcode column only (works, but not recommended) in the destination CSV file. The **`importLocationData()`** function will call a separate function (`postcodeToDecimalDegrees()`) that converts postcode to latitude and longitude. 
+The sample data shows an example of data with a latitude, longitude column (recommended) in the origin CSV file, and one with a postcode column only (works, but not recommended) in the destination CSV file. The **`importLocationData()`** function will call a separate function (`postcodeToDecimalDegrees()`) that converts postcode to latitude and longitude.
 
 **Note:** _the column lat\_lon is generated automatically by `importLocationData()` and does not need to be manually entered._
 
@@ -244,9 +244,9 @@ The sample data shows an example of data with a latitude, longitude column (reco
 
 ```
 #R
-pointToPoint(output.dir = 'PATH/TO/DIR', 
-              otpcon = otpcon, 
-              locationPoints = originPoints, 
+pointToPoint(output.dir = 'PATH/TO/DIR',
+              otpcon = otpcon,
+              locationPoints = originPoints,
               modes = 'WALK')
 ```
 
@@ -258,13 +258,13 @@ The above will check the validity of the locations for walking routes, including
 
 ```
 #R
-pointToPoint(output.dir = 'PATH/TO/DIR', 
-              otpcon = otpcon, 
-              originPoints = originPoints, 
-              originPointsRow = 2, 
-              destinationPoints = destinationPoints, 
-              destinationPointsRow = 2, 
-              startDateAndTime = '2018-08-18 12:00:00', 
+pointToPoint(output.dir = 'PATH/TO/DIR',
+              otpcon = otpcon,
+              originPoints = originPoints,
+              originPointsRow = 2,
+              destinationPoints = destinationPoints,
+              destinationPointsRow = 2,
+              startDateAndTime = '2018-08-18 12:00:00',
               modes = 'WALK, TRANSIT',
               mapOutput = F)
 ```
@@ -282,7 +282,7 @@ To output a PNG and interactive HTML leaflet map will as shown below, change the
 
 <p align="center"><img align="center" src="meta/images/pointToPoint.png" width="600px"></p>
 
-A GeoJSON of the polyline can be saved using the parameter `geojsonOutput = T`. 
+A GeoJSON of the polyline can be saved using the parameter `geojsonOutput = T`.
 
 Map colours, zoom and other parameters can be specified by the user. See ?pointToPoint for details.
 
@@ -292,12 +292,12 @@ Map colours, zoom and other parameters can be specified by the user. See ?pointT
 
 ```
 #R
-pointToPointLoop(output.dir = 'PATH/TO/DIR', 
-              otpcon = otpcon, 
-              originPoints = originPoints, 
-              destinationPoints = destinationPoints, 
-              journeyLoop = 0, 
-              startDateAndTime = '2018-08-18 12:00:00', 
+pointToPointLoop(output.dir = 'PATH/TO/DIR',
+              otpcon = otpcon,
+              originPoints = originPoints,
+              destinationPoints = destinationPoints,
+              journeyLoop = 0,
+              startDateAndTime = '2018-08-18 12:00:00',
               modes = 'WALK, TRANSIT')
 ```
 
@@ -319,9 +319,9 @@ pointToPointNearest(output.dir = 'PATH/TO/DIR',
               nearestNum = 1,)
 ```
 
-This function is useful to analyse the travel details between a destination and origin using a K-nearest neighbour (KNN) approached. It is therefore useful in analysing whether the geographically closest destination (or service) is the fastest and most appropriate for an origin. 
+This function is useful to analyse the travel details between a destination and origin using a K-nearest neighbour (KNN) approached. It is therefore useful in analysing whether the geographically closest destination (or service) is the fastest and most appropriate for an origin.
 
-By default *k* is set to 1, denoted the geographically closest destination. However, the second, third etc nearest destination can be analysed by changing the parameter `nearestNum`. Like `pointToPointLoop` the parameter `journeyReturn` can be used to specify whether the return journey between origin and destination should be also calculated. 
+By default *k* is set to 1, denoted the geographically closest destination. However, the second, third etc nearest destination can be analysed by changing the parameter `nearestNum`. Like `pointToPointLoop` the parameter `journeyReturn` can be used to specify whether the return journey between origin and destination should be also calculated.
 
 #### pointToPointTime
 
@@ -395,7 +395,7 @@ isochroneTime(output.dir = 'PATH/TO/DIR',
               mapOutput = F)
 ```
 
-This function is to [`isochrone()`](#isochrone) what [`pointToPointTime()`](#pointtopointtime) was to [`pointToPoint()`](#pointtopoint), i.e., a time-series between a start and end time/date at specified time intervals that produces a table and an optional animated GIF image. 
+This function is to [`isochrone()`](#isochrone) what [`pointToPointTime()`](#pointtopointtime) was to [`pointToPoint()`](#pointtopoint), i.e., a time-series between a start and end time/date at specified time intervals that produces a table and an optional animated GIF image.
 
 Changing `mapOutput` to `T` will save a map for each journey. To save a GIF of the time-series, set `gifOutput` to `T`. For example:
 
@@ -420,7 +420,7 @@ isochroneMulti(output.dir = 'PATH/TO/DIR',
               geojsonOutput = F)
 ```
 
-This function works similarly to the [`isochrone()`](#isochrone) function; however, it can handle multiple origins and multiple destinations. This is useful when considering the travel time between multiple locations to multiple possible destinations. 
+This function works similarly to the [`isochrone()`](#isochrone) function; however, it can handle multiple origins and multiple destinations. This is useful when considering the travel time between multiple locations to multiple possible destinations.
 
 A PNG and interactive HTML map can also be saved in the output directory by changing `mapOutput` to `T`. For example:
 
@@ -440,7 +440,7 @@ Q: Do I need a GTFS file to run propeR?
 
 Q: How accurate is the cost calculation in the point to point functions?
 
->A: The tool currently cannot ingest fare information. Therefore `costEstimate` can be used in the point to point functions. This provides an *estimate* based on the values given in the parameters `busTicketPrice`, `busTicketPriceMax`, `trainTicketPriceKm` and `trainTicketPriceMin`. 
+>A: The tool currently cannot ingest fare information. Therefore `costEstimate` can be used in the point to point functions. This provides an *estimate* based on the values given in the parameters `busTicketPrice`, `busTicketPriceMax`, `trainTicketPriceKm` and `trainTicketPriceMin`.
 
 Q: How to I stop propeR printing to the R console:
 
@@ -455,7 +455,7 @@ Q: I found a bug!
 Q: Why am I receiving the following error when running propeR?
 
 ```
-Error in curl::curl_fetch_memory(url, handle = handle) : 
+Error in curl::curl_fetch_memory(url, handle = handle) :
   Failed to connect to localhost port 8080: Connection refused
 Called from: curl::curl_fetch_memory(url, handle = handle)
 ```
@@ -469,4 +469,3 @@ Error in paste0(otpcon, "/plan") : object 'otpcon' not found
 ```
 
 > A: The OTP connection has not been established. Please see [step 3.2.1.](#otpconnect) of this guide.
-
