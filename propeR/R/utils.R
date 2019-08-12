@@ -5,7 +5,10 @@
 ##' @param postcode UK postcode
 ##' @return The latitude and longitude in decimal degrees.
 ##' @author Michael Hodge
-##' @examples postcodeToDecimalDegrees('NP10 8XG')
+##' @examples
+##' @donotrun{
+##' postcodeToDecimalDegrees('NP10 8XG')
+##' }
 ##' @export
 postcodeToDecimalDegrees <- function(postcode) {
   r <-
@@ -19,7 +22,10 @@ postcodeToDecimalDegrees <- function(postcode) {
 ##' @param postcode UK postcode
 ##' @return The latitude and longitude in decimal degrees.
 ##' @author Michael Hodge
-##' @examples postcodeToDecimalDegrees_backup('NP10 8XG')
+##' @examples
+##' @donotrun{
+##' postcodeToDecimalDegrees_backup('NP10 8XG')
+##' }
 ##' @export
 postcodeToDecimalDegrees_backup <- function(postcode) {
   r <-
@@ -34,7 +40,10 @@ postcodeToDecimalDegrees_backup <- function(postcode) {
 ##' @param postcode UK postcode
 ##' @return The latitude and longitude in decimal degrees.
 ##' @author Michael Hodge
-##' @examples postcodeToDecimalDegrees_backup('NP10 8XG')
+##' @examples
+##' @donotrun{
+##' postcodeToDecimalDegrees_backup('NP10 8XG')
+##' }
 ##' @export
 postcodeComplete <- function(postcode) {
   r <-
@@ -50,7 +59,10 @@ postcodeComplete <- function(postcode) {
 ##' @param lon longitude
 ##' @return dataframe of lats and lons of nearest nodes
 ##' @author Michael Hodge
-##' @examples nominatimNodeSearch(lat, lon)
+##' @examples
+##' @donotrun{
+##' nominatimNodeSearch(lat, lon)
+##' }
 ##' @export
 nominatimNodeSearch <- function(lat, lon) {
   r <- jsonlite::fromJSON(paste0("https://nominatim.openstreetmap.org/search?q=", lat, "%2C", lon, "&format=json"))
@@ -68,7 +80,10 @@ nominatimNodeSearch <- function(lat, lon) {
 ##' @param object the object you want to search for (e.g. pub)
 ##' @return dataframe of lats and lons of nearest nodes
 ##' @author Michael Hodge
-##' @examples nominatimNodeSearch(lat, lon)
+##' @examples
+##' @donotrun{
+##' nominatimNodeSearch(lat, lon)
+##' }
 ##' @export
 nominatimObjectSearch <- function(lat, lon, object) {
   r <- jsonlite::fromJSON(paste0("https://nominatim.openstreetmap.org/search?q=", object,"+near+", lat, "%2C", lon, "&format=json"))

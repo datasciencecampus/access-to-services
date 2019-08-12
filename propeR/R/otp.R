@@ -13,12 +13,14 @@
 ##' @return The OTP server URL as https://hostname:port/otp/routers/router or http://hostname:port/otp/routers/router
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   otpcon <- otpConnect(
 ##'     hostname = "localhost",
 ##'     router = "default",
 ##'     port = "8080",
 ##'     ssl = "false"
 ##'   )
+##' }
 ##' @export
 otpConnect <-
   function(hostname = 'localhost',
@@ -45,12 +47,14 @@ otpConnect <-
 ##' @return A list comprising status and distance (in meters)
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   result <- otpTripDistance(
 ##'     otpcon,
 ##'     from = "51.5128,-3.2347",
 ##'     to = "51.4779, -3.1830",
 ##'     modes = "WALK, TRANSIT"
 ##'     )
+##' }
 ##' @export
 otpTripDistance <- function(otpcon,
                             from,
@@ -135,6 +139,7 @@ otpTripDistance <- function(otpcon,
 ##' and polylines dataframes
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   result <- otpTripTime(
 ##'     otpcon,
 ##'     from = "51.5128,-3.2347",
@@ -143,6 +148,7 @@ otpTripDistance <- function(otpcon,
 ##'     date = "2018-10-01",
 ##'     time = "08:00am"
 ##'   )
+##' }
 ##' @export
 otpTripTime <- function(otpcon,
                         from_name,
@@ -555,6 +561,7 @@ otpTripTime <- function(otpcon,
 ##' @return A list comprising status and journey itineraries (duration, walk time, transit time, waiting time and transfers)
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   result <- otpChoropleth(
 ##'     otpcon,
 ##'     from = "51.5128,-3.2347",
@@ -563,6 +570,7 @@ otpTripTime <- function(otpcon,
 ##'     date = "2018-10-01",
 ##'     time = "08:00am"
 ##'   )
+##' }
 ##' @export
 otpChoropleth <- function(otpcon,
                           from,
@@ -694,6 +702,7 @@ otpChoropleth <- function(otpcon,
 ##' @return A list comprising status and isochrones as a text object
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   result <- otpChoropleth(
 ##'     otpcon,
 ##'     from = "51.5128,-3.2347",
@@ -701,6 +710,7 @@ otpChoropleth <- function(otpcon,
 ##'     date = "2018-10-01",
 ##'     time = "08:00am"
 ##'   )
+##' }
 ##' @export
 otpIsochrone <- function(otpcon,
                          from,
@@ -788,6 +798,7 @@ otpIsochrone <- function(otpcon,
 ##' and polylines dataframes
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   result <- otpJourneyChecker(
 ##'     otpcon,
 ##'     from = "51.5128,-3.2347",
@@ -796,6 +807,7 @@ otpIsochrone <- function(otpcon,
 ##'     date = "2018-10-01",
 ##'     time = "08:00am"
 ##'   )
+##' }
 ##' @export
 otpJourneyChecker <- function(otpcon,
                         from_name,

@@ -22,14 +22,6 @@ The OTP server URL as https://hostname:port/otp/routers/router or http://hostnam
 \description{
 Connects to the OpenTripPlanner (OTP) server URL
 }
-\examples{
-  otpcon <- otpConnect(
-    hostname = "localhost",
-    router = "default",
-    port = "8080",
-    ssl = "false"
-  )
-}
 \author{
 Michael Hodge
 }

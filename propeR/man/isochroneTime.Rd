@@ -122,17 +122,6 @@ and if so, at what cutoff time amount.
 A comma separated value file of journey times for each destination (and time) is saved in the output folder.
 An animated map of the journey can also be saved as a .gif image.
 }
-\examples{
-  isochroneTime(
-    output.dir = 'C:\\Users\\User\\Documents',
-    otpcon,
-    originPoints,
-    destinationPoints,
-    startDateAndTime = "2018-08-18 12:00:00",
-    endDateAndTime = "2018-08-18 13:00:00",
-    timeIncrease = 60
-  )
-}
 \author{
 Michael Hodge
 }

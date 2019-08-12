@@ -15,9 +15,6 @@ Large SpatialPolygonsDataFrame of origin polygons
 \description{
 Imports polygon data from a GeoJSON file
 }
-\examples{
-originPolygons <- importGeojsonData('C:\\Users\\User\\Documents\\origins.geojson')
-}
 \author{
 Michael Hodge
 }

@@ -50,16 +50,6 @@ and polylines dataframes
 \description{
 Returns if journey is possible.
 }
-\examples{
-  result <- otpJourneyChecker(
-    otpcon,
-    from = "51.5128,-3.2347",
-    to = "51.4779, -3.1830",
-    modes = "WALK, TRANSIT",
-    date = "2018-10-01",
-    time = "08:00am"
-  )
-}
 \author{
 Michael Hodge
 }

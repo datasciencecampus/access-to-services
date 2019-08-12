@@ -52,6 +52,7 @@
 ##' @return Saves journey details as comma separated value file to output directory. An animated map in .gif format may also be saved.
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   isochroneTime(
 ##'     output.dir = 'C:\Users\User\Documents',
 ##'     otpcon,
@@ -61,6 +62,7 @@
 ##'     endDateAndTime = "2018-08-18 13:00:00",
 ##'     timeIncrease = 60
 ##'   )
+##' }
 ##' @export
 isochroneTime <- function(output.dir,
                           otpcon,

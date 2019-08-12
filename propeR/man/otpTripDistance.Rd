@@ -21,14 +21,6 @@ A list comprising status and distance (in meters)
 \description{
 Returns trip distance. The parameters are: from, to and transport mode(s).
 }
-\examples{
-  result <- otpTripDistance(
-    otpcon,
-    from = "51.5128,-3.2347",
-    to = "51.4779, -3.1830",
-    modes = "WALK, TRANSIT"
-    )
-}
 \author{
 Michael Hodge
 }

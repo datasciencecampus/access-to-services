@@ -17,10 +17,6 @@ Returns a stop file with fixed lats and lons
 \description{
 Fixes 0,0 in stops GTFS file
 }
-\examples{
-cleanGTFS(stopsfile)
-
-}
 \author{
 Michael Hodge
 }

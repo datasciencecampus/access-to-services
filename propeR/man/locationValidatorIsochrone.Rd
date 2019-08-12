@@ -25,13 +25,6 @@ locationValidatorIsochrone(output.dir, otpcon = otpcon,
 Calculates the journey time and details between multiple origins and/or destinations. 
 A comma separated value file of journey details is saved in the output folder.
 }
-\examples{
-  locationValidatorIsochrone(
-    output.dir = 'C:\\Users\\User\\Documents',
-    otpcon,
-    locationPoints
-  )
-}
 \author{
 Michael Hodge
 }

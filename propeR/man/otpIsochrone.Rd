@@ -47,15 +47,6 @@ A list comprising status and isochrones as a text object
 \description{
 Returns an isochrone from OTP for a specified maximum duration and cutoff intervals based on the origin(s) location(s)
 }
-\examples{
-  result <- otpChoropleth(
-    otpcon,
-    from = "51.5128,-3.2347",
-    modes = "WALK, TRANSIT",
-    date = "2018-10-01",
-    time = "08:00am"
-  )
-}
 \author{
 Michael Hodge
 }

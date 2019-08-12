@@ -76,17 +76,6 @@ Saves journey details as comma separated value file to output directory
 Calculates the journey time and details between multiple origins and/or destinations. 
 A comma separated value file of journey details is saved in the output folder.
 }
-\examples{
-  pointToPointLoop(
-    output.dir = 'C:\\Users\\User\\Documents',
-    otpcon,
-    originPoints,
-    destinationPoints,
-    journeyLoop = 0,
-    journeyReturn = TRUE,
-    startDateAndTime = "2018-08-18 12:00:00"
-  )
-}
 \author{
 Michael Hodge
 }

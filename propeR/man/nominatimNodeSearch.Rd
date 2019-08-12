@@ -17,9 +17,6 @@ dataframe of lats and lons of nearest nodes
 \description{
 Finds list of nodes near a lat and lon
 }
-\examples{
-nominatimNodeSearch(lat, lon)
-}
 \author{
 Michael Hodge
 }

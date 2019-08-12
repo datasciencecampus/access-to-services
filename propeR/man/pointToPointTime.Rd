@@ -107,17 +107,6 @@ Calculates the journey time and details between a single origin and destination 
 and end time and date. A comma separated value file of journey details is saved in the output folder.
 An animated map of the journey can also be saved as a .gif image.
 }
-\examples{
-  pointToPointTime(
-    output.dir = 'C:\\Users\\User\\Documents',
-    otpcon,
-    originPoints,
-    destinationPoints,
-    startDateAndTime = "2018-08-18 12:00:00",
-    endDateAndTime = "2018-08-18 13:00:00",
-    timeIncrease = 60
-  )
-}
 \author{
 Michael Hodge
 }

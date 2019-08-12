@@ -11,7 +11,10 @@
 ##' @param autoComplete Specify whether to use autocomplete if postcode is not valid
 ##' @return R dataframe of location points
 ##' @author Michael Hodge
-##' @examples originPoints <- importLocationData('C:\Users\User\Documents\origins.csv', idcol = "name", loncol = "lon", latcol = "lat")
+##' @examples
+##' @donotrun{
+##' originPoints <- importLocationData('C:\Users\User\Documents\origins.csv', idcol = "name", loncol = "lon", latcol = "lat")
+##' }
 ##' @export
 importLocationData <- function(src,
                                idcol = "name",
@@ -204,7 +207,10 @@ importLocationData <- function(src,
 ##' @param src The source for the .GeoJSON file
 ##' @return Large SpatialPolygonsDataFrame of origin polygons
 ##' @author Michael Hodge
-##' @examples originPolygons <- importGeojsonData('C:\Users\User\Documents\origins.geojson')
+##' @examples
+##' @donotrun{
+##' originPolygons <- importGeojsonData('C:\Users\User\Documents\origins.geojson')
+##' }
 ##' @export
 importGeojsonData <- function(src) {
   ## todo: refactor this. looks the same as ^
