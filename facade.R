@@ -1,3 +1,7 @@
+## Rscript --vanilla facade.R 'fun=pointToPoint,src_file="origin.csv", dst_file="destination.csv", output.dir="/tmp/a2s", startDateAndTime="2019-08-02 12:00:00", mapOutput=T'
+##
+##
+
 suppressMessages(library(propeR))
 
 connect <- (function() {
