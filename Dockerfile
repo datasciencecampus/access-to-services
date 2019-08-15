@@ -17,4 +17,4 @@ RUN apt-get update && apt-get install -y \
   texlive-latex-extra
 RUN make install
 
-#CMD ["./run.sh"]
+ENTRYPOINT ["Rscript", "--vanilla", "../facade.R"]
