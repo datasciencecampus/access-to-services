@@ -14,7 +14,10 @@ RUN apt-get update && apt-get install -y \
   libmagick++-dev \
   libgdal-dev \
   texlive-latex-base \
-  texlive-latex-extra
+  texlive-latex-extra \
+  pandoc \
+  curl
+
 RUN make install
 
 ENTRYPOINT ["Rscript", "--vanilla", "../facade.R"]
