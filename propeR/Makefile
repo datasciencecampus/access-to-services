@@ -6,6 +6,7 @@ all: check clean
 
 deps:
 	R --silent -e 'install.packages(c("devtools", "rgdal", "dplyr", "progress", "knitr", "rmarkdown", "cleangeo", "leaflet", "magick", "mapview", "rgdal", "rgeos", "htmlwidgets", "gepaf", "geosphere", "FNN"), repos="https://cran.rstudio.com/")'
+	R --silent -e 'install.packages("webshot"); webshot::install_phantomjs()'
 
 man-docs:
 	R --silent -e 'devtools::document()'
