@@ -18,7 +18,7 @@ A stand-alone OTP server can be built deployed in the [otp/](otp/) directory.
 
 Our images can also be obtained directly from [docker.io](https://docker.io).
 
-* [datasciencecampus/repository/list](https://cloud.docker.com/u/datasciencecampus/repository/list).
+* [hub.docker.com/u/datasciencecampus](https://hub.docker.com/u/datasciencecampus).
 
 ## Running
 
