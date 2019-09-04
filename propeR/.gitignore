@@ -39,3 +39,4 @@ manual.html
 # emacs scratch
 *~
 *\#*
+.fix_errors.R

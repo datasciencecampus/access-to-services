@@ -47,6 +47,8 @@ Once all the data is converted, we can use [OpenTripPlanner](http://www.opentrip
 ## The propeR package
 For ease of use, the tool has been converted into an R package that can be found [here](https://github.com/datasciencecampus/access-to-services/tree/develop/propeR). Read the [manual.md](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manual.md) on how to find relevant bus and train travel data, convert it in GTFS format, initiate a OpenTripPlanner server and query it using the propeR package.
 
+We have also created a docker image of the example OTP server in the propeR package, and the propeR package itself. To install and run, [follow these steps](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manualDocker.md).
+
 ## Authors / Contributors
 
 #### Data Science Campus - Office for National Statistics
