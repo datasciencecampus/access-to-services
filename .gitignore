@@ -30,8 +30,6 @@ rsconnect/
 .Rproj.user
 #actual files and folders
 output/
-#ignore otp
-otp/
 #html files
 GUIDE.html
 README.html

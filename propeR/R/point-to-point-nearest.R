@@ -28,6 +28,7 @@
 ##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   pointToPointNearest(
 ##'     output.dir = 'C:\Users\User\Documents',
 ##'     otpcon,
@@ -37,6 +38,7 @@
 ##'     startDateAndTime = "2018-08-18 12:00:00",
 ##'     nearestNum = 1,
 ##'   )
+##' }
 ##' @export
 pointToPointNearest <- function(output.dir,
                              otpcon = otpcon,

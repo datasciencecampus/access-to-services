@@ -8,8 +8,9 @@
 ##' @return Returns a cleaned GTFS zip file
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##' cleanGTFS(gtfs.dir, gtfs.filename)
-##'
+##' }
 ##' @export
 cleanGTFS <- function(gtfs.dir,
                       gtfs.filename) {
@@ -147,8 +148,9 @@ cleanGTFS <- function(gtfs.dir,
 ##' @return Returns a stop file with fixed lats and lons
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##' cleanGTFS(stopsfile)
-##'
+##' }
 ##' @export
 stopFIX <- function(gtfs.dir,
                     stops.filename) {

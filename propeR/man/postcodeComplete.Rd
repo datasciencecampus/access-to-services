@@ -15,9 +15,6 @@ The latitude and longitude in decimal degrees.
 \description{
 Generates a postcode from a partial postcode
 }
-\examples{
-postcodeToDecimalDegrees_backup('NP10 8XG')
-}
 \author{
 Michael Hodge
 }

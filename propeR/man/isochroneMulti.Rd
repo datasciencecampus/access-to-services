@@ -106,15 +106,6 @@ A comma separated value file of journey times for each origin and destination is
 A map of the journey can also be saved as a .png image and .html file.
 The polygons can also be saved as a .GeoJSON file.
 }
-\examples{
-  isochroneMulti(
-    output.dir = 'C:\\Users\\User\\Documents',
-    otpcon,
-    originPoints,
-    destinationPoints,
-    startDateAndTime = "2018-08-18 12:00:00"
-  )
-}
 \author{
 Michael Hodge
 }

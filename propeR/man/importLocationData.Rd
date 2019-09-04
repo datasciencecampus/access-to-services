@@ -29,9 +29,6 @@ R dataframe of location points
 \description{
 Imports location data from a comma separated file containing either latitude and longitude values, or postcode values
 }
-\examples{
-originPoints <- importLocationData('C:\\Users\\User\\Documents\\origins.csv', idcol = "name", loncol = "lon", latcol = "lat")
-}
 \author{
 Michael Hodge
 }

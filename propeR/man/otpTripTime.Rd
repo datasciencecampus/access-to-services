@@ -55,16 +55,6 @@ Returns trip time in simple or detailed form. The parameters from, to, modes,
 date and time must be specified in the function call, other parameters have
 defaults set and are optional in the call.
 }
-\examples{
-  result <- otpTripTime(
-    otpcon,
-    from = "51.5128,-3.2347",
-    to = "51.4779, -3.1830",
-    modes = "WALK, TRANSIT",
-    date = "2018-10-01",
-    time = "08:00am"
-  )
-}
 \author{
 Michael Hodge
 }

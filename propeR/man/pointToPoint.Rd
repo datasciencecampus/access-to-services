@@ -97,15 +97,6 @@ Calculates the journey time and details between a single origin and destination.
 A comma separated value file of journey details is saved in the specified output folder.
 A map of the journey can also be saved as a .png image and .html file.
 }
-\examples{
-  pointToPoint(
-    output.dir = 'C:\\Users\\User\\Documents',
-    otpcon,
-    originPoints,
-    destinationPoints,
-    startDateAndTime = "2018-08-18 12:00:00"
-  )
-}
 \author{
 Michael Hodge
 }

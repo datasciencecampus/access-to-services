@@ -46,6 +46,7 @@
 ##' @return Saves journey details as CSV to output directory (optional: a map in PNG and HTML formats, the polygons as a GeoJSON)
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   isochroneMulti(
 ##'     output.dir = 'C:\Users\User\Documents',
 ##'     otpcon,
@@ -53,6 +54,7 @@
 ##'     destinationPoints,
 ##'     startDateAndTime = "2018-08-18 12:00:00"
 ##'   )
+##' }
 ##' @export
 isochroneMulti <- function(output.dir,
                            otpcon,

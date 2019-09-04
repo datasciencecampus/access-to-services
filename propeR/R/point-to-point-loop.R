@@ -32,6 +32,7 @@
 ##' @return Saves journey details as comma separated value file to output directory
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   pointToPointLoop(
 ##'     output.dir = 'C:\Users\User\Documents',
 ##'     otpcon,
@@ -41,6 +42,7 @@
 ##'     journeyReturn = TRUE,
 ##'     startDateAndTime = "2018-08-18 12:00:00"
 ##'   )
+##' }
 ##' @export
 pointToPointLoop <- function(output.dir,
                              otpcon,

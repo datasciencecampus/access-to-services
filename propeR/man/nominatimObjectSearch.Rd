@@ -19,9 +19,6 @@ dataframe of lats and lons of nearest nodes
 \description{
 Finds lthe nearest object to a lat and lon
 }
-\examples{
-nominatimNodeSearch(lat, lon)
-}
 \author{
 Michael Hodge
 }

@@ -47,6 +47,7 @@
 ##' @return Saves journey details as comma separated value file to output directory. A map in .png and .html formats, and/or a polygon as a .GeoJSON format, may also be saved
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   isochrone(
 ##'     output.dir = 'C:\Users\User\Documents',
 ##'     otpcon,
@@ -54,6 +55,7 @@
 ##'     destinationPoints = destinationPoints,
 ##'     startDateAndTime = "2018-08-18 12:00:00"
 ##'   )
+##' }
 ##' @export
 isochrone <- function(output.dir,
                       otpcon,

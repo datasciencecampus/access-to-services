@@ -11,11 +11,13 @@
 ##' @param infoPrint Specifies whether you want some information printed to the console or not, default is TRUE
 ##' @author Michael Hodge
 ##' @examples
+##' @donotrun{
 ##'   locationValidatorIsochrone(
 ##'     output.dir = 'C:\Users\User\Documents',
 ##'     otpcon,
 ##'     locationPoints
 ##'   )
+##' }
 ##' @export
 locationValidatorIsochrone <- function(output.dir,
                                 otpcon = otpcon,

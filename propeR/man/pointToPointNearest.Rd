@@ -65,17 +65,6 @@ pointToPointNearest(output.dir, otpcon = otpcon,
 Calculates the journey time and details between multiple origins and/or destinations. 
 A comma separated value file of journey details is saved in the output folder.
 }
-\examples{
-  pointToPointNearest(
-    output.dir = 'C:\\Users\\User\\Documents',
-    otpcon,
-    originPoints,
-    destinationPoints,
-    journeyReturn = TRUE,
-    startDateAndTime = "2018-08-18 12:00:00",
-    nearestNum = 1,
-  )
-}
 \author{
 Michael Hodge
 }

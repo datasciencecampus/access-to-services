@@ -19,10 +19,6 @@ Returns a cleaned GTFS zip file
 \description{
 Generates a new, cleaned GTFS zip file.
 }
-\examples{
-cleanGTFS(gtfs.dir, gtfs.filename)
-
-}
 \author{
 Michael Hodge
 }
