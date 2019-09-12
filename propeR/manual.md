@@ -4,22 +4,29 @@
 
 ## Contents
 
-
-* [Introduction and Preprocessing GTFS feed](#introduction-and-preprocessing-gtfs-feed)
-  	* [Background and Software Prerequisities](#background-and-software-prerequisites)
+* [Introduction](#introduction)
+* [GTFS feed](#gtfs-feed)
   	* [Creating a GTFS feed](#creating-a-gtfs-feed)
   	* [TransXChange to GTFS](#transxchange-to-gtfs)
   		* [TransXChange2GTFS by danbillingsley](transxchange2gtfs-by-danbillingsley)
   		* [transxchange2gtfs by planar network](transxchange2gtfs-by-planar-network)
   	* [CIF to GTFS](#cif-to-gtfs)
-  	* [Cleaning the GTFS Data](#cleaning-the-gtfs-data)
-  	* [Sample GTFS Data](#sample-gtfs-data)  
+  	* [Cleaning the GTFS data](#cleaning-the-gtfs-data)
+  	* [Sample GTFS data](#˜sample-gtfs-data)  
 
-* [Creating the OpenTripPlanner server](#creating-the-opentripplanner-server)    
+* [Creating and running an OpenTripPlanner server](#creating-and-running-an-opentripplanner-server)
+	* [Java method](#java-method)
+  * [Docker method](#docker-method)
 
-* [Running propeR packages](#running-proper-packages)
-	* [Data Prerequisites](#data-prerequisites)
-	* [propeR Functions](#proper-functions)
+* [Installing propeR](#installing-proper)
+  * [R installation](#r-installation)
+  * [Docker installation](#docker-installation)
+
+* [Running propeR](#running-proper)
+  * [Data prerequisites](#data-prerequisites)
+  * [Using R](#using-rstudio)
+  * [Using Docker](#using-docker)
+	* [propeR functions](#proper-functions)
   		* [otpConnect](#otpconnect)
   		* [importLocationData and importGeojsonData](#importlocationdata-and-importgeojsondata)
   		* [pointToPoint](#pointtopoint)
@@ -36,19 +43,13 @@
 
 4. [FAQ](#faq)    
 
-## Introduction and Preprocessing GTFS feed
-
-### Background and Software Prerequisites
-
-* A C# compiler such as Visual Studio Code (if building own GTFS)
-* MySQL (if building own GTFS)
-* R and your GUI of choice, such as RStudio
-* Installation of propeR and associated packages [[here]](https://github.com/datasciencecampus/access-to-services)
-* Java SE Runtime Environment 8 (preferrably 64-bit) [[download here]](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html)
+## Introduction
 
 This R package (propeR) was created to analyse multimodal transport for a number of research projects at the [Data Science Campus, Office for National Statistics](https://datasciencecampus.ons.gov.uk/).
 
-It was quickly realised that the universally preferred form of transport timetable data was [General Transit Feed Specification (GTFS)](https://en.wikipedia.org/wiki/General_Transit_Feed_Specification), as used by [Google maps](https://developers.google.com/transit/gtfs/reference/). However, for the UK, only [Manchester](https://transitfeeds.com/p/transport-for-greater-manchester/224) and [London](https://tfl.gov.uk/info-for/open-data-users/) have open-source GTFS feeds available.
+## GTFS feed
+
+propeR can be used without a General Transit Feed Specification (GTFS)](https://en.wikipedia.org/wiki/General_Transit_Feed_Specification) dataset. However, a GTFS feed is required to analyse public transport. Without it you can analyse car, bicycle, and foot transport using OpenStreetMap (OSM) data.
 
 Understanding the complete UK transit network relies on the knowledge and software that can parse various other transit feeds such as bus data, provided in [TransXChange](https://www.gov.uk/government/collections/transxchange) format, and train data, provided in [CIF](https://www.raildeliverygroup.com/our-services/rail-data/timetable-data.html) format.
 
@@ -142,9 +143,11 @@ Where `gtfs.dir` is the directory where the GTFS ZIP folder is located, and `gtf
 
 The Data Science Campus as created some cleaned GTFS data for buses around [Cardiff, Wales](https://www.openstreetmap.org/#map=11/51.6700/-3.1600). This can be found [here](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Cardiff/Mar19/Cardiff_Mar19.zip). This data was created using the steps above.
 
-**Note**: _this GTFS may not contain the most recent timetables, it is only designed as a practice set of GTFS data for use with the propeR tool. Some (but not most) services have end dates of 2018-08-15, 2018-09-02, 2018-10-31. Therefore, anlysing journeys after these dates will not include these services. Most services have an end date capped at 2020-01-01._
+**Note**: _this GTFS may not contain the most recent timetables, it is only designed as a practice set of GTFS data for use with the propeR tool. Some (but not most) services have end dates of 2018-08-15, 2018-09-02, 2018-10-31. Therefore, analysing journeys after these dates will not include these services. Most services have an end date capped at 2020-01-01._
 
-## Creating the OpenTripPlanner server
+## Creating and running an OpenTripPlanner server
+
+### Java method
 
 [OpenTripPlanner (OTP)](http://www.opentripplanner.org/) is an open source multi-modal trip planner, which runs on Linux, Mac, Windows, or potentially any platform with a Java virtual machine. More details, including basic tutorials can be found [here](http://docs.opentripplanner.org/en/latest/). Guidance on how to setup the OpenTripPlanner locally can be found [here](https://github.com/opentripplanner/OpenTripPlanner/wiki). Here is the method that worked for us:
 
@@ -168,7 +171,84 @@ The Data Science Campus as created some cleaned GTFS data for buses around [Card
 Again, checking the shaded.jar file and folder names are correct.
 9. If successful, the front-end of OTP should be accessible from your browser using [http://localhost:8080/](http://localhost:8080/).
 
-## Running propeR packages
+### Docker method
+
+Again for convenience we have created a docker image to run an OTP server. First fire up OTP server (parse `-d` flag to daemonise).
+
+```
+docker run -p 8080:8080 datasciencecampus/dsc_otp:1.0
+```
+
+A stand-alone OTP server can also be built and deployed in the [otp/](otp/) directory by editing the `Dockerfile` and `build.sh` files. The current files will build a OTP server for Cardiff, Wales.
+
+## Installing propeR
+
+### R installation
+
+The easiest method is to install direct from this GitHub repository using:
+
+```
+library(devtools)
+install_github("datasciencecampus/access-to-services/propeR")
+```
+
+Failing this, you can pull this repository and install locally using:
+
+```
+install("propeR/dir/here")
+```
+
+#### R building
+
+If neither method above works. Or you wish to make changes to the package. Then you will need to build the package. Building propeR requires devtools and roxygen2:
+
+```
+# R
+install.packages("devtools")
+install.packages("roxygen2")
+```
+
+Then:
+
+```
+build("propeR/dir/here")
+install("propeR/dir/here")
+```
+
+Once you have installed propeR using RStudio you can now [start using it in RStudio.](#using-rstudio)
+
+### Docker installation
+
+For convenience we have created a [Docker](https://www.docker.com/) image for
+the [propeR R package](https://github.com/datasciencecampus/access-to-services/tree/develop/propeR).
+
+The propeR R package can be built from the parent directory as follows:
+
+```
+cd to/propeR/dir/
+docker build . --tag=dsc_proper
+```
+
+Or you can build from the [online docker image](https://hub.docker.com/u/datasciencecampus), using:
+
+```
+docker run datasciencecampus/dsc_proper:1.0
+```
+
+See [Dockerfile](Dockerfile) for more information and dependencies. Once you have installed propeR using Docker you can now [start using it in Docker.](#using-docker)
+
+## Running propeR
+
+### Data prerequisites
+
+All location data (origin and destination) must be in comma separated (CSV) format and contain the following columns:
+* A unique ID column
+* A latitude column, where data is in decimal degrees (or a postcode column)
+* A longitude column, where data is in decimal degrees (or a postcode column)
+
+The CSV file must contain headers, the header names can be specified in **`importLocationData()`**.
+
+### Using RStudio
 
 The [README](https://github.com/datasciencecampus/propeR/blob/develop/README.md) will provide a guide on how to install propeR. As with any R package, it can be loaded in an R session using:
 
@@ -177,7 +257,26 @@ The [README](https://github.com/datasciencecampus/propeR/blob/develop/README.md)
 library(propeR)
 ```
 
-This will give you access to the the following functions:
+### Using Docker
+
+Alternatively. If you have installed propeR using Docker you can use Docker to run propeR. Put source and destination `.csv` data in a directory, e.g., `/tmp/data/`. Example data files `origin.csv` and `destination.csv` can be found in `propeR/inst/extdata/`, then:
+
+```
+docker run -v /tmp/data:/mnt datasciencecampus/dsc_proper:1.0 'otp.host="XXX.XXX.X.X", fun="pointToPoint", src_file="/mnt/origin.csv", dst_file="/mnt/destination.csv", output.dir="/mnt", startDateAndTime="2019-08-02 12:00:00"'
+```
+
+where `otp.host` is your inet address, which can be found using:
+
+```
+/sbin/ifconfig |grep inet |awk '{print $2}'
+
+```
+
+Output data will be in `tmp/data/`.
+
+### propeR functions
+
+propeR has the following functions:
 
 | Function | Description |
 |-----------------------|-----------------------------------------|
@@ -197,18 +296,7 @@ This will give you access to the the following functions:
 | `pointToPointNearest` | Calculates the journey details between the nearest (k = 1) destination to each origin using a KNN approach. Can also calculate the second (k = 2), third (k = 3) naearest, and so forth. |
 | `pointToPointTime` | Same as `pointToPoint()`, but between a start and end time/date. Output can be an animated GIF image. |
 
-### Data Prerequisites
-
-All location data (origin and destination) must be in comma separated (CSV) format and contain the following columns:
-* A unique ID column
-* A latitude column, where data is in decimal degrees (or a postcode column)
-* A longitude column, where data is in decimal degrees (or a postcode column)
-
-The CSV file must contain headers, the header names can be specified in **`importLocationData()`**.
-
-### propeR Functions
-
-Use **`?`** in R to view the function help files for more information, e.g., **`?isochrone`**. Below we will run through each function, but the help files will help you understand all the parameters that can be changed in each function.
+Use **`?`** in R to view the function help files for more information, e.g., **`?isochrone`**. Below we will run through each function using the RStudio method, but the help files will help you understand all the parameters that can be changed in each function.
 
 #### otpConnect
 
@@ -428,6 +516,14 @@ A PNG and interactive HTML map can also be saved in the output directory by chan
 
 In addition, the polygons can be saved as a single .GeoJSON file by changing `geojsonOutput` to `T`.
 
+```
+#R
+library(propeR)
+```
+
+
+
+
 ## FAQ
 
 Q: Do I need an OpenStreetMap (.osm) file to run propeR?
@@ -450,7 +546,7 @@ Q: I found a bug!
 
 >A: Please use the GitHub issues form to provide us with the information ([here](https://github.com/datasciencecampus/access-to-services/issues))
 
-### Common Errors
+### Common errors
 
 Q: Why am I receiving the following error when running propeR?
 

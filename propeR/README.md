@@ -8,102 +8,21 @@
 
 <p align="center"><img align="center" src="meta/logo/propeR_logo_v1.png" width="200px"></p>
 
-An R tool for analysing multimodal transport using GTFS data built using [OpenTripPlanner](http://www.opentripplanner.org/).
+An R tool for analysing multimodal transport. Requests calls to a [OpenTripPlanner](http://www.opentripplanner.org/) server. For public transport, a GTFS feed is required.
 
-## R Installation and Build
+The [propeR manual](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manual.md) contains information about how to: create a GTFS feed, setup an OpenTripPlanner (OTP) server, installing and using propeR. There are two options for both install propeR (Rstudio and Docker) and running the OTP server (Java or Docker).
 
-### Installing
+## Software Prerequisites
 
-Direct from github repo:
-
-```
-library(devtools)
-install_github("datasciencecampus/access-to-services/propeR")
-```
-
-Or from local:
-
-```
-install("propeR_dir")
-```
-
-### Building
-
-Build requires devtools and roxygen2
-
-```
-# R
-install.packages("devtools")
-install.packages("roxygen2")
-```
-
-Then
-
-```
-build("propeR_dir")
-install("propeR_dir")
-```
-
-### Using
-
-```
-library("propeR")
-```
-
-Then follow the steps in the [propeR manual](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manual.md) to run the functions.
-
-## Docker Installation and Build
-
-For convenience we have created [Docker](https://www.docker.com/) images for
-the example Cardiff OpenTripPlanner (OTP) server and [propeR R package](https://github.com/datasciencecampus/access-to-services/tree/develop/propeR) components of this project.
-
-### Installing
-
-The propeR R package can be built from the parent directory as follows:
-
-```
-docker build . --tag=dsc_proper
-```
-
-See [Dockerfile](Dockerfile) for more information and dependencies.
-
-A stand-alone OTP server can be built deployed in the [otp/](otp/) directory.
-
-#### docker.io
-
-Our images can also be obtained directly from [docker.io](https://docker.io).
-
-* [datasciencecampus docker](https://hub.docker.com/u/datasciencecampus).
-
-### Building
-
-#### OTP
-
-First fire up OTP server (parse `-d` flag to daemonise).
-
-```
-docker run -p 8080:8080 datasciencecampus/dsc_otp:1.0
-```
-
-### Using
-
-You can run propeR from within R session (as described in the [propeR manual](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manual.md)), or alternatively can run our docker image.
-
-Put source and destination `.csv` data in a directory, e.g., `/tmp/data/`.
-Example data files `origin.csv` and `destination.csv` can be found in `propeR/inst/extdata/`, then:
-
-```
-docker run -v /tmp/data:/mnt datasciencecampus/dsc_proper:1.0 'otp.host="XXX.XXX.X.X", fun="pointToPoint", src_file="/mnt/origin.csv", dst_file="/mnt/destination.csv", output.dir="/mnt", startDateAndTime="2019-08-02 12:00:00"'
-```
-
-where `otp.host` is your inet address, which can be found using:
-
-```
-/sbin/ifconfig |grep inet |awk '{print $2}'
-
-```
-
-Output data will be in `tmp/data/`.
+* GTFS building (optional)
+  * A C# compiler such as Visual Studio Code, AND
+  * MySQL
+* OTP server (required)
+  * Java SE Runtime Environment 8 (preferrably 64-bit) [[download here]](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html), OR
+  * Docker
+* propeR (required)
+  * R and your GUI of choice, such as RStudio, OR
+  * Docker
 
 ## Acknowledgments
 
