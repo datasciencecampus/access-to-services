@@ -44,10 +44,13 @@ The different nature of the data formats and the difficulty of combining them un
 
 Once all the data is converted, we can use [OpenTripPlanner](http://www.opentripplanner.org/), an open-source network builder, to built the multimodal transport network and run queries using the tool.
 
-## The propeR package
-For ease of use, the tool has been converted into an R package that can be found [here](https://github.com/datasciencecampus/access-to-services/tree/develop/propeR). Read the [manual.md](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manual.md) on how to find relevant bus and train travel data, convert it in GTFS format, initiate a OpenTripPlanner server and query it using the propeR package.
+## graphite
 
-We have also created a docker image of the example OTP server in the propeR package, and the propeR package itself. To install and run, [follow the steps in the relevant section here](https://github.com/datasciencecampus/access-to-services/blob/develop/propeR/manual.md).
+To create a GTFS file, build and host an OTP server, please refer to [graphite](https://github.com/datasciencecampus/graphite).
+
+## propeR
+
+To analyse an OTP graph, you can use [propeR](https://github.com/datasciencecampus/proper).
 
 ## Authors / Contributors
 
