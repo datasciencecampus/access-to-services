@@ -114,6 +114,7 @@ isochroneMulti <- function(output.dir,
   sp::coordinates(destination_points_spdf) <- ~ lon + lat 
   
   file_name <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+  file_name <- gsub("[^A-Za-z0-9]", "_", file_name)
   
   unlink(paste0(output.dir, "/isochroneMulti-", file_name) , recursive = T) 
   dir.create(paste0(output.dir, "/isochroneMulti-", file_name)) 
@@ -442,7 +443,7 @@ isochroneMulti <- function(output.dir,
     cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
     cat("Journey details:\n", sep = "")
     cat("Isochrones generated: ", num.total-length(originPoints_removed_list),"/",num.total,"\n", sep = "")
-    cat("Destinations possible: ", ncol(time_df) - sum(colSums(is.na(time_df)) == nrow(time_df)),"/",ncol(time_df),"\n", sep = "")
+    cat("Destinations possible: ", ncol(time_df) - sum(colSums(is.na(time_df)) == nrow(time_df)),"/",ncol(time_df),"\n\n", sep = "")
   }
   
   write.csv(
@@ -479,7 +480,7 @@ isochroneMulti <- function(output.dir,
     unlink(paste0(output.dir, "/isochroneMulti-", file_name, "/map/isochroneMulti-", file_name, "_files"), recursive = T) 
   }
   
-  if (infoPrint == T) {
-    cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T){
+    cat("Outputs were saved to ", output.dir, "/isochroneMulti-", file_name,"/.\nThanks for using propeR.", sep="")
   }
 }

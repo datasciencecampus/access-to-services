@@ -33,6 +33,7 @@ locationValidatorIsochrone <- function(output.dir,
   num.total <- nrow(locationPoints)
   
   file_name <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+  file_name <- gsub("[^A-Za-z0-9]", "_", file_name)
   
   unlink(paste0(output.dir, "/locationChecker-", file_name) , recursive = T) 
   dir.create(paste0(output.dir, "/locationChecker-", file_name)) 

@@ -133,7 +133,8 @@ isochroneTime <- function(output.dir,
   destination_points_output <- destinationPoints
   destination_points_output[as.character(time_series)] <- NA
   
-  file_name <- paste0(from_origin$name)
+  file_name <- from_origin$name
+  file_name <- gsub("[^A-Za-z0-9]", "_", file_name)
   
   unlink(paste0(output.dir, "/isochroneTime-", file_name) , recursive = T) 
   dir.create(paste0(output.dir, "/isochroneTime-", file_name)) 
@@ -389,7 +390,7 @@ isochroneTime <- function(output.dir,
   ######################
   
   if (infoPrint == T) {
-    cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
+    cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n\n", sep="")
   }
 
   write.csv(
@@ -423,7 +424,7 @@ isochroneTime <- function(output.dir,
     invisible(print(m)) # plots map to Viewer
   }
   
-  if (infoPrint == T) {
-    cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T){
+    cat("Outputs were saved to ", output.dir, "/isochroneTime-", file_name,"/.\nThanks for using propeR.", sep="")
   }
 }
