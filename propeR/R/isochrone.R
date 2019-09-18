@@ -120,7 +120,8 @@ isochrone <- function(output.dir,
   start_date <- as.Date(startDateAndTime) 
   date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M") 
   
-  file_name <- paste0(from_origin$name,"_",gsub("[[:punct:][:blank:]]+", "_", startDateAndTime))
+  file_name <- paste0(from_origin$name, "_", startDateAndTime)
+  file_name <- gsub("[^A-Za-z0-9]", "_", file_name)
   
   unlink(paste0(output.dir, "/isochrone-", file_name) , recursive = T) 
   dir.create(paste0(output.dir, "/isochrone-", file_name)) 
@@ -327,7 +328,7 @@ isochrone <- function(output.dir,
     cat("Analysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep = "")
     cat("Journey details:\n", sep = "")
     cat("Destinations possible: ", nrow(destinationPoints[!is.na(destinationPoints$travel_time),]),"/",nrow(destinationPoints),"\n", sep = "")
-    cat("Mean Duration (mins): ", round(mean(destinationPoints$travel_time, na.rm=TRUE),2), " [+/-", round(sd(destinationPoints$travel_time, na.rm=TRUE),2), "]\n", sep = "")
+    cat("Mean Duration (mins): ", round(mean(destinationPoints$travel_time, na.rm=TRUE),2), " [+/-", round(sd(destinationPoints$travel_time, na.rm=TRUE),2), "]\n\n", sep = "")
   }
   
   write.csv(
@@ -365,7 +366,7 @@ isochrone <- function(output.dir,
       driver = "GeoJSON")
   }
   
-  if (infoPrint == T) {
-    cat("Outputs saved. Thanks for using propeR.\n")
+  if (infoPrint == T){
+    cat("Outputs were saved to ", output.dir, "/isochrone-", file_name,"/.\nThanks for using propeR.", sep="")
   }
 }

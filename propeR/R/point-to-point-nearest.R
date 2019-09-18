@@ -82,6 +82,7 @@ pointToPointNearest <- function(output.dir,
   num.total <- nrow(originPoints) * multiplier
   
   file_name <- format(Sys.time(), "%Y_%m_%d_%H_%M_%S")
+  file_name <- gsub("[^A-Za-z0-9]", "_", file_name)
   
   unlink(paste0(output.dir, "/pointToPointNearest-", file_name) , recursive = T) 
   dir.create(paste0(output.dir, "/pointToPointNearest-", file_name)) 
@@ -340,7 +341,7 @@ pointToPointNearest <- function(output.dir,
   if (infoPrint == T) {
     cat("\nAnalysis complete, now saving outputs to ", output.dir, ", please wait.\n", sep="")
     cat("Journey details:\n", sep = "")
-    cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n", sep = "")
+    cat("Trips possible: ", nrow(point_to_point_table_overview[!is.na(point_to_point_table_overview$duration_mins),]),"/",num.total,"\n\n", sep = "")
   }
   
   if (modes == "CAR") {
@@ -353,7 +354,8 @@ pointToPointNearest <- function(output.dir,
     point_to_point_table_overview,
     file = paste0(output.dir, "/pointToPointNearest-", file_name, "/csv/pointToPointNearest-", file_name, ".csv"),
     row.names = F)
-  if (infoPrint == T) {
-    cat("Outputs saved. Thanks for using propeR.\n")
+  
+  if (infoPrint == T){
+    cat("Outputs were saved to ", output.dir, "/pointToPointNearest-", file_name,"/.\nThanks for using propeR.", sep="")
   }
 }

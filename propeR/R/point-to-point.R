@@ -115,8 +115,9 @@ pointToPoint <- function(output.dir,
   start_date <- as.Date(startDateAndTime)
   date_time_legend <- format(as.POSIXct(startDateAndTime), "%d %B %Y %H:%M")
   
-  file_name <- paste0(from_origin$name,"_",to_destination$name,"_",gsub("[[:punct:][:blank:]]+", "_", startDateAndTime))
-  
+  file_name <- paste0(from_origin$name,"_",to_destination$name, "_", startDateAndTime)
+  file_name <- gsub("[^A-Za-z0-9]", "_", file_name)
+
   unlink(paste0(output.dir, "/pointToPoint-", file_name) , recursive = T) 
   dir.create(paste0(output.dir, "/pointToPoint-", file_name)) 
   dir.create(paste0(output.dir, "/pointToPoint-", file_name, "/csv")) 
@@ -381,6 +382,6 @@ pointToPoint <- function(output.dir,
   }
   
   if (infoPrint == T){
-    cat("Outputs saved. Thanks for using propeR.\n")
+    cat("Outputs were saved to ", output.dir, "/pointToPoint-", file_name,"/.\nThanks for using propeR.", sep="")
   }
 }

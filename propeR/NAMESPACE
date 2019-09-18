@@ -12,7 +12,7 @@ export(nominatimObjectSearch)
 export(otpChoropleth)
 export(otpConnect)
 export(otpIsochrone)
-export(otpJourneyChecker)desti
+export(otpJourneyChecker)
 export(otpTripDistance)
 export(otpTripTime)
 export(pointToPoint)

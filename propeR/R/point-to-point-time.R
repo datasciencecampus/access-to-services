@@ -124,6 +124,7 @@ pointToPointTime <- function(output.dir,
   time_series = seq(as.POSIXct(startDateAndTime), as.POSIXct(endDateAndTime), by = (timeIncrease) * 60) 
   
   file_name <- paste0(from_origin$name,"_",to_destination$name)
+  file_name <- gsub("[^A-Za-z0-9]", "_", file_name)
   
   unlink(paste0(output.dir, "/pointToPointTime-", file_name) , recursive = T) 
   dir.create(paste0(output.dir, "/pointToPointTime-", file_name)) 
@@ -580,7 +581,8 @@ pointToPointTime <- function(output.dir,
   
     invisible(print(m)) 
   }
+
   if (infoPrint == T){
-    cat("Outputs saved. Thanks for using propeR.\n")
+    cat("Outputs were saved to ", output.dir, "/pointToPointTime-", file_name,"/.\nThanks for using propeR.", sep="")
   }
 }
