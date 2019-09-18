@@ -46,9 +46,13 @@ Once all the data is converted, we can use [OpenTripPlanner](http://www.opentrip
 
 ## graphite
 
+<p align="center"><img align="center" src="meta/logo/graphite_logo_v1.png" width="400px"></p>
+
 To create a GTFS file, build and host an OTP server, please refer to [graphite](https://github.com/datasciencecampus/graphite).
 
 ## propeR
+
+<p align="center"><img align="center" src="meta/logo/propeR_logo_v1.png" width="200px"></p>
 
 To analyse an OTP graph, you can use [propeR](https://github.com/datasciencecampus/proper).
 
