@@ -141,9 +141,28 @@ Where `gtfs.dir` is the directory where the GTFS ZIP folder is located, and `gtf
 
 ### Sample GTFS data
 
-The Data Science Campus as created some cleaned GTFS data for buses around [Cardiff, Wales](https://www.openstreetmap.org/#map=11/51.6700/-3.1600). This can be found [here](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Cardiff/Mar19/Cardiff_Mar19.zip). This data was created using the steps above.
+The Data Science Campus has created some cleaned GTFS data from March 2019 (using the steps above) for:
 
-**Note**: _this GTFS may not contain the most recent timetables, it is only designed as a practice set of GTFS data for use with the propeR tool. Some (but not most) services have end dates of 2018-08-15, 2018-09-02, 2018-10-31. Therefore, analysing journeys after these dates will not include these services. Most services have an end date capped at 2020-01-01._
+* buses in Cardiff, Wales, UK. [Download, 1.7MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/cardiff_bus/Cardiff-gtfs.zip) 
+* buses in Wales, UK. [Download, 22.3MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/wales_bus/W_GTFS.zip) 
+* buses in Scotland, UK. [Download, 34.6MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/scotland_bus/S_GTFS.zip) 
+* buses in East Anglia, England, UK. [Download, 3.5MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/EA_GTFS.zip) 
+* buses in East Midlands, England, UK. [Download, 28.0MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/EM_GTFS.zip) 
+* buses in Greater London, England, UK. [Download, 99.8MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/L_GTFS.zip) 
+* buses in the North East, England, UK. [Download, 43,4MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/NE_GTFS.zip) 
+* buses in the North West, England, UK. [Download, 34.1MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/NW_GTFS.zip) 
+* buses in the South East, England, UK. [Download, 55.3MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/SE_GTFS.zip) 
+* buses in the South West, England, UK. [Download, 26.7MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/SW_GTFS.zip) 
+* buses in the West Midlands, England, UK. [Download, 25.5MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/WM_GTFS.zip) 
+* buses in Yorkshire, England, UK. [Download, 29.2MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/england_bus/Y_GTFS.zip) 
+* national coaches in the UK. [Download, 1.2MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/ncsd/NCSD_GTFS.zip) 
+* trains in the UK. [Download, 21.4MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/uk_train/train_GTFS.zip) 
+
+The Data Science Campus has also created a bespoke OpenStreetMap (osm) file for Cardiff, Wales, UK for March 2019:
+
+* Cardiff OSM file. [Download, 101.1MB](https://a2s-gtfs.s3.eu-west-2.amazonaws.com/Mar19/cardiff_osm/cardiff.osm) 
+
+**Note**: _these GTFS do not contain the most recent timetables, it is only designed as a practice set of GTFS data for use with the propeR tool. Some (but not most) services have end dates of 2018-08-15, 2018-09-02, 2018-10-31. Therefore, analysing journeys after these dates will not include these services. Most services have an end date capped at 2020-01-01._
 
 ## Creating and running an OpenTripPlanner server
 
@@ -173,13 +192,20 @@ Again, checking the shaded.jar file and folder names are correct.
 
 ### Docker method
 
-Again for convenience we have created a docker image to run an OTP server. First fire up OTP server (parse `-d` flag to daemonise).
+Again for convenience we have created several docker images to run an OTP server. First fire up OTP server (parse `-d` flag to daemonise).
 
 ```
-docker run -p 8080:8080 datasciencecampus/dsc_otp:1.0
+docker run -p 8080:8080 datasciencecampus/<docker_image>
 ```
 
-A stand-alone OTP server can also be built and deployed in the [otp/](otp/) directory by editing the `Dockerfile` and `build.sh` files. The current files will build a OTP server for Cardiff, Wales.
+where `<docker_image>` is:
+
+* `dsc_otp` (graph for Cardiff, Wales, UK from March 2019)
+* `dsc_otp_wales_mar19` (graph for Wales, UK from March 2019)
+* `dsc_otp_scotland_mar19` (graph for Scotland, UK from March 2019)
+* `dsc_otp_england_mar19` (graph for England, UK from March 2019)
+
+A stand-alone OTP server can also be built and deployed in the [otp/](otp/) directory by editing the `Dockerfile` and `build.sh` files.
 
 ## Installing propeR
 
